@@ -1,0 +1,47 @@
+<header class="top-navbar">
+  <div style="display: flex; align-items: center; gap: 1rem;">
+    <button id="mobile-sidebar-toggle" class="btn btn-secondary btn-sm" style="display: none;">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+        <path d="M4 16C4 11.58 7.58 8 12 8C16.42 8 20 11.58 20 16" stroke="var(--jklc-red)" stroke-width="3" stroke-linecap="round"/>
+        <rect x="2" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
+        <rect x="18" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
+        <rect x="1" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+        <rect x="17" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+      </svg>
+      <div>
+        <h2 style="margin: 0; font-size: 1.2rem; font-weight: 800; font-family: var(--font-display); line-height: 1.1;">
+          <a href="{{ url_for('dashboard.index') }}" style="text-decoration: none;">
+            <span style="color: var(--text-main);">Stock</span><span style="color: var(--jklc-red);">Setu</span>
+          </a>
+        </h2>
+        <p style="font-size: 0.72rem; color: var(--text-faint); margin: 0; line-height: 1;">
+          {% if request.endpoint %}
+            {% if request.endpoint == 'dashboard.index' %}Overview
+            {% elif request.endpoint.startswith('products.') %}Products
+            {% elif request.endpoint.startswith('inventory.') %}Inventory
+            {% elif request.endpoint.startswith('billing.') %}Billing
+            {% elif request.endpoint.startswith('users.') %}Users
+            {% else %}{{ request.endpoint | replace('_', ' ') | replace('.', ' › ') | title }}{% endif %}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <a href="{{ url_for('users.profile') }}" style="text-decoration: none;" title="View Profile & Account Settings">
+    <div class="user-profile-badge">
+      <div class="user-avatar">
+        {{ current_user.username[0] | upper if current_user.username else 'U' }}
+      </div>
+      <div style="display: flex; flex-direction: column; line-height: 1.3;">
+        <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">{{ current_user.username }}</span>
+        <span class="role-pill role-{{ current_user.role }}">
+          {{ current_user.role | replace('_', ' ') | title }}
+        </span>
+      </div>
+    </div>
+  </a>
+</header>

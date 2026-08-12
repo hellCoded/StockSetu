@@ -1,0 +1,174 @@
+================================================================================
+INVENTORY HUB — TECHNICAL INFORMATION
+================================================================================
+Generated: 2026-08-12
+
+================================================================================
+1. TECH STACK
+================================================================================
+
+  Language            : Python 3.12
+  Backend Framework   : Flask >= 3.0.0 (Modular Blueprints)
+  Database            : MongoDB via pymongo >= 4.6.0
+  Templating          : Jinja2 >= 3.1.0
+  Security            : Werkzeug >= 3.0.0 (Password Hashing, CSRF Protection)
+  Environment Config  : python-dotenv >= 1.0.0
+  Excel Reports       : openpyxl >= 3.1.5
+  PDF Reports         : ReportLab (A4, Two-Pass Page Numbering)
+  Testing             : pytest >= 8.0.0 + mongomock >= 4.1.0
+  Frontend            : HTML5, Vanilla CSS3, Vanilla JavaScript
+  UI Style            : Custom Design System, CSS Variables, Glassmorphism Modals
+
+================================================================================
+2. PROJECT STRUCTURE
+================================================================================
+
+  CRUDV2/
+  ├── run.py                         # Application entry point
+  ├── config.py                      # App configuration settings
+  ├── requirements.txt               # Python dependencies
+  ├── .env.example                   # Environment variable template
+  ├── PROJECT_DETAILS.txt            # Full project documentation
+  ├── ROLES_AND_PERMISSIONS.md       # RBAC documentation
+  │
+  ├── inventory_app/
+  │   ├── __init__.py                # Flask app factory
+  │   ├── database.py                # MongoDB connection & collections
+  │   │
+  │   ├── routes/                    # Flask Blueprints (HTTP layer)
+  │   │   ├── auth_routes.py         # Login, logout, registration
+  │   │   ├── product_routes.py      # Catalog CRUD & exports
+  │   │   ├── inventory_routes.py    # Stock In/Out/Adjust, transactions
+  │   │   ├── billing_routes.py      # POS counter & bill history
+  │   │   ├── user_routes.py         # User management (admin panel)
+  │   │   ├── api_user_routes.py     # Profile & role request APIs
+  │   │   └── dashboard_routes.py    # Dashboard view
+  │   │
+  │   ├── services/                  # Business logic layer
+  │   │   ├── auth_service.py        # Auth, session, profile, RBAC
+  │   │   ├── product_service.py     # Catalog logic, low-stock alerts
+  │   │   ├── inventory_service.py   # Stock adjustment logic
+  │   │   ├── billing_service.py     # POS cart, bill generation
+  │   │   ├── export_service.py      # Excel & PDF report generation
+  │   │   └── audit_service.py       # Audit log helpers
+  │   │
+  │   ├── templates/                 # Jinja2 HTML templates
+  │   │   ├── base.html              # Base layout
+  │   │   ├── auth/                  # Login, register pages
+  │   │   ├── billing/               # POS counter, bills list
+  │   │   ├── products/              # Catalog pages
+  │   │   ├── inventory/             # Transactions pages
+  │   │   ├── users/                 # User management pages
+  │   │   ├── dashboard/             # Dashboard page
+  │   │   ├── components/            # Reusable UI components
+  │   │   └── errors/                # Error pages (404, 403, etc.)
+  │   │
+  │   ├── static/                    # CSS, JS, static assets
+  │   └── utils/                     # Decorators, helper functions
+  │
+  └── tests/                         # pytest test suite
+      ├── conftest.py                # Fixtures & mongomock setup
+      ├── test_auth.py               # Auth & profile tests
+      ├── test_billing.py            # POS & bill generation tests
+      ├── test_inventory.py          # Stock adjustment tests
+      ├── test_products.py           # Catalog & export tests
+      └── test_roles.py              # RBAC & role request tests
+
+================================================================================
+3. MONGODB COLLECTIONS
+================================================================================
+
+  Collection         Description
+  ─────────────────  ──────────────────────────────────────────────────────────
+  users              User accounts, roles, active status, hashed passwords
+  products           Catalog items: SKU, category, price, unit, stock, threshold
+  transactions       Stock movement audit log (In / Out / Adjust)
+  bills              Generated POS bills with cart snapshots
+  role_requests      Pending/approved/rejected role elevation requests
+
+================================================================================
+4. USER ROLES & ACCESS CONTROL (RBAC)
+================================================================================
+
+  Role                 Access Level
+  ───────────────────  ────────────────────────────────────────────────────────
+  admin                Full system authority
+                       → User management, role requests inbox, stock adjustments,
+                         catalog CRUD, transactions, POS billing, reports
+
+  inventory_manager    Catalog & stock management
+                       → Product CRUD, stock In/Out/Adjust, transaction logs,
+                         catalog view, POS billing
+                       → Restricted: user admin, admin inbox
+
+  staff                Point-of-Sale & catalog view only
+                       → POS billing counter, receipt generation, catalog view
+                       → Can submit role elevation requests via My Profile
+
+================================================================================
+5. KEY FEATURES
+================================================================================
+
+  A. Authentication & Security
+     - Session-based authentication with Werkzeug password hashing
+     - CSRF protection via @csrf_protected decorator
+     - Login required and role required decorators
+     - Self-demotion and self-deactivation safeguards for admins
+
+  B. Product Catalog
+     - Full CRUD: Name, SKU, Category, Price, Unit, Min Stock Threshold
+     - Low stock threshold alert badges
+     - Live client-side instant search and column sorting
+     - Live Stock Preview Widget for projected balance calculation
+
+  C. Inventory Transactions
+     - Stock In  : Record incoming supplier inventory
+     - Stock Out  : Record outgoing stock shipments
+     - Adjust Stock : Audit reconciliations (damaged, lost, corrections)
+     - Full searchable transaction audit log
+
+  D. POS Billing
+     - Cart management with auto-calculated subtotal, tax, discount, total
+     - Thermal / A4 receipt view with page-width scaling
+     - Bill history with re-print capability
+
+  E. Export Service (export_service.py)
+     - Excel: Auto column-width, styled headers, freeze panes
+     - PDF: High-resolution A4, dynamic "Page X of Y" via two-pass rendering
+
+  F. User Management
+     - Admin panel: Register, activate/deactivate accounts
+     - Role Requests Inbox: Review, approve, or reject elevation requests
+     - Role Updation modal with live privilege description preview
+     - My Profile: Edit name/email, change password, submit role requests
+
+================================================================================
+6. TEST SUITE
+================================================================================
+
+  Framework    : pytest
+  Mock DB      : mongomock (in-memory MongoDB for isolated tests)
+  Status       : 36 / 36 PASSED (100% success)
+
+  File                 Tests Covered
+  ───────────────────  ────────────────────────────────────────────────────────
+  test_auth.py         Login, registration, duplicates, profile update, logout
+  test_billing.py      Cart calculation, bill generation, receipt rendering
+  test_inventory.py    Stock inward/outward adjustments, audit transactions
+  test_products.py     Catalog CRUD, low stock alerts, Excel/PDF exports
+  test_roles.py        RBAC rules, role requests, inbox approval/rejection
+
+================================================================================
+7. DEPENDENCIES (requirements.txt)
+================================================================================
+
+  Flask>=3.0.0
+  pymongo>=4.6.0
+  python-dotenv>=1.0.0
+  Werkzeug>=3.0.0
+  Jinja2>=3.1.0
+  pytest>=8.0.0
+  mongomock>=4.1.0
+  openpyxl>=3.1.5
+
+================================================================================

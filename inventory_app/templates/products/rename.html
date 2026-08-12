@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Rename {{ product.product_name }} - StockSetu{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm">
+    <i class="fa-solid fa-arrow-left"></i> Back to Product Details
+  </a>
+  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem;">Rename Product Business Identifier</h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">Special Administrative Operation for primary business identifier modification.</p>
+</div>
+
+<div class="card" style="max-width: 650px;">
+  <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
+    <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.2rem; margin-right: 0.5rem;"></i>
+    <div>
+      <strong>Administrator Warning:</strong> Renaming a product updates its primary identifier across the system and re-links historical transaction records to maintain full audit continuity.
+    </div>
+  </div>
+
+  <form method="POST" action="{{ url_for('products.rename_product_route', product_name=product.product_name) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label class="form-label"><i class="fa-solid fa-tag" style="color: var(--primary); margin-right: 0.3rem;"></i> Current Product Name</label>
+      <input type="text" class="form-control" value="{{ product.product_name }}" readonly disabled style="opacity: 0.7;">
+    </div>
+
+    <div class="form-group">
+      <label for="new_product_name" class="form-label"><i class="fa-solid fa-pen-to-square" style="color: var(--primary); margin-right: 0.3rem;"></i> New Product Name <span style="color: #dc2626;">*</span></label>
+      <input type="text" id="new_product_name" name="new_product_name" class="form-control" value="{{ new_product_name if new_product_name else '' }}" placeholder="Enter unique new product name" required maxlength="255">
+    </div>
+
+    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+      <button type="submit" class="btn btn-primary" data-confirm="Are you sure you want to rename this product identifier?"><i class="fa-solid fa-i-cursor"></i> Confirm Rename Operation</button>
+      <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

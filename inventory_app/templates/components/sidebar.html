@@ -1,0 +1,96 @@
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="{{ url_for('dashboard.index') }}" style="display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: inherit; width: 100%;">
+      <div class="sidebar-brand-icon" style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 16C4 11.58 7.58 8 12 8C16.42 8 20 11.58 20 16" stroke="var(--jklc-red)" stroke-width="3" stroke-linecap="round"/>
+          <rect x="2" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue-light)"/>
+          <rect x="18" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue-light)"/>
+          <rect x="1" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+          <rect x="17" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+        </svg>
+      </div>
+      <span style="font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; line-height: 1;">
+        <span style="color: var(--text-sidebar-active, #ffffff);">Stock</span><span style="color: var(--jklc-red);">Setu</span>
+      </span>
+    </a>
+  </div>
+  
+  <ul class="sidebar-menu">
+    <li>
+      <a href="{{ url_for('dashboard.index') }}" class="sidebar-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('products.list_products') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('products.') %}active{% endif %}">
+        <i class="fa-solid fa-box"></i>
+        <span>Products</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('inventory.handle_stock_in') }}" class="sidebar-link {% if request.endpoint == 'inventory.handle_stock_in' %}active{% endif %}">
+        <i class="fa-solid fa-arrow-down-left"></i>
+        <span>Stock In</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('inventory.handle_stock_out') }}" class="sidebar-link {% if request.endpoint == 'inventory.handle_stock_out' %}active{% endif %}">
+        <i class="fa-solid fa-arrow-up-right"></i>
+        <span>Stock Out</span>
+      </a>
+    </li>
+    {% if current_user.role in ['admin', 'inventory_manager'] %}
+    <li>
+      <a href="{{ url_for('inventory.handle_adjust') }}" class="sidebar-link {% if request.endpoint == 'inventory.handle_adjust' %}active{% endif %}">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Adjust Stock</span>
+      </a>
+    </li>
+    {% endif %}
+    <li>
+      <a href="{{ url_for('inventory.view_transactions') }}" class="sidebar-link {% if request.endpoint == 'inventory.view_transactions' %}active{% endif %}">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Transactions</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('billing.pos') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('billing.') %}active{% endif %}">
+        <i class="fa-solid fa-cash-register"></i>
+        <span>Billing (POS)</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('billing.list_bills') }}" class="sidebar-link {% if request.endpoint == 'billing.list_bills' %}active{% endif %}">
+        <i class="fa-solid fa-file-invoice"></i>
+        <span>Bill History</span>
+      </a>
+    </li>
+
+    {% if current_user.role == 'admin' %}
+    <li style="margin-top: 1rem; border-top: 1px solid var(--bg-card-border); padding-top: 1rem;">
+      <a href="{{ url_for('users.list_users') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('users.') and request.endpoint not in ['users.profile', 'users.request_promotion'] %}active{% endif %}">
+        <i class="fa-solid fa-users-gear"></i>
+        <span>User Management</span>
+        {% if pending_requests_count > 0 %}
+          <span class="badge-requests-count" style="margin-left: auto; background: #ef4444; color: white; padding: 0.15rem 0.45rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; line-height: 1;">{{ pending_requests_count }}</span>
+        {% endif %}
+      </a>
+    </li>
+    {% endif %}
+
+    <li>
+      <a href="{{ url_for('users.profile') }}" class="sidebar-link {% if request.endpoint == 'users.profile' %}active{% endif %}">
+        <i class="fa-solid fa-user"></i>
+        <span>My Profile</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color: #f87171;">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </li>
+  </ul>
+</aside>

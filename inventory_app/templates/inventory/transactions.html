@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction History - StockSetu{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+  <div>
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Inventory Transaction Log</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Complete immutable audit trail of all inventory movements</p>
+  </div>
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Audit Log to Formatted PDF">
+      <i class="fa-solid fa-file-pdf" style="color: #dc2626;"></i> Export PDF
+    </a>
+    <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Audit Log to Microsoft Excel">
+      <i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Export Excel
+    </a>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<form method="GET" action="{{ url_for('inventory.view_transactions') }}" class="filter-bar">
+  <div class="filter-item" style="flex: 2;">
+    <input type="text" name="product_name" class="form-control" placeholder="Filter by product name..." value="{{ current_product }}">
+  </div>
+
+  <div class="filter-item">
+    <select name="type" class="form-select">
+      <option value="">All Transaction Types</option>
+      <option value="STOCK_IN" {% if current_type == 'STOCK_IN' %}selected{% endif %}>STOCK IN</option>
+      <option value="STOCK_OUT" {% if current_type == 'STOCK_OUT' %}selected{% endif %}>STOCK OUT</option>
+      <option value="ADJUSTMENT" {% if current_type == 'ADJUSTMENT' %}selected{% endif %}>ADJUSTMENT</option>
+      <option value="INITIAL_STOCK" {% if current_type == 'INITIAL_STOCK' %}selected{% endif %}>INITIAL STOCK</option>
+      <option value="PRODUCT_RENAME" {% if current_type == 'PRODUCT_RENAME' %}selected{% endif %}>PRODUCT RENAME</option>
+    </select>
+  </div>
+
+  <div class="filter-item" style="flex: 0 0 auto;">
+    <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-filter"></i> Filter</button>
+    <a href="{{ url_for('inventory.view_transactions') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Product Name</th>
+          <th>Type</th>
+          <th>Quantity</th>
+          <th>Previous Qty</th>
+          <th>New Qty</th>
+          <th>Reason / Performed By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if transactions %}
+          {% for tx in transactions %}
+            <tr>
+              <td>{{ format_datetime(tx.created_at) }}</td>
+              <td>
+                <a href="{{ url_for('products.view_product', product_name=tx.product_name) }}" style="font-weight: 600;">
+                  {{ tx.product_name }}
+                </a>
+              </td>
+              <td>
+                {% if tx.transaction_type == 'STOCK_IN' %}
+                  <span class="badge badge-success"><i class="fa-solid fa-plus"></i> STOCK IN</span>
+                {% elif tx.transaction_type == 'STOCK_OUT' %}
+                  <span class="badge badge-danger"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
+                {% elif tx.transaction_type == 'ADJUSTMENT' %}
+                  <span class="badge badge-warning"><i class="fa-solid fa-sliders"></i> ADJUST</span>
+                {% elif tx.transaction_type == 'INITIAL_STOCK' %}
+                  <span class="badge badge-info"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
+                {% elif tx.transaction_type == 'PRODUCT_RENAME' %}
+                  <span class="badge badge-secondary"><i class="fa-solid fa-pen"></i> RENAME</span>
+                {% endif %}
+              </td>
+              <td style="font-weight: 600;">
+                {% if tx.transaction_type == 'STOCK_OUT' %}-{% elif tx.transaction_type == 'STOCK_IN' %}+{% endif %}{{ tx.quantity }}
+              </td>
+              <td>{{ tx.previous_quantity }}</td>
+              <td style="font-weight: 600;">{{ tx.new_quantity }}</td>
+              <td>
+                <div style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">{{ tx.reason }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-faint); margin-top: 0.15rem;">
+                  <i class="fa-solid fa-user" style="font-size: 0.72rem;"></i> {{ tx.performed_by }}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+              No transaction history found.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

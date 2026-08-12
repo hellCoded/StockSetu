@@ -1,0 +1,16 @@
+# Files excluded from the Vercel serverless bundle
+tests/
+scripts/
+build/
+dist/
+.env
+.venv/
+venv/
+env/
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+.gitignore
+README.md

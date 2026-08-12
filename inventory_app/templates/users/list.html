@@ -1,0 +1,786 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - StockSetu{% endblock %}
+
+{% block content %}
+{% set active_count = users | selectattr('is_active', 'equalto', True) | list | length %}
+{% set admin_count = users | selectattr('role', 'equalto', 'admin') | list | length %}
+{% set manager_count = users | selectattr('role', 'equalto', 'inventory_manager') | list | length %}
+{% set staff_count = users | selectattr('role', 'equalto', 'staff') | list | length %}
+{% set inactive_count = users | length - active_count %}
+
+<!-- Page Hero -->
+<div class="um-hero">
+  <div class="um-hero-left">
+    <div class="um-hero-icon"><i class="fa-solid fa-users-gear"></i></div>
+    <div>
+      <h1>System User Management</h1>
+      <p>Review staff requests, manage user roles, and monitor account activity</p>
+    </div>
+  </div>
+  <div class="um-hero-actions">
+    <button id="btn-open-add-user" type="button" class="btn btn-primary btn-sm" onclick="openAddUserModal(event)" title="Manually Register User">
+      <i class="fa-solid fa-user-plus"></i> Add User
+    </button>
+    <button id="btn-open-inbox" type="button" class="btn um-btn-glass btn-sm um-inbox-btn" onclick="openInboxModal(event)" title="Review Staff Requests">
+      <i class="fa-solid fa-inbox"></i> Staff Requests
+      {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
+      {% if pending_reqs | length > 0 %}
+        <span class="um-inbox-count">{{ pending_reqs | length }}</span>
+      {% endif %}
+    </button>
+  </div>
+</div>
+
+<!-- Interactive KPI Stats -->
+<div class="kpi-grid">
+  <div class="kpi-card um-kpi-total um-kpi-card is-active" data-role-filter="all" title="Show all accounts">
+    <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+    <div>
+      <div class="kpi-value" data-counter="{{ users | length }}">{{ users | length }}</div>
+      <div class="kpi-label">Total Accounts</div>
+    </div>
+  </div>
+  <div class="kpi-card um-kpi-active um-kpi-card" data-role-filter="active" title="Show active accounts">
+    <div class="kpi-icon"><i class="fa-solid fa-user-check"></i></div>
+    <div>
+      <div class="kpi-value" data-counter="{{ active_count }}">{{ active_count }}</div>
+      <div class="kpi-label">Active Accounts</div>
+    </div>
+  </div>
+  <div class="kpi-card um-kpi-pending um-kpi-card" data-role-filter="pending" title="Open staff requests inbox">
+    <div class="kpi-icon"><i class="fa-solid fa-inbox"></i></div>
+    <div>
+      {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
+      <div class="kpi-value" data-counter="{{ pending_reqs | length }}">{{ pending_reqs | length }}</div>
+      <div class="kpi-label">Pending Requests</div>
+    </div>
+  </div>
+  <div class="kpi-card um-kpi-off um-kpi-card" data-role-filter="inactive" title="Show deactivated accounts">
+    <div class="kpi-icon"><i class="fa-solid fa-user-slash"></i></div>
+    <div>
+      <div class="kpi-value" data-counter="{{ inactive_count }}">{{ inactive_count }}</div>
+      <div class="kpi-label">Deactivated</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toolbar: Role Filter Pills + Quick Search -->
+<div class="um-toolbar">
+  <div class="um-pills" id="um-filter-pills">
+    <button type="button" class="um-pill is-active" data-role-filter="all">All <span class="um-pill-count">{{ users | length }}</span></button>
+    <button type="button" class="um-pill" data-role-filter="admin">Admins <span class="um-pill-count">{{ admin_count }}</span></button>
+    <button type="button" class="um-pill" data-role-filter="inventory_manager">Managers <span class="um-pill-count">{{ manager_count }}</span></button>
+    <button type="button" class="um-pill" data-role-filter="staff">Staff <span class="um-pill-count">{{ staff_count }}</span></button>
+    <button type="button" class="um-pill" data-role-filter="inactive">Deactivated <span class="um-pill-count">{{ inactive_count }}</span></button>
+  </div>
+  <div class="instant-search-wrap">
+    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+    <input type="text" id="um-search" class="form-control instant-search-input" data-table="user-table" placeholder="Quick filter users…" autocomplete="off">
+  </div>
+</div>
+
+<!-- System Users Table -->
+<div class="card" style="padding-top: 0.4rem;">
+  <div class="table-responsive">
+    <table class="data-table sortable" id="user-table">
+      <thead>
+        <tr>
+          <th data-sort><i class="fa-solid fa-user"></i> User</th>
+          <th data-sort><i class="fa-solid fa-envelope"></i> Email Address</th>
+          <th data-sort><i class="fa-solid fa-shield-halved"></i> Current Role</th>
+          <th data-sort><i class="fa-solid fa-circle-dot"></i> Status</th>
+          <th data-sort><i class="fa-solid fa-calendar"></i> Created Date</th>
+          <th style="text-align: right;"><i class="fa-solid fa-ellipsis-vertical"></i> Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if users %}
+          {% for u in users %}
+            <tr data-user-role="{{ u.role }}" data-user-active="{{ 'true' if u.is_active else 'false' }}">
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.7rem;">
+                  <div class="um-avatar
+                    {% if not u.is_active %}um-avatar-off
+                    {% elif u.role == 'admin' %}um-avatar-admin
+                    {% elif u.role == 'inventory_manager' %}um-avatar-manager
+                    {% else %}um-avatar-staff{% endif %}">
+                    {{ u.username[0] | upper if u.username else 'U' }}
+                  </div>
+                  <div>
+                    <strong style="color: #0f172a; display: block;">{{ u.name if u.name else u.username }}</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.35rem;">
+                      @{{ u.username }}
+                      {% if u._id == current_user.id %}
+                        <span class="um-you-chip"><i class="fa-solid fa-crown" style="font-size: 0.6rem;"></i> You</span>
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                  <i class="fa-solid fa-envelope" style="font-size: 0.78rem; color: var(--text-faint);"></i>
+                  {{ u.email }}
+                </span>
+              </td>
+              <td>
+                {% if u.role == 'admin' %}
+                  <span class="um-role-chip um-role-admin"><i class="fa-solid fa-user-shield"></i> Admin</span>
+                {% elif u.role == 'inventory_manager' %}
+                  <span class="um-role-chip um-role-manager"><i class="fa-solid fa-boxes-packing"></i> Manager</span>
+                {% else %}
+                  <span class="um-role-chip um-role-staff"><i class="fa-solid fa-user-tag"></i> Staff</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if u.is_active %}
+                  <span class="um-status um-status-active"><span class="um-status-dot"></span> Active</span>
+                {% else %}
+                  <span class="um-status um-status-inactive"><span class="um-status-dot"></span> Deactivated</span>
+                {% endif %}
+              </td>
+              <td>{{ format_datetime(u.created_at) }}</td>
+              <td style="text-align: right; white-space: nowrap;">
+                {% if u._id != current_user.id %}
+                  <div class="um-actions">
+                    <button type="button" class="btn btn-primary btn-sm" onclick='openUpdateRoleModal("{{ u._id }}", {{ (u.name if u.name else u.username)|tojson }}, {{ u.username|tojson }}, {{ u.role|tojson }})' title="Update User Role">
+                      <i class="fa-solid fa-user-gear"></i> Edit Role
+                    </button>
+                  </div>
+                {% else %}
+                  <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: var(--text-muted); font-size: 0.72rem; font-weight: 600;">
+                    <i class="fa-solid fa-lock"></i> Protected Account
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          <tr class="empty-row" style="display: none;">
+            <td colspan="6">
+              <div class="um-empty">
+                <i class="fa-solid fa-user-slash"></i>
+                <h4>No Users Found</h4>
+                <p>No accounts match the current filter or search.</p>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6">
+              <div class="um-empty">
+                <i class="fa-solid fa-users-slash"></i>
+                <h4>No Registered Users</h4>
+                <p>Register your first user account to get started.</p>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ── Modal open/close helpers ────────────────────────────────
+function openAddUserModal(e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+  const modal = document.getElementById('add-user-modal');
+  if (modal) {
+    modal.classList.add('active-modal');
+    modal.style.setProperty('display', 'flex', 'important');
+  }
+}
+
+function closeAddUserModal() {
+  const modal = document.getElementById('add-user-modal');
+  if (modal) {
+    modal.classList.remove('active-modal');
+    modal.style.setProperty('display', 'none', 'important');
+  }
+}
+
+function openInboxModal(e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+  const modal = document.getElementById('inbox-modal');
+  if (modal) {
+    modal.classList.add('active-modal');
+    modal.style.setProperty('display', 'flex', 'important');
+    // Reset/switch to PENDING tab on opening
+    const firstTab = modal.querySelector('.inbox-tab-btn');
+    if (firstTab) {
+      firstTab.click();
+    }
+  }
+}
+
+function closeInboxModal() {
+  const modal = document.getElementById('inbox-modal');
+  if (modal) {
+    modal.classList.remove('active-modal');
+    modal.style.setProperty('display', 'none', 'important');
+  }
+}
+
+function switchInboxTab(status, event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
+  // Update active tab styling
+  document.querySelectorAll('.inbox-tab-btn').forEach(btn => {
+    btn.classList.remove('is-active');
+  });
+  
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('is-active');
+  } else {
+    // Fallback search
+    document.querySelectorAll('.inbox-tab-btn').forEach(btn => {
+      if (btn.innerText.toUpperCase().includes(status)) {
+        btn.classList.add('is-active');
+      }
+    });
+  }
+  
+  // Filter request cards
+  let visibleCount = 0;
+  document.querySelectorAll('.inbox-req-item').forEach(card => {
+    if (card.getAttribute('data-status') === status) {
+      card.style.setProperty('display', 'flex', 'important');
+      visibleCount++;
+    } else {
+      card.style.setProperty('display', 'none', 'important');
+    }
+  });
+  
+  // Toggle empty status notice
+  const notice = document.getElementById('inbox-empty-notice');
+  if (notice) {
+    notice.style.setProperty('display', (visibleCount === 0) ? 'block' : 'none', 'important');
+  }
+}
+
+function submitRequestAction(reqId, action, btnEl) {
+  // Find the comment input inside this card
+  const card = btnEl.closest('.um-request-card');
+  const commentInput = card ? card.querySelector('.admin-comment-input-field') : null;
+  const comment = commentInput ? commentInput.value : '';
+  
+  // Build and submit form
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = `/users/requests/${reqId}/${action}`;
+  
+  const csrfInput = document.createElement('input');
+  csrfInput.type = 'hidden';
+  csrfInput.name = 'csrf_token';
+  csrfInput.value = '{{ csrf_token() }}';
+  form.appendChild(csrfInput);
+  
+  const commentInputHidden = document.createElement('input');
+  commentInputHidden.type = 'hidden';
+  commentInputHidden.name = 'admin_comment';
+  commentInputHidden.value = comment;
+  form.appendChild(commentInputHidden);
+  
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function openUpdateRoleModal(userId, name, username, currentRole, e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+  const modal = document.getElementById('update-role-modal');
+  if (modal) {
+    const form = document.getElementById('update-role-form');
+    const nameEl = document.getElementById('role-modal-name');
+    const usernameEl = document.getElementById('role-modal-username');
+    const avatarEl = document.getElementById('role-modal-avatar');
+
+    if (form) form.action = `/users/${userId}/role`;
+    if (nameEl) nameEl.textContent = name;
+    if (usernameEl) usernameEl.textContent = '@' + username;
+    if (avatarEl) avatarEl.textContent = (username ? username[0].toUpperCase() : 'U');
+
+    const radio = modal.querySelector(`input[name="role"][value="${currentRole}"]`);
+    if (radio) radio.checked = true;
+    updateRoleSelection(currentRole);
+
+    modal.classList.add('active-modal');
+    modal.style.setProperty('display', 'flex', 'important');
+  }
+}
+
+function closeUpdateRoleModal() {
+  const modal = document.getElementById('update-role-modal');
+  if (modal) {
+    modal.classList.remove('active-modal');
+    modal.style.setProperty('display', 'none', 'important');
+  }
+}
+
+function updateRoleSelection(role) {
+  const modal = document.getElementById('update-role-modal');
+  if (!modal) return;
+
+  modal.querySelectorAll('.um-role-option').forEach(opt => {
+    opt.classList.toggle('is-selected', opt.dataset.roleValue === role);
+  });
+
+  const chipEl = document.getElementById('role-modal-chip');
+  if (chipEl) {
+    chipEl.className = 'um-role-chip';
+    if (role === 'admin') {
+      chipEl.classList.add('um-role-admin');
+      chipEl.innerHTML = '<i class="fa-solid fa-user-shield"></i> Admin';
+    } else if (role === 'inventory_manager') {
+      chipEl.classList.add('um-role-manager');
+      chipEl.innerHTML = '<i class="fa-solid fa-boxes-packing"></i> Manager';
+    } else {
+      chipEl.classList.add('um-role-staff');
+      chipEl.innerHTML = '<i class="fa-solid fa-user-tag"></i> Staff';
+    }
+  }
+
+  const avatarEl = document.getElementById('role-modal-avatar');
+  if (avatarEl) {
+    avatarEl.className = 'um-avatar';
+    if (role === 'admin') avatarEl.classList.add('um-avatar-admin');
+    else if (role === 'inventory_manager') avatarEl.classList.add('um-avatar-manager');
+    else avatarEl.classList.add('um-avatar-staff');
+  }
+
+  const hintEl = document.getElementById('role-permission-hint');
+  if (!hintEl) return;
+  if (role === 'admin') {
+    hintEl.innerHTML = '<i class="fa-solid fa-user-shield"></i> <strong>Administrator</strong>: Full system administrative privileges, user management, audit logs, catalog & POS billing.';
+    hintEl.style.background = '#f3e8ff';
+    hintEl.style.borderColor = '#9333ea';
+    hintEl.style.color = '#6b21a8';
+  } else if (role === 'inventory_manager') {
+    hintEl.innerHTML = '<i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager</strong>: Full access to product catalog, stock inward/outward adjustments, transactions, and POS billing.';
+    hintEl.style.background = '#e0f2fe';
+    hintEl.style.borderColor = '#0284c7';
+    hintEl.style.color = '#075985';
+  } else {
+    hintEl.innerHTML = '<i class="fa-solid fa-user-tag"></i> <strong>Staff</strong>: Access restricted to POS billing counter and catalog view.';
+    hintEl.style.background = '#f0fdf4';
+    hintEl.style.borderColor = '#16a34a';
+    hintEl.style.color = '#166534';
+  }
+}
+
+// ── Add user auto-username & validation ─────────────────────
+function autoGenModalUsername() {
+  const nameEl = document.getElementById('new_name');
+  const usernameEl = document.getElementById('new_username');
+  if (!nameEl || !usernameEl) return;
+
+  const rawName = nameEl.value.trim();
+  const cleanBase = rawName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+  if (cleanBase.length > 0) {
+    if (!usernameEl.dataset.digits) {
+      usernameEl.dataset.digits = Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    usernameEl.value = cleanBase + usernameEl.dataset.digits;
+  } else {
+    usernameEl.value = '';
+    delete usernameEl.dataset.digits;
+  }
+}
+
+function validateAddUserForm(form) {
+  const nameEl = form.querySelector('#new_name');
+  const usernameEl = form.querySelector('#new_username');
+  if (usernameEl && !usernameEl.value.trim() && nameEl && nameEl.value.trim()) {
+    const cleanBase = nameEl.value.trim().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    usernameEl.value = cleanBase + Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  const p1 = form.querySelector('#new_password')?.value || '';
+  const p2 = form.querySelector('#new_confirm_password')?.value || '';
+  if (p1 !== p2) {
+    if (typeof showToast === 'function') {
+      showToast("Passwords do not match! Please check your entry.", "danger");
+    } else {
+      alert("Passwords do not match!");
+    }
+    return false;
+  }
+  return true;
+}
+
+// ── Role / status filtering (combined with quick search) ────
+let umCurrentFilter = 'all';
+let umRows = [];
+let umEmptyRow = null;
+let umSearchInput = null;
+
+function applyUserFilter() {
+  const q = (umSearchInput ? umSearchInput.value : '').trim().toLowerCase();
+  let visible = 0;
+  umRows.forEach(row => {
+    const role = row.dataset.userRole;
+    const active = row.dataset.userActive === 'true';
+    let roleOk;
+    switch (umCurrentFilter) {
+      case 'active': roleOk = active; break;
+      case 'inactive': roleOk = !active; break;
+      default: roleOk = umCurrentFilter === 'all' || role === umCurrentFilter;
+    }
+    const textOk = !q || row.textContent.toLowerCase().includes(q);
+    const show = roleOk && textOk;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  if (umEmptyRow) umEmptyRow.style.display = visible === 0 ? '' : 'none';
+}
+
+function setUserFilter(key, focusBtn) {
+  if (key === 'pending') {
+    openInboxModal();
+    return;
+  }
+  umCurrentFilter = key;
+  document.querySelectorAll('[data-role-filter]').forEach(el => {
+    el.classList.toggle('is-active', el.dataset.roleFilter === key);
+  });
+  const count = umRows.filter(r => {
+    if (key === 'all') return true;
+    if (key === 'active') return r.dataset.userActive === 'true';
+    if (key === 'inactive') return r.dataset.userActive !== 'true';
+    return r.dataset.userRole === key;
+  }).length;
+  if (focusBtn) {
+    const pillEl = focusBtn.matches('.um-pill') ? focusBtn : focusBtn.closest('.um-pill');
+    const countEl = pillEl && pillEl.querySelector('.um-pill-count');
+    if (countEl) countEl.textContent = count;
+  }
+  applyUserFilter();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  ['add-user-modal', 'inbox-modal', 'update-role-modal'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el && el.parentElement !== document.body) {
+      document.body.appendChild(el);
+    }
+  });
+
+  const table = document.getElementById('user-table');
+  if (table) {
+    umRows = [...table.querySelectorAll('tbody tr:not(.empty-row):not([colspan])')];
+    umEmptyRow = table.querySelector('.empty-row');
+  }
+  umSearchInput = document.getElementById('um-search');
+
+  document.querySelectorAll('#update-role-modal input[name="role"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      updateRoleSelection(this.value);
+    });
+  });
+
+  document.querySelectorAll('[data-role-filter]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
+      setUserFilter(this.dataset.roleFilter, this);
+    });
+  });
+
+  if (umSearchInput) {
+    umSearchInput.addEventListener('input', applyUserFilter);
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('open_inbox') === '1') {
+    openInboxModal();
+  }
+});
+
+window.addEventListener("click", function(event) {
+  const addUserModal = document.getElementById('add-user-modal');
+  const inboxModal = document.getElementById('inbox-modal');
+  const updateRoleModal = document.getElementById('update-role-modal');
+  if (addUserModal && event.target === addUserModal) closeAddUserModal();
+  if (inboxModal && event.target === inboxModal) closeInboxModal();
+  if (updateRoleModal && event.target === updateRoleModal) closeUpdateRoleModal();
+});
+
+window.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") {
+    closeAddUserModal();
+    closeInboxModal();
+    closeUpdateRoleModal();
+  }
+});
+</script>
+
+<!-- Modal: Register New User -->
+<div id="add-user-modal" class="modal-backdrop app-modal">
+  <div class="um-modal-card" style="max-width: 480px;">
+    <div class="um-modal-head">
+      <h3 class="um-modal-title"><i class="fa-solid fa-user-plus"></i> Register New User Account</h3>
+      <button type="button" class="um-modal-close" onclick="closeAddUserModal()" title="Close">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('users.add_user') }}" onsubmit="return validateAddUserForm(this)">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-group">
+        <label for="new_name" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Full Name <span style="color: #dc2626;">*</span></label>
+        <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex Smith" required oninput="autoGenModalUsername()">
+      </div>
+
+      <div class="form-group">
+        <label for="new_username" class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated)</span></label>
+        <input type="text" id="new_username" name="username" class="form-control" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
+      </div>
+
+      <div class="form-group">
+        <label for="new_email" class="form-label"><i class="fa-solid fa-envelope" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
+        <input type="email" id="new_email" name="email" class="form-control" placeholder="alex@inventory.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="new_role" class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Initial Assigned Role <span style="color: #dc2626;">*</span></label>
+        <select id="new_role" name="role" class="form-select" required>
+          <option value="staff">Staff</option>
+          <option value="inventory_manager">Inventory Manager</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="new_password" class="form-label"><i class="fa-solid fa-lock" style="color: var(--primary); margin-right: 0.3rem;"></i> Initial Password <span style="color: #dc2626;">*</span></label>
+        <div class="password-input-group">
+          <input type="password" id="new_password" name="password" class="form-control" placeholder="At least 6 characters" required>
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_password', this)" title="Show/Hide Password">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="new_confirm_password" class="form-label"><i class="fa-solid fa-key" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm Password <span style="color: #dc2626;">*</span></label>
+        <div class="password-input-group">
+          <input type="password" id="new_confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_confirm_password', this)" title="Show/Hide Password">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="um-modal-footer">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-check"></i> Create User</button>
+        <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Staff Requests Inbox -->
+<div id="inbox-modal" class="modal-backdrop app-modal">
+  <div class="um-modal-card" style="max-width: 820px;">
+    <div class="um-modal-head">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <i class="fa-solid fa-inbox" style="font-size: 1.15rem; color: #d97706;"></i>
+        <h3 class="um-modal-title" style="border: none; padding: 0; margin: 0;">Staff Requests Inbox</h3>
+        {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
+        {% if pending_reqs %}
+          <span class="um-role-chip um-role-manager" style="letter-spacing: 0.05em;">{{ pending_reqs | length }} Pending</span>
+        {% endif %}
+      </div>
+      <button type="button" class="um-modal-close" onclick="closeInboxModal()" title="Close">&times;</button>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="um-pills" style="margin-bottom: 1.25rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      {% set pending_count = role_requests | selectattr('status', 'equalto', 'PENDING') | list | length %}
+      {% set approved_count = role_requests | selectattr('status', 'equalto', 'APPROVED') | list | length %}
+      {% set rejected_count = role_requests | selectattr('status', 'equalto', 'REJECTED') | list | length %}
+      {% set cancelled_count = role_requests | selectattr('status', 'equalto', 'CANCELLED') | list | length %}
+      <button type="button" class="um-pill inbox-tab-btn is-active" onclick="switchInboxTab('PENDING', event)">
+        Pending <span class="um-pill-count" style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 99px; font-size: 0.75rem; margin-left: 4px;">{{ pending_count }}</span>
+      </button>
+      <button type="button" class="um-pill inbox-tab-btn" onclick="switchInboxTab('APPROVED', event)">
+        Approved <span class="um-pill-count" style="background: #10b981; color: white; padding: 2px 6px; border-radius: 99px; font-size: 0.75rem; margin-left: 4px;">{{ approved_count }}</span>
+      </button>
+      <button type="button" class="um-pill inbox-tab-btn" onclick="switchInboxTab('REJECTED', event)">
+        Rejected <span class="um-pill-count" style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 99px; font-size: 0.75rem; margin-left: 4px;">{{ rejected_count }}</span>
+      </button>
+      <button type="button" class="um-pill inbox-tab-btn" onclick="switchInboxTab('CANCELLED', event)">
+        Cancelled <span class="um-pill-count" style="background: #64748b; color: white; padding: 2px 6px; border-radius: 99px; font-size: 0.75rem; margin-left: 4px;">{{ cancelled_count }}</span>
+      </button>
+    </div>
+
+    <div style="overflow-y: auto; padding-right: 0.25rem; max-height: 55vh;">
+      {% if role_requests %}
+        {% for req in role_requests %}
+          <div class="um-request-card inbox-req-item" data-status="{{ req.status }}" style="display: {% if req.status == 'PENDING' %}flex{% else %}none{% endif %}; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: var(--bg-card);">
+            
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.85rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+                <div class="um-avatar um-avatar-staff" style="width: 42px; height: 42px; font-size: 1.05rem; margin-top: 2px;">
+                  {{ req.username[0] | upper if req.username else 'U' }}
+                </div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <strong style="color: #0f172a; font-size: 0.98rem;">@{{ req.username }}</strong>
+                    {% if req.requested_role == 'admin' %}
+                      <span class="um-role-chip um-role-admin"><i class="fa-solid fa-user-shield"></i> Requested: Admin</span>
+                    {% else %}
+                      <span class="um-role-chip um-role-manager"><i class="fa-solid fa-boxes-packing"></i> Requested: Manager</span>
+                    {% endif %}
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 3px;">
+                    <i class="fa-solid fa-envelope" style="color: #6366f1;"></i> {{ req.email }} &nbsp;&bull;&nbsp;
+                    <i class="fa-solid fa-clock" style="color: #6366f1;"></i> {{ format_datetime(req.created_at) }}
+                  </div>
+                  {% if req.reason %}
+                    <div class="um-request-reason" style="margin-top: 0.5rem; font-size: 0.85rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border-left: 3px solid #6366f1;">
+                      <i class="fa-solid fa-comment-dots" style="color: #6366f1; margin-right: 0.25rem;"></i> Justification: <em>"{{ req.reason }}"</em>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              
+              {% if req.status != 'PENDING' %}
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+                  <div>
+                    {% if req.status == 'APPROVED' %}
+                      <span class="role-pill role-admin" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;"><i class="fa-solid fa-check"></i> Approved</span>
+                    {% elif req.status == 'REJECTED' %}
+                      <span class="role-pill role-danger" style="background: #fee2e2; color: #991b1b; border-color: #fecaca;"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                    {% elif req.status == 'CANCELLED' %}
+                      <span class="role-pill" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;"><i class="fa-solid fa-ban"></i> Cancelled</span>
+                    {% endif %}
+                  </div>
+                  {% if req.processed_by %}
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">By: @{{ req.processed_by }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+
+            {% if req.status == 'PENDING' %}
+              <div style="border-top: 1px solid #f1f5f9; padding-top: 0.75rem; margin-top: 0.5rem;">
+                <div style="margin-bottom: 0.5rem;">
+                  <label class="form-label" style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">
+                    <i class="fa-solid fa-comment-medical"></i> Add Admin Review Note / Comment (Optional)
+                  </label>
+                  <input type="text" name="admin_comment" class="form-control admin-comment-input-field" placeholder="e.g., Request approved based on department allocation" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+                </div>
+                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;">
+                  <button type="button" onclick="submitRequestAction('{{ req._id }}', 'approve', this)" class="btn btn-sm" style="background: #10b981; border-color: #059669; color: white; padding: 0.45rem 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;" title="Approve Request">
+                    <i class="fa-solid fa-check"></i> Approve
+                  </button>
+                  <button type="button" onclick="submitRequestAction('{{ req._id }}', 'reject', this)" class="btn btn-sm" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #ef4444; padding: 0.45rem 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;" title="Reject Request">
+                    <i class="fa-solid fa-xmark"></i> Reject
+                  </button>
+                </div>
+              </div>
+            {% elif req.admin_comment %}
+              <div style="margin-top: 0.25rem; font-size: 0.82rem; color: var(--text-sub); border-top: 1px dashed #f1f5f9; padding-top: 0.5rem;">
+                <strong>Admin Review Comment:</strong> <em>"{{ req.admin_comment }}"</em>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+        
+        <div id="inbox-empty-notice" class="um-empty" style="display: none;">
+          <i class="fa-solid fa-envelope-open"></i>
+          <h4>Nothing to Display</h4>
+          <p>There are no requests matching this status tab.</p>
+        </div>
+      {% else %}
+        <div class="um-empty">
+          <i class="fa-solid fa-envelope-open"></i>
+          <h4>Your Inbox is Empty</h4>
+          <p>There are currently no role requests in the system.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem; border-top: 1px solid #f1f5f9; padding-top: 0.9rem;">
+      <button type="button" class="btn btn-secondary" onclick="closeInboxModal()"><i class="fa-solid fa-circle-xmark"></i> Close Inbox</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Update Account Role -->
+<div id="update-role-modal" class="modal-backdrop app-modal">
+  <div class="um-modal-card" style="max-width: 500px;">
+    <div class="um-modal-head">
+      <h3 class="um-modal-title"><i class="fa-solid fa-user-gear"></i> Update Account Role</h3>
+      <button type="button" class="um-modal-close" onclick="closeUpdateRoleModal()" title="Close">&times;</button>
+    </div>
+
+    <form id="update-role-form" method="POST" action="">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="um-role-user">
+        <div id="role-modal-avatar" class="um-avatar um-avatar-staff" style="width: 40px; height: 40px; font-size: 1rem;">U</div>
+        <div style="flex: 1; min-width: 0;">
+          <strong id="role-modal-name" style="color: #0f172a; display: block; font-size: 0.95rem;">User Name</strong>
+          <span id="role-modal-username" style="font-size: 0.8rem; color: var(--text-muted);">@username</span>
+        </div>
+        <span id="role-modal-chip" class="um-role-chip um-role-staff" style="flex-shrink: 0;"><i class="fa-solid fa-user-tag"></i> Staff</span>
+      </div>
+
+      <label class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Select New Role <span style="color: #dc2626;">*</span></label>
+
+      <div class="um-role-options">
+        <label class="um-role-option" data-role-value="staff">
+          <input type="radio" name="role" value="staff" class="um-role-radio">
+          <span class="um-role-option-icon um-role-option-icon-staff"><i class="fa-solid fa-user-tag"></i></span>
+          <span class="um-role-option-body">
+            <strong>Staff</strong>
+            <span>POS billing counter &amp; catalog view</span>
+          </span>
+          <span class="um-role-option-check"><i class="fa-solid fa-circle-check"></i></span>
+        </label>
+        <label class="um-role-option" data-role-value="inventory_manager">
+          <input type="radio" name="role" value="inventory_manager" class="um-role-radio">
+          <span class="um-role-option-icon um-role-option-icon-manager"><i class="fa-solid fa-boxes-packing"></i></span>
+          <span class="um-role-option-body">
+            <strong>Inventory Manager</strong>
+            <span>Catalog, stock operations &amp; transactions</span>
+          </span>
+          <span class="um-role-option-check"><i class="fa-solid fa-circle-check"></i></span>
+        </label>
+        <label class="um-role-option" data-role-value="admin">
+          <input type="radio" name="role" value="admin" class="um-role-radio">
+          <span class="um-role-option-icon um-role-option-icon-admin"><i class="fa-solid fa-user-shield"></i></span>
+          <span class="um-role-option-body">
+            <strong>Administrator</strong>
+            <span>Full system &amp; user management privileges</span>
+          </span>
+          <span class="um-role-option-check"><i class="fa-solid fa-circle-check"></i></span>
+        </label>
+      </div>
+
+      <div id="role-permission-hint" style="background: #eff6ff; border-left: 3px solid #3b82f6; padding: 0.65rem 0.85rem; border-radius: 4px; font-size: 0.8rem; color: #1e40af; margin: 1rem 0 1.25rem; line-height: 1.45;">
+      </div>
+
+      <div class="um-modal-footer">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Role Changes</button>
+        <button type="button" class="btn btn-secondary" onclick="closeUpdateRoleModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

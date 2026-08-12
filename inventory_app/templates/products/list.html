@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Products - StockSetu{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+  <div>
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Product Inventory</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Browse, search, and manage products registered in MongoDB</p>
+  </div>
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <a href="{{ url_for('products.export_pdf', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Formatted PDF">
+      <i class="fa-solid fa-file-pdf" style="color: #dc2626;"></i> Export PDF
+    </a>
+    <a href="{{ url_for('products.export_excel', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Microsoft Excel">
+      <i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Export Excel
+    </a>
+    {% if current_user.role in ['admin', 'inventory_manager'] %}
+      <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print">
+        <i class="fa-solid fa-plus"></i> Add New Product
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<form method="GET" action="{{ url_for('products.list_products') }}" class="filter-bar">
+  <div class="filter-item" style="flex: 2; min-width: 220px;">
+    <input type="text" name="q" class="form-control" placeholder="Search by product name..." value="{{ current_query }}">
+  </div>
+
+  <div class="filter-item">
+    <select name="category" class="form-select">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+        <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="filter-item">
+    <select name="location" class="form-select">
+      <option value="">All Locations</option>
+      {% for loc in locations %}
+        <option value="{{ loc }}" {% if current_location == loc %}selected{% endif %}>{{ loc }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="filter-item">
+    <select name="status" class="form-select">
+      <option value="">All Stock Statuses</option>
+      <option value="IN STOCK" {% if current_status == 'IN STOCK' %}selected{% endif %}>IN STOCK</option>
+      <option value="LOW STOCK" {% if current_status == 'LOW STOCK' %}selected{% endif %}>LOW STOCK</option>
+      <option value="OUT OF STOCK" {% if current_status == 'OUT OF STOCK' %}selected{% endif %}>OUT OF STOCK</option>
+    </select>
+  </div>
+
+  <div class="filter-item" style="flex: 0 0 auto;">
+    <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+    <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
+  </div>
+</form>
+
+<!-- Product List Table -->
+<div class="card">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <span style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-list"></i> Showing all matching products</span>
+    <div class="instant-search-wrap">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="instant-search" data-table="product-table" class="form-control instant-search-input" placeholder="Quick filter rows…" autocomplete="off">
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table sortable clickable-rows" id="product-table">
+      <thead>
+        <tr>
+          <th data-sort><i class="fa-solid fa-box"></i> Product Name</th>
+          <th data-sort><i class="fa-solid fa-layer-group"></i> Category</th>
+          <th data-sort><i class="fa-solid fa-cubes"></i> Stock Level</th>
+          <th data-sort><i class="fa-solid fa-ruler"></i> Unit</th>
+          <th data-sort><i class="fa-solid fa-indian-rupee-sign"></i> Unit Price</th>
+          <th data-sort><i class="fa-solid fa-calculator"></i> Total Price</th>
+          <th data-sort><i class="fa-solid fa-triangle-exclamation"></i> Min Stock</th>
+          <th data-sort><i class="fa-solid fa-location-dot"></i> Location</th>
+          <th data-sort><i class="fa-solid fa-circle-dot"></i> Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if products %}
+          {% for p in products %}
+            <tr {% if not p.is_active %}style="opacity: 0.5;"{% endif %}>
+              <td>
+                <a href="{{ url_for('products.view_product', product_name=p.product_name) }}" style="font-weight: 600; font-size: 0.95rem;">
+                  {{ p.product_name }}
+                </a>
+                {% if not p.is_active %}
+                  <span class="badge badge-secondary" style="font-size: 0.65rem; margin-left: 0.4rem;">INACTIVE</span>
+                {% endif %}
+              </td>
+              <td><span class="badge badge-secondary">{{ p.category }}</span></td>
+              <td>
+                {% set capacity = [p.quantity | float, (p.minimum_stock | float) * 1.5, 10.0] | max %}
+                {% set pct = (p.quantity | float / capacity * 100) | round %}
+                {% if pct < 0 %}{% set pct = 0 %}{% endif %}
+                {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+                {% set fill_class = 'healthy' %}
+                {% if p.quantity <= 0 %}
+                  {% set fill_class = 'danger' %}
+                {% elif p.quantity <= p.minimum_stock %}
+                  {% set fill_class = 'warning' %}
+                {% endif %}
+                <div class="silo-container" title="Current Stock: {{ p.quantity }} {{ p.unit }} / Min threshold: {{ p.minimum_stock }} {{ p.unit }}">
+                  <div class="silo-gauge">
+                    <div class="silo-fill {{ fill_class }}" style="height: {{ pct }}%;"></div>
+                  </div>
+                  <span style="font-weight: 700; font-size: 1rem;">{{ p.quantity }}</span>
+                </div>
+              </td>
+              <td style="color: var(--text-muted);">{{ p.unit }}</td>
+              <td>{{ format_currency(p.price) }}</td>
+              <td style="font-weight: 700; color: #059669;">{{ format_currency((p.quantity or 0) * (p.price or 0)) }}</td>
+              <td style="color: var(--text-muted);">{{ p.minimum_stock }}</td>
+              <td>{{ p.location or '-' }}</td>
+              <td>
+                <span class="badge {{ get_status_badge_class(p.status) }}">
+                  {{ p.status }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr class="empty-row">
+            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+              <i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 0.5rem; display: block;"></i>
+              No products found matching your search criteria.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

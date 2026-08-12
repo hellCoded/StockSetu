@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Register - StockSetu{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card">
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <div style="margin: 0 auto 0.75rem auto; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 16C4 11.58 7.58 8 12 8C16.42 8 20 11.58 20 16" stroke="var(--jklc-red)" stroke-width="3" stroke-linecap="round"/>
+        <rect x="2" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
+        <rect x="18" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
+        <rect x="1" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+        <rect x="17" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+      </svg>
+    </div>
+    <h1 style="font-size: 1.6rem; font-weight: 800; font-family: var(--font-display); line-height: 1.1; margin-bottom: 0.5rem;">
+      <span style="color: var(--text-main);">Stock</span><span style="color: var(--jklc-red);">Setu</span>
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Register a new user account</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('auth.register') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label for="name" class="form-label"><i class="fa-solid fa-id-card" style="color: var(--primary); margin-right: 0.3rem;"></i> Full Name <span style="color: #dc2626;">*</span></label>
+      <input type="text" id="name" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}" placeholder="e.g. John Doe" required oninput="autoGenerateUsername('name', 'username')">
+    </div>
+
+    <div class="form-group">
+      <label for="username" class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated with random 6 digits)</span></label>
+      <input type="text" id="username" name="username" class="form-control" value="{{ form_data.username if form_data else '' }}" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
+    </div>
+
+    <div class="form-group">
+      <label for="email" class="form-label"><i class="fa-solid fa-envelope" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
+      <input type="email" id="email" name="email" class="form-control" value="{{ form_data.email if form_data else '' }}" placeholder="john@example.com" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password" class="form-label"><i class="fa-solid fa-lock" style="color: var(--primary); margin-right: 0.3rem;"></i> Password <span style="color: #dc2626;">*</span></label>
+      <div class="password-input-group">
+        <input type="password" id="password" name="password" class="form-control" placeholder="At least 6 characters" required>
+        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show/Hide Password">
+          <i class="fa-solid fa-eye"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="confirm_password" class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm Password <span style="color: #dc2626;">*</span></label>
+      <div class="password-input-group">
+        <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm_password', this)" title="Show/Hide Password">
+          <i class="fa-solid fa-eye"></i>
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">
+      <i class="fa-solid fa-user-check"></i> Register Account
+    </button>
+  </form>
+
+  <div style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+    Already registered? <a href="{{ url_for('auth.login') }}"><i class="fa-solid fa-arrow-left"></i> Back to Login</a>
+  </div>
+</div>
+
+<script>
+function autoGenerateUsername(nameId, usernameId) {
+  const nameEl = document.getElementById(nameId);
+  const usernameEl = document.getElementById(usernameId);
+  if (!nameEl || !usernameEl) return;
+
+  const rawName = nameEl.value.trim();
+  const cleanBase = rawName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+  if (cleanBase.length > 0) {
+    if (!usernameEl.dataset.digits) {
+      usernameEl.dataset.digits = Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    usernameEl.value = cleanBase + usernameEl.dataset.digits;
+  } else {
+    usernameEl.value = '';
+    delete usernameEl.dataset.digits;
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile - StockSetu{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">My Account Profile</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your credentials, update your personal profile, and change security settings</p>
+  </div>
+  
+  <div>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary" style="color: #dc2626; border-color: #fca5a5;" title="Logout of current session">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
+  </div>
+</div>
+
+<div class="form-grid" style="max-width: 900px;">
+  <!-- Edit Account Profile Card -->
+  <div class="card">
+    <h3 class="card-title"><i class="fa-solid fa-id-card"></i> Edit Personal Info</h3>
+    <form method="POST" action="{{ url_for('users.profile') }}" style="margin-top: 1rem;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action_type" value="update_profile">
+
+      <div class="form-group">
+        <label for="profile_name" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Full Name <span style="color: #dc2626;">*</span></label>
+        <input type="text" id="profile_name" name="name" class="form-control" value="{{ user.name if user.name else user.username }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size:0.75rem; color:var(--text-muted);">(System Identifier)</span></label>
+        <input type="text" class="form-control" value="{{ user.username }}" readonly disabled style="background: #f8fafc; font-weight: 600;">
+      </div>
+
+      <div class="form-group">
+        <label for="profile_email" class="form-label"><i class="fa-solid fa-envelope" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
+        <input type="email" id="profile_email" name="email" class="form-control" value="{{ user.email }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Assigned Role</label>
+        <div>
+          <span class="role-pill role-{{ user.role }}" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">
+            {{ user.role | replace('_', ' ') }}
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label"><i class="fa-solid fa-clock" style="color: var(--primary); margin-right: 0.3rem;"></i> Account Created</label>
+        <input type="text" class="form-control" value="{{ format_datetime(user.created_at) }}" readonly disabled style="background: #f8fafc;">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="fa-solid fa-floppy-disk"></i> Save Profile Details</button>
+    </form>
+  </div>
+
+  <!-- Change Password Card -->
+  <div class="card">
+    <h3 class="card-title"><i class="fa-solid fa-key"></i> Change Password</h3>
+    <form method="POST" action="{{ url_for('users.profile') }}" style="margin-top: 1rem;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action_type" value="change_password">
+
+      <div class="form-group">
+        <label for="current_password" class="form-label"><i class="fa-solid fa-lock" style="color: var(--primary); margin-right: 0.3rem;"></i> Current Password <span style="color: #dc2626;">*</span></label>
+        <div class="password-input-group">
+          <input type="password" id="current_password" name="current_password" class="form-control" placeholder="••••••••" required>
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('current_password', this)" title="Show/Hide Password">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="new_password" class="form-label"><i class="fa-solid fa-key" style="color: var(--primary); margin-right: 0.3rem;"></i> New Password <span style="color: #dc2626;">*</span></label>
+        <div class="password-input-group">
+          <input type="password" id="new_password" name="password" class="form-control" placeholder="At least 6 characters" required>
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_password', this)" title="Show/Hide Password">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm_password" class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm New Password <span style="color: #dc2626;">*</span></label>
+        <div class="password-input-group">
+          <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat new password" required>
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm_password', this)" title="Show/Hide Password">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="fa-solid fa-lock"></i> Update Password</button>
+    </form>
+  </div>
+
+  <!-- Role Elevation Request Card for Non-Admin Staff -->
+  {% if user.role != 'admin' %}
+  <div class="card" style="grid-column: 1 / -1; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+      <div style="width: 38px; height: 38px; border-radius: 10px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+        <i class="fa-solid fa-user-gear"></i>
+      </div>
+      <div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0;">Request Account Role Update / Elevation</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0 0;">
+          Submit an official role change request to System Administrators for verification and access elevation.
+        </p>
+      </div>
+    </div>
+
+    {% if pending_request %}
+      <div class="alert alert-warning" style="margin-top: 1rem; margin-bottom: 0; padding: 1.25rem; border-radius: 10px; border-left: 4px solid #f59e0b; background: #fffbeb;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; width: 100%;">
+          <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+            <i class="fa-solid fa-hourglass-half" style="font-size: 1.4rem; color: #d97706; margin-top: 2px;"></i>
+            <div>
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: #92400e; margin: 0 0 0.25rem 0;">
+                Role Update Request Pending Administrator Verification
+              </h4>
+              <div style="font-size: 0.85rem; color: #b45309; line-height: 1.5;">
+                Requested Role: <strong><i class="fa-solid fa-shield-halved"></i> {{ pending_request.requested_role | replace('_', ' ') | title }}</strong><br>
+                Submitted Date: {{ format_datetime(pending_request.created_at) }}<br>
+                Justification: <em>"{{ pending_request.reason or 'No note provided' }}"</em>
+              </div>
+            </div>
+          </div>
+          <div>
+            <form method="POST" action="{{ url_for('users.cancel_promotion_request', request_id=pending_request._id) }}" style="margin: 0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-secondary btn-sm" style="color: #dc2626; border-color: #fca5a5; background: white; font-weight: 600;" onclick="return confirm('Are you sure you want to withdraw this role request?');">
+                <i class="fa-solid fa-xmark"></i> Withdraw
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <form method="POST" action="{{ url_for('users.request_promotion') }}" style="margin-top: 1.25rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+          <div>
+            <label for="requested_role" class="form-label">
+              <i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Select Desired Account Role <span style="color: #dc2626;">*</span>
+            </label>
+            <select id="requested_role" name="requested_role" class="form-select" required onchange="profileRoleHint(this.value)">
+              {% if user.role == 'staff' %}
+                <option value="inventory_manager" selected>Inventory Manager</option>
+              {% endif %}
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="reason" class="form-label">
+              <i class="fa-solid fa-pen-to-square" style="color: var(--primary); margin-right: 0.3rem;"></i> Justification / Note for Admin <span style="color: #dc2626;">*</span>
+            </label>
+            <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., Assigned to manage catalog, stock counts & transactions" required>
+          </div>
+        </div>
+
+        <div id="profile-role-hint-box" style="background: #e0f2fe; border-left: 3px solid #0284c7; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; color: #075985; margin-bottom: 1.25rem; line-height: 1.5;">
+          <i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager Privileges</strong>: Grants full access to manage product catalog, post stock inward/outward adjustments, view audit logs, and conduct POS billing.
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.25rem;">
+          <i class="fa-solid fa-paper-plane"></i> Submit Role Request to Admin for Verification
+        </button>
+      </form>
+      
+      <script>
+      function profileRoleHint(role) {
+        const hintBox = document.getElementById('profile-role-hint-box');
+        if (!hintBox) return;
+        if (role === 'admin') {
+          hintBox.innerHTML = '<i class="fa-solid fa-user-shield"></i> <strong>Administrator Privileges</strong>: Grants full system administrative access, user account management, role elevation approvals, audit logs, and store settings.';
+          hintBox.style.background = '#f3e8ff';
+          hintBox.style.borderColor = '#9333ea';
+          hintBox.style.color = '#6b21a8';
+        } else {
+          hintBox.innerHTML = '<i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager Privileges</strong>: Grants full access to manage product catalog, post stock inward/outward adjustments, view audit logs, and conduct POS billing.';
+          hintBox.style.background = '#e0f2fe';
+          hintBox.style.borderColor = '#0284c7';
+          hintBox.style.color = '#075985';
+        }
+      }
+      </script>
+    {% endif %}
+
+    <!-- Request History Section -->
+    {% if requests_history %}
+      <div style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+        <h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.75rem;"><i class="fa-solid fa-clock-rotate-left"></i> My Requests History</h4>
+        <div class="table-responsive">
+          <table class="data-table" style="font-size: 0.85rem; width: 100%;">
+            <thead>
+              <tr>
+                <th>Requested Role</th>
+                <th>Status</th>
+                <th>Submitted Date</th>
+                <th>Reviewed Date</th>
+                <th>Admin Comment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in requests_history %}
+                <tr>
+                  <td><strong>{{ req.requested_role | replace('_', ' ') | title }}</strong></td>
+                  <td>
+                    {% if req.status == 'PENDING' %}
+                      <span class="role-pill role-staff" style="background: #fef3c7; color: #d97706; border-color: #fde68a;"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
+                    {% elif req.status == 'APPROVED' %}
+                      <span class="role-pill role-admin" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;"><i class="fa-solid fa-check"></i> Approved</span>
+                    {% elif req.status == 'REJECTED' %}
+                      <span class="role-pill role-danger" style="background: #fee2e2; color: #991b1b; border-color: #fecaca;"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                    {% elif req.status == 'CANCELLED' %}
+                      <span class="role-pill" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;"><i class="fa-solid fa-ban"></i> Cancelled</span>
+                    {% else %}
+                      <span class="role-pill">{{ req.status | title }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ format_datetime(req.created_at) }}</td>
+                  <td>{{ format_datetime(req.updated_at) if req.updated_at and req.status != 'PENDING' else '-' }}</td>
+                  <td>
+                    {% if req.admin_comment %}
+                      <span style="font-style: italic; color: var(--text-sub);">"{{ req.admin_comment }}"</span>
+                    {% else %}
+                      <span style="color: var(--text-faint);">-</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

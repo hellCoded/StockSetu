@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.product_name }} - StockSetu{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+  <div>
+    <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm" style="margin-bottom: 0.5rem;">
+      <i class="fa-solid fa-arrow-left"></i> Back to Products
+    </a>
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <h1 style="font-size: 1.6rem; font-weight: 700; color: #0f172a;">{{ product.product_name }}</h1>
+      <span class="badge {{ get_status_badge_class(product.status) }}">{{ product.status }}</span>
+      {% if not product.is_active %}
+        <span class="badge badge-secondary">INACTIVE</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="{{ url_for('inventory.handle_stock_in', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #059669;">
+      <i class="fa-solid fa-plus"></i> Stock In
+    </a>
+    <a href="{{ url_for('inventory.handle_stock_out', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #dc2626;">
+      <i class="fa-solid fa-minus"></i> Stock Out
+    </a>
+    {% if current_user.role in ['admin', 'inventory_manager'] %}
+      <a href="{{ url_for('inventory.handle_adjust', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #d97706;">
+        <i class="fa-solid fa-sliders"></i> Adjust
+      </a>
+      <a href="{{ url_for('products.edit_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm">
+        <i class="fa-solid fa-pen-to-square"></i> Edit
+      </a>
+    {% endif %}
+
+    {% if current_user.role == 'admin' %}
+      <a href="{{ url_for('products.rename_product_route', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #0284c7;">
+        <i class="fa-solid fa-i-cursor"></i> Rename
+      </a>
+    {% endif %}
+
+    {% if current_user.role in ['admin', 'inventory_manager'] %}
+      <form method="POST" action="{{ url_for('products.toggle_active', product_name=product.product_name) }}" style="display: inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-secondary btn-sm" data-confirm="Are you sure you want to toggle product active status?">
+          <i class="fa-solid fa-power-off"></i> {{ 'Deactivate' if product.is_active else 'Reactivate' }}
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Product Attribute Overview -->
+<div class="kpi-grid">
+  <div class="kpi-card" style="border-left-color: var(--primary);">
+    <div style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; margin-right: 0.5rem;">
+      {% set capacity = [product.quantity | float, (product.minimum_stock | float) * 1.5, 10.0] | max %}
+      {% set pct = (product.quantity | float / capacity * 100) | round %}
+      {% if pct < 0 %}{% set pct = 0 %}{% endif %}
+      {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+      {% set fill_class = 'healthy' %}
+      {% if product.quantity <= 0 %}
+        {% set fill_class = 'danger' %}
+      {% elif product.quantity <= product.minimum_stock %}
+        {% set fill_class = 'warning' %}
+      {% endif %}
+      <div class="silo-gauge category-silo-gauge" style="width: 22px; height: 38px;">
+        <div class="silo-fill {{ fill_class }}" style="height: {{ pct }}%;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="kpi-value">{{ product.quantity }} <span style="font-size: 0.75rem; color: var(--text-muted);">{{ product.unit }}</span></div>
+      <div class="kpi-label">Current Stock Level</div>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: #0284c7;">
+    <div class="kpi-icon" style="color: #0284c7;"><i class="fa-solid fa-tag"></i></div>
+    <div>
+      <div class="kpi-value">{{ format_currency(product.price) }}</div>
+      <div class="kpi-label">Unit Price</div>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: #d97706;">
+    <div class="kpi-icon" style="color: #d97706;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div>
+      <div class="kpi-value">{{ product.minimum_stock }} <span style="font-size: 0.75rem; color: var(--text-muted);">{{ product.unit }}</span></div>
+      <div class="kpi-label">Min Stock Threshold</div>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: #7c3aed;">
+    <div class="kpi-icon" style="color: #7c3aed;"><i class="fa-solid fa-percent"></i></div>
+    <div>
+      <div class="kpi-value">{{ product.gst_rate or 0 }}% <span style="font-size: 0.75rem; color: var(--text-muted);">GST</span></div>
+      <div class="kpi-label">CGST + SGST Split</div>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: #0369a1;">
+    <div class="kpi-icon" style="color: #0369a1;"><i class="fa-solid fa-hashtag"></i></div>
+    <div>
+      <div class="kpi-value" style="font-size: 1.05rem;">{{ product.hsn_code or 'N/A' }}</div>
+      <div class="kpi-label">HSN Code</div>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border-left-color: rgba(255,255,255,0.7);">
+    <div class="kpi-icon" style="color: rgba(255,255,255,0.9);"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+    <div>
+      <div class="kpi-value" style="color: white; font-size: 1.15rem;">{{ format_currency((product.quantity or 0) * (product.price or 0)) }}</div>
+      <div class="kpi-label" style="color: rgba(255, 255, 255, 0.9);">Total Stock Value</div>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: #047857;">
+    <div class="kpi-icon" style="color: #047857;"><i class="fa-solid fa-warehouse"></i></div>
+    <div>
+      <div class="kpi-value" style="font-size: 1.05rem;">{{ product.location or 'Unassigned' }}</div>
+      <div class="kpi-label">Warehouse Location</div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Information Grid -->
+<div class="form-grid" style="margin-bottom: 1.5rem;">
+  <div class="card">
+    <h3 class="card-title" style="font-size: 1rem;"><i class="fa-solid fa-circle-info"></i> Specification Details</h3>
+    <table class="data-table" style="margin-top: 0.75rem;">
+      <tr>
+        <td style="color: var(--text-muted); width: 140px;">Category</td>
+        <td><span class="badge badge-secondary">{{ product.category }}</span></td>
+      </tr>
+      <tr>
+        <td style="color: var(--text-muted);">Total Value</td>
+        <td style="font-weight: 700; color: #059669;">{{ format_currency((product.quantity or 0) * (product.price or 0)) }}</td>
+      </tr>
+      <tr>
+        <td style="color: var(--text-muted);">Description</td>
+        <td>{{ product.description or 'No detailed description provided.' }}</td>
+      </tr>
+      <tr>
+        <td style="color: var(--text-muted);">Created Date</td>
+        <td>{{ format_datetime(product.created_at) }}</td>
+      </tr>
+      <tr>
+        <td style="color: var(--text-muted);">Last Updated</td>
+        <td>{{ format_datetime(product.updated_at) }}</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- Inventory History for Product -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title"><i class="fa-solid fa-history"></i> Inventory Transaction Log</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Type</th>
+          <th>Qty</th>
+          <th>Prev Stock</th>
+          <th>New Stock</th>
+          <th>Reason / Notes</th>
+          <th>User</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if transactions %}
+          {% for tx in transactions %}
+            <tr>
+              <td>{{ format_datetime(tx.created_at) }}</td>
+              <td>
+                {% if tx.transaction_type == 'STOCK_IN' %}
+                  <span class="badge badge-success"><i class="fa-solid fa-plus"></i> STOCK IN</span>
+                {% elif tx.transaction_type == 'STOCK_OUT' %}
+                  <span class="badge badge-danger"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
+                {% elif tx.transaction_type == 'ADJUSTMENT' %}
+                  <span class="badge badge-warning"><i class="fa-solid fa-sliders"></i> ADJUST</span>
+                {% elif tx.transaction_type == 'INITIAL_STOCK' %}
+                  <span class="badge badge-info"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
+                {% elif tx.transaction_type == 'PRODUCT_RENAME' %}
+                  <span class="badge badge-secondary"><i class="fa-solid fa-pen"></i> RENAME</span>
+                {% endif %}
+              </td>
+              <td style="font-weight: 600;">
+                {% if tx.transaction_type == 'STOCK_OUT' %}-{% elif tx.transaction_type == 'STOCK_IN' %}+{% endif %}{{ tx.quantity }}
+              </td>
+              <td>{{ tx.previous_quantity }}</td>
+              <td style="font-weight: 600;">{{ tx.new_quantity }}</td>
+              <td style="color: var(--text-muted); font-size: 0.85rem;">{{ tx.reason }}</td>
+              <td>{{ tx.performed_by }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+              No transactions recorded for this product yet.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

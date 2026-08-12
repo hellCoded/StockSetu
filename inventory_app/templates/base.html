@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Python Inventory Management System powered by Flask and MongoDB">
+  <meta name="theme-color" content="#0f172a">
+
+  <title>{% block title %}StockSetu - Smart Inventory Management{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% if current_user.id %}
+    <div class="app-container">
+      {% include 'components/sidebar.html' %}
+      <div class="main-wrapper">
+        {% include 'components/navbar.html' %}
+        <div class="content-body">
+          {% include 'components/flash_messages.html' %}
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="auth-wrapper">
+      <div style="width:100%; max-width: 440px;">
+        {% include 'components/flash_messages.html' %}
+        {% block auth_content %}{% endblock %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% include 'components/user_credentials_modal.html' %}
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

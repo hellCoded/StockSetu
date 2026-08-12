@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - StockSetu{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard dash-loading">
+
+  <!-- Page Header -->
+  <div class="dash-head">
+    <div>
+      <h1 class="dash-head-title">Inventory Overview</h1>
+      <p class="dash-head-sub">Real-time inventory levels, critical stock alerts, and recent activity</p>
+    </div>
+    <div class="dash-head-actions">
+      <a href="{{ url_for('products.export_pdf') }}" class="btn btn-secondary btn-sm no-print" title="Export Full Catalog to PDF">
+        <i class="fa-solid fa-file-pdf" style="color: #dc2626;"></i> Export PDF
+      </a>
+      <a href="{{ url_for('products.export_excel') }}" class="btn btn-secondary btn-sm no-print" title="Export Inventory to Excel">
+        <i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Export Excel
+      </a>
+      {% if current_user.role in ['admin', 'inventory_manager'] %}
+        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print">
+          <i class="fa-solid fa-plus"></i> Add Product
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- KPI Metrics Grid -->
+  <div class="kpi-grid">
+    <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
+      <div class="kpi-card kpi-products">
+        <div class="kpi-icon"><i class="fa-solid fa-box"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value" data-counter="{{ metrics.total_products }}">{{ metrics.total_products }}</div>
+          <div class="kpi-label">Active Products</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
+      <div class="kpi-card kpi-quantity">
+        <div class="kpi-icon"><i class="fa-solid fa-cubes"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value" data-counter="{{ metrics.total_quantity }}">{{ "{:,.0f}".format(metrics.total_quantity) }}</div>
+          <div class="kpi-label">Total Inventory Units</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
+      <div class="kpi-card kpi-value-card">
+        <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value" data-counter="{{ metrics.total_inventory_value }}" data-counter-prefix="₹">{{ format_currency(metrics.total_inventory_value) }}</div>
+          <div class="kpi-label">Total Inventory Value</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" style="text-decoration: none;">
+      <div class="kpi-card kpi-lowstock">
+        <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value" data-counter="{{ metrics.low_stock_count }}">{{ metrics.low_stock_count }}</div>
+          <div class="kpi-label">Low Stock Alerts</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="{{ url_for('products.list_products', status='OUT OF STOCK') }}" style="text-decoration: none;">
+      <div class="kpi-card kpi-outofstock">
+        <div class="kpi-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value" data-counter="{{ metrics.out_of_stock_count }}">{{ metrics.out_of_stock_count }}</div>
+          <div class="kpi-label">Out of Stock Items</div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-grid">
+    <!-- Chart 1: Stock levels by category (Bar) -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Stock by Category</h3>
+      </div>
+      <div class="chart-container">
+        <canvas id="categoryStockChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Low-stock alert count by category (Silo breakdown list) -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock by Category</h3>
+      </div>
+      <div class="dash-silo-region">
+        {% set low_stock_items_list = chart_data.low_stock_by_category | selectattr('low_stock_count', 'greaterthan', 0) | list %}
+        {% if low_stock_items_list %}
+          <div class="category-silos-grid">
+            {% for item in chart_data.low_stock_by_category %}
+              {% if item.low_stock_count > 0 %}
+                <div class="category-silo-card">
+                  {% set max_capacity = 20.0 %}
+                  {% set pct = (item.low_stock_count | float / max_capacity * 100) | round %}
+                  {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+                  {% set fill_class = 'warning' %}
+                  {% if item.low_stock_count > 8 %}
+                    {% set fill_class = 'danger' %}
+                  {% endif %}
+                  <div class="silo-gauge category-silo-gauge">
+                    <div class="silo-fill {{ fill_class }}" style="height: {{ pct }}%;"></div>
+                  </div>
+                  <div class="category-silo-info">
+                    <div class="category-silo-title">{{ item.category }}</div>
+                    <div class="category-silo-stats"><strong>{{ item.low_stock_count }}</strong> items low</div>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="chart-empty">No low stock alerts.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Chart 3: Role requests by status (Donut) -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-users-gear"></i> Role Requests Status</h3>
+      </div>
+      <div class="chart-container">
+        <canvas id="roleRequestsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Transactions Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h3>
+      <a href="{{ url_for('inventory.view_transactions') }}" class="btn btn-secondary btn-sm">View Full History</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table clickable-rows">
+        <thead>
+          <tr>
+            <th><i class="fa-solid fa-clock"></i> Date & Time</th>
+            <th><i class="fa-solid fa-box"></i> Product Name</th>
+            <th><i class="fa-solid fa-arrow-right-arrow-left"></i> Type</th>
+            <th><i class="fa-solid fa-hashtag"></i> Qty Changed</th>
+            <th><i class="fa-solid fa-layer-group"></i> Stock After</th>
+            <th><i class="fa-solid fa-note-sticky"></i> Reason / Notes</th>
+            <th><i class="fa-solid fa-user"></i> User</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if metrics.recent_transactions %}
+            {% for tx in metrics.recent_transactions %}
+              <tr>
+                <td>{{ format_datetime(tx.created_at) }}</td>
+                <td>
+                  <a href="{{ url_for('products.view_product', product_name=tx.product_name) }}" class="dash-product-link">
+                    {{ tx.product_name }}
+                  </a>
+                </td>
+                <td>
+                  {% if tx.transaction_type == 'STOCK_IN' %}
+                    <span class="badge badge-success"><i class="fa-solid fa-plus"></i> STOCK IN</span>
+                  {% elif tx.transaction_type == 'STOCK_OUT' %}
+                    <span class="badge badge-danger"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
+                  {% elif tx.transaction_type == 'ADJUSTMENT' %}
+                    <span class="badge badge-warning"><i class="fa-solid fa-sliders"></i> ADJUST</span>
+                  {% elif tx.transaction_type == 'INITIAL_STOCK' %}
+                    <span class="badge badge-info"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
+                  {% elif tx.transaction_type == 'PRODUCT_RENAME' %}
+                    <span class="badge badge-secondary"><i class="fa-solid fa-pen"></i> RENAME</span>
+                  {% else %}
+                    <span class="badge badge-secondary">{{ tx.transaction_type }}</span>
+                  {% endif %}
+                </td>
+                <td class="dash-qty">
+                  {% if tx.transaction_type == 'STOCK_OUT' %}-{% elif tx.transaction_type == 'STOCK_IN' %}+{% endif %}{{ tx.quantity }}
+                </td>
+                <td>{{ tx.new_quantity }}</td>
+                <td class="dash-reason">{{ tx.reason }}</td>
+                <td class="dash-user"><i class="fa-solid fa-user" style="font-size: 0.75rem; color: var(--text-muted);"></i> {{ tx.performed_by }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="dash-table-empty">
+                No inventory transactions recorded yet.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="application/json" id="dash-chart-data">{{ chart_data | tojson }}</script>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

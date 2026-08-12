@@ -1,0 +1,97 @@
+================================================================================
+INVENTORY HUB / MANAGEMENT SYSTEM — COMPLETE PROJECT DOCUMENTATION
+================================================================================
+
+1. PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+Inventory Hub is a full-featured, secure, and production-ready Inventory and 
+Point-of-Sale (POS) Management Web Application. It enables businesses to 
+manage product catalogs, track physical inventory movements, conduct POS billing, 
+monitor audit logs, generate Excel/PDF reports, and manage user accounts with 
+strict role-based access control (RBAC).
+
+
+2. TECHNOLOGY STACK & ARCHITECTURE
+--------------------------------------------------------------------------------
+- Backend Framework : Python 3.12 with Flask Web Framework (Modular Blueprints)
+- Database Layer    : MongoDB (pymongo) storing collections:
+                      users, products, transactions, bills, role_requests
+- Frontend & UI     : HTML5, Vanilla CSS3 (Custom Design System, CSS Variables,
+                      Glassmorphism Modals), Vanilla JavaScript
+- Export Engines    : openpyxl (Excel Reports), ReportLab (A4 PDF Generation with
+                      NumberedCanvas two-pass page numbering)
+- Security & Auth   : Werkzeug password hashing, CSRF protection (@csrf_protected),
+                      Session authentication, Login & Role decorators
+
+
+3. USER ROLES & ACCESS HIERARCHY
+--------------------------------------------------------------------------------
+- admin (Administrator):
+  Full System Authority. Manages user accounts, manual role elevation, staff 
+  request inbox verification, stock adjustments, product catalog CRUD, 
+  transaction logs, POS billing, and system reports.
+
+- inventory_manager:
+  Catalog & Stock Management. Full access to product catalog management, 
+  stock inward/outward adjustments, transaction logs, catalog viewing, and 
+  POS billing counter. Restricted from user administration and admin inbox.
+
+- staff:
+  Point-of-Sale & Catalog View. Access restricted to POS billing counter, 
+  receipt generation, and catalog viewing. Can submit role elevation requests 
+  to Administrators via My Profile page.
+
+
+4. KEY MODULES & SYSTEM FEATURES
+--------------------------------------------------------------------------------
+A. User Management & Role Verification Workflow
+   - Administrator panel to review, register, activate/deactivate accounts.
+   - Staff Requests Inbox modal for reviewing pending role elevation requests.
+   - Admin verification workflow: Admins can Approve or Reject role requests.
+   - Role Updation modal with dynamic privilege description preview.
+   - Self-demotion and self-deactivation safeguards for logged-in admins.
+
+B. "My Profile" & Account Controls
+   - Edit Personal Info: Update Full Name and Email Address with live session sync.
+   - Change Password: Current password verification, min length check, show/hide eye toggles.
+   - Role Elevation Requests: Employees select target role (Manager/Admin) with 
+     justification notes and live privilege summaries.
+   - Session Logout: Secure session termination.
+
+C. Product Catalog & Stock Tracking
+   - Full Product CRUD: Name, SKU, Category, Price, Unit, Minimum Stock Threshold.
+   - Live Stock Preview Widget: Interactive calculation of projected stock balance 
+     during stock entry or adjustments.
+   - Low Stock Threshold Alerts: Automatic warning badges when inventory is at or 
+     below threshold.
+   - Instant Search & Sorting: Live client-side filtering and table column sorting.
+
+D. Inventory Transactions & Stock Adjustments
+   - Stock In: Record incoming supplier inventory.
+   - Stock Out: Record outgoing stock shipments.
+   - Adjust Stock: Audit reconciliations for damaged, lost, or corrected counts.
+   - Transaction Audit Log: Searchable history of all inventory movements.
+
+E. Point-of-Sale (POS) Billing & Printing
+   - POS Counter: Cart management, auto-calculated subtotal, tax, discount, total.
+   - Thermal/A4 Receipt View: Responsive bill view formatted with page-width scaling.
+   - Bill History: Searchable list of generated bills with re-print capability.
+
+F. Centralized Export Service (export_service.py)
+   - Excel Exports: Standardized catalog and transaction exports with auto-column width 
+     formatting, styled headers, and pinned freeze panes.
+   - PDF Exports: High-resolution A4 PDF reports with dynamic "Page X of Y" headers.
+
+
+5. AUTOMATED TEST SUITE & VERIFICATION
+--------------------------------------------------------------------------------
+- Test Framework : pytest
+- Suite Status   : 36 / 36 Passed (100% Success)
+- Test Coverage  :
+  * test_auth.py       : Login, registration, duplicate checks, profile update, logout.
+  * test_billing.py    : Cart calculation, bill generation, receipt rendering.
+  * test_inventory.py  : Stock inward/outward adjustments, audit transactions.
+  * test_products.py   : Catalog CRUD, low stock alerts, Excel/PDF report generation.
+  * test_roles.py      : Access control rules, role requests, inbox approval/rejection.
+
+================================================================================
