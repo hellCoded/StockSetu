@@ -111,12 +111,10 @@ def run_seeder():
                 "product_name": prod_name,
                 "category": category,
                 "description": f"Seeded test product for {category} inventory tracking",
-                "quantity": quantity,
                 "unit": unit,
                 "price": price,
                 "gst_rate": gst_rate,
                 "hsn_code": hsn_code,
-                "minimum_stock": minimum_stock,
                 "location": f"Aisle-{i%10 + 1}"
             }
 

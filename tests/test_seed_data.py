@@ -54,10 +54,10 @@ def test_seed_and_clean_workflow(monkeypatch, mock_mongo, app):
     inactive_users = [u for u in seeded_users if not u.get("is_active", True)]
     assert len(inactive_users) == 10  # 10 out of 100 users deactivated
 
-    # Assert at least one seeded product is below its min-stock threshold
+    # Assert at least one seeded product is below min-stock threshold (hardcoded 5)
     low_stock_products = [
         p for p in seeded_products 
-        if float(p.get("quantity", 0)) <= float(p.get("minimum_stock", 0))
+        if float(p.get("quantity", 0)) <= 5
     ]
     assert len(low_stock_products) >= 1
 

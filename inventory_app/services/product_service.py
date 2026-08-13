@@ -36,7 +36,7 @@ def create_product(product_data: dict, performed_by: str) -> tuple[bool, str, di
         return False, f"A product with the name '{product_name}' already exists.", {}
         
     quantity = 5
-    minimum_stock = float(product_data.get('minimum_stock', 0))
+    minimum_stock = 5
     price = float(product_data.get('price', 0))
     gst_rate = float(product_data.get('gst_rate', 0))
     hsn_code = (product_data.get('hsn_code') or '').strip().upper()
@@ -113,8 +113,7 @@ def get_product_by_name(product_name: str) -> dict:
     if product:
         product["_id"] = str(product["_id"])
         product["status"] = calculate_stock_status(
-            product.get("quantity", 0),
-            product.get("minimum_stock", 0)
+            product.get("quantity", 0)
         )
     
     # Cache result globally
@@ -170,7 +169,7 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
     result = []
     for p in products:
         p["_id"] = str(p["_id"])
-        p["status"] = calculate_stock_status(p.get("quantity", 0), p.get("minimum_stock", 0))
+        p["status"] = calculate_stock_status(p.get("quantity", 0))
         
         # Filter by calculated stock_status if requested
         if stock_status and p["status"] != stock_status:
@@ -190,13 +189,6 @@ def update_product(product_name: str, update_data: dict, performed_by: str) -> t
     norm_name = product["product_name"]
     
     # Validate non-name data
-    try:
-        minimum_stock = float(update_data.get('minimum_stock', product.get('minimum_stock', 0)))
-        if minimum_stock < 0:
-            return False, "Minimum stock level cannot be negative.", {}
-    except (ValueError, TypeError):
-        return False, "Minimum stock must be a valid number.", {}
-        
     try:
         price = float(update_data.get('price', product.get('price', 0)))
         if price < 0:
@@ -231,7 +223,7 @@ def update_product(product_name: str, update_data: dict, performed_by: str) -> t
         "price": price,
         "gst_rate": gst_rate,
         "hsn_code": hsn_code,
-        "minimum_stock": minimum_stock,
+        "minimum_stock": 5,
         "location": (update_data.get('location') or '').strip(),
         "updated_at": now
     }
@@ -360,7 +352,7 @@ def get_stock_by_category() -> list:
 def get_low_stock_by_category() -> list:
     """Aggregates count of low stock / out of stock active products by category (server-side)."""
     db = get_db()
-    # LOW STOCK: quantity > 0 AND quantity < minimum_stock
+    # LOW STOCK: quantity > 0 AND quantity < 5
     # OUT OF STOCK: quantity <= 0
     pipeline = [
         {"$match": {"is_active": True}},
@@ -368,7 +360,7 @@ def get_low_stock_by_category() -> list:
             "is_low": {
                 "$and": [
                     {"$gt": ["$quantity", 0]},
-                    {"$lt": ["$quantity", "$minimum_stock"]}
+                    {"$lte": ["$quantity", 5]}
                 ]
             },
             "is_out": {"$lte": ["$quantity", 0]}

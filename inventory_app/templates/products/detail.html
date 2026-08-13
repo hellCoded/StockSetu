@@ -54,14 +54,14 @@
 <div class="kpi-grid">
   <div class="kpi-card" style="border-left-color: var(--primary);">
     <div style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; margin-right: 0.5rem;">
-      {% set capacity = [product.quantity | float, (product.minimum_stock | float) * 1.5, 10.0] | max %}
+      {% set capacity = [product.quantity | float, 7.5, 10.0] | max %}
       {% set pct = (product.quantity | float / capacity * 100) | round %}
       {% if pct < 0 %}{% set pct = 0 %}{% endif %}
       {% if pct > 100 %}{% set pct = 100 %}{% endif %}
       {% set fill_class = 'healthy' %}
       {% if product.quantity <= 0 %}
         {% set fill_class = 'danger' %}
-      {% elif product.quantity <= product.minimum_stock %}
+      {% elif product.quantity <= 5 %}
         {% set fill_class = 'warning' %}
       {% endif %}
       <div class="silo-gauge category-silo-gauge" style="width: 22px; height: 38px;">
@@ -85,7 +85,7 @@
   <div class="kpi-card" style="border-left-color: #d97706;">
     <div class="kpi-icon" style="color: #d97706;"><i class="fa-solid fa-triangle-exclamation"></i></div>
     <div>
-      <div class="kpi-value">{{ product.minimum_stock }} <span style="font-size: 0.75rem; color: var(--text-muted);">{{ product.unit }}</span></div>
+      <div class="kpi-value">5 <span style="font-size: 0.75rem; color: var(--text-muted);">{{ product.unit }}</span></div>
       <div class="kpi-label">Min Stock Threshold</div>
     </div>
   </div>

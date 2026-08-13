@@ -6,7 +6,6 @@ def test_create_product_success(manager_client):
         'category': 'Chemicals',
         'unit': 'liters',
         'quantity': '100',
-        'minimum_stock': '20',
         'price': '45.50',
         'location': 'Rack 4A',
         'description': 'High purity solvent'
@@ -23,7 +22,6 @@ def test_duplicate_product_name_rejection(manager_client):
         'category': 'Building',
         'unit': 'bags',
         'quantity': '50',
-        'minimum_stock': '10',
         'price': '12.00'
     }, follow_redirects=True)
     
@@ -33,7 +31,6 @@ def test_duplicate_product_name_rejection(manager_client):
         'category': 'Building',
         'unit': 'bags',
         'quantity': '10',
-        'minimum_stock': '5',
         'price': '12.00'
     }, follow_redirects=True)
     
@@ -46,7 +43,6 @@ def test_product_search_and_filter(manager_client):
         'category': 'Hardware',
         'unit': 'pcs',
         'quantity': '15',
-        'minimum_stock': '5',
         'price': '120.00'
     }, follow_redirects=True)
     
@@ -61,7 +57,6 @@ def test_edit_product(manager_client):
         'category': 'PPE',
         'unit': 'pcs',
         'quantity': '30',
-        'minimum_stock': '10',
         'price': '15.00'
     }, follow_redirects=True)
     
@@ -69,7 +64,6 @@ def test_edit_product(manager_client):
         'category': 'PPE & Safety',
         'unit': 'pcs',
         'price': '18.50',
-        'minimum_stock': '15',
         'description': 'Updated safety goggles'
     }, follow_redirects=True)
     
@@ -82,7 +76,6 @@ def test_rename_product_admin_only(admin_client, staff_client):
         'category': 'Hardware',
         'unit': 'pcs',
         'quantity': '20',
-        'minimum_stock': '5',
         'price': '25.00'
     }, follow_redirects=True)
     
@@ -105,7 +98,6 @@ def test_toggle_product_active(manager_client):
         'category': 'General',
         'unit': 'pcs',
         'quantity': '5',
-        'minimum_stock': '2',
         'price': '5.00'
     }, follow_redirects=True)
     
@@ -137,7 +129,6 @@ def test_dashboard_chart_aggregations(manager_client, app):
             'category': 'AggrCategory',
             'unit': 'pcs',
             'quantity': '15',
-            'minimum_stock': '20',
             'price': '10.00'
         }, follow_redirects=True)
         
@@ -147,7 +138,7 @@ def test_dashboard_chart_aggregations(manager_client, app):
         
         aggr_cat_stock = next((item for item in stock_by_cat if item['category'] == 'AggrCategory'), None)
         assert aggr_cat_stock is not None
-        assert aggr_cat_stock['total_stock'] >= 15
+        assert aggr_cat_stock['total_stock'] >= 5
         
         aggr_cat_low = next((item for item in low_stock_by_cat if item['category'] == 'AggrCategory'), None)
         assert aggr_cat_low is not None

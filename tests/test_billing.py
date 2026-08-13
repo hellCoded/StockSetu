@@ -11,7 +11,7 @@ def _seed_product(db, name="Steel Rod", price="500.00", gst="18", hsn="7214"):
         "price": float(price),
         "gst_rate": float(gst),
         "hsn_code": hsn,
-        "minimum_stock": 10.0,
+        "minimum_stock": 5,
         "location": "",
         "is_active": True,
         "created_at": datetime.now(timezone.utc),
@@ -151,7 +151,6 @@ def test_gst_fields_on_product_forms(manager_client):
         'category': 'Hardware',
         'unit': 'pcs',
         'quantity': '10',
-        'minimum_stock': '2',
         'price': '100.00',
         'gst_rate': '12',
         'hsn_code': '7326'

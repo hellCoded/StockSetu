@@ -50,13 +50,6 @@ def validate_product_data(data: dict) -> tuple[bool, str]:
         return False, "Price must be a valid number."
         
     try:
-        minimum_stock = float(data.get('minimum_stock', 0))
-        if minimum_stock < 0:
-            return False, "Minimum stock level cannot be negative."
-    except (ValueError, TypeError):
-        return False, "Minimum stock level must be a valid number."
-
-    try:
         gst_rate = float(data.get('gst_rate', 0))
         if gst_rate < 0 or gst_rate > 28:
             return False, "GST rate must be between 0% and 28%."

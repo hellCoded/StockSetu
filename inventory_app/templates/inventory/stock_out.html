@@ -18,7 +18,7 @@
   {{ p.product_name | tojson }}: {
     "quantity": {{ p.quantity | float }},
     "unit": {{ p.unit | tojson }},
-    "minimum_stock": {{ p.minimum_stock | float }},
+    "minimum_stock": 5,
     "isFloat": {{ "true" if (p.quantity | float) != (p.quantity | int) else "false" }}
   }{% if not loop.last %},{% endif %}
   {% endfor %}

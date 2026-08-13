@@ -528,7 +528,7 @@
             <div class="q-prod-incl">incl. ₹{{ '%.2f'|format((p.price or 0) * (1 + (p.gst_rate or 0) / 100)) }}</div>
             {% if (p.quantity or 0) <= 0 %}
               <span class="q-prod-stock out"><i class="fa-solid fa-ban"></i> Out of Stock</span>
-            {% elif (p.quantity or 0) <= (p.minimum_stock or 0) %}
+            {% elif (p.quantity or 0) <= 5 %}
               <span class="q-prod-stock low"><i class="fa-solid fa-triangle-exclamation"></i> {{ p.quantity }} {{ p.unit }} left</span>
             {% else %}
               <span class="q-prod-stock ok"><i class="fa-solid fa-box"></i> {{ p.quantity }} {{ p.unit }}</span>

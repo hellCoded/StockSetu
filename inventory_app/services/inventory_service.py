@@ -225,7 +225,7 @@ def get_dashboard_metrics() -> dict:
     """
     db = get_db()
     
-    active_products = list(db.products.find({"is_active": True}, {"quantity": 1, "minimum_stock": 1, "price": 1}))
+    active_products = list(db.products.find({"is_active": True}, {"quantity": 1, "price": 1}))
     
     total_products = len(active_products)
     total_quantity = sum(float(p.get("quantity", 0)) for p in active_products)
@@ -236,8 +236,7 @@ def get_dashboard_metrics() -> dict:
     
     for p in active_products:
         qty = float(p.get("quantity", 0))
-        min_stock = float(p.get("minimum_stock", 0))
-        status = calculate_stock_status(qty, min_stock)
+        status = calculate_stock_status(qty)
         
         if status == "OUT OF STOCK":
             out_of_stock_count += 1

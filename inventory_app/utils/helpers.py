@@ -1,12 +1,16 @@
 from datetime import datetime
 
-def calculate_stock_status(quantity: float, minimum_stock: float) -> str:
+MIN_STOCK_THRESHOLD = 5
+
+def calculate_stock_status(quantity: float, minimum_stock: float = None) -> str:
     """
     Calculates stock status based on current quantity and minimum stock threshold.
     - OUT OF STOCK: quantity <= 0
     - LOW STOCK: 0 < quantity <= minimum_stock
     - IN STOCK: quantity > minimum_stock
     """
+    if minimum_stock is None:
+        minimum_stock = MIN_STOCK_THRESHOLD
     if quantity <= 0:
         return "OUT OF STOCK"
     elif quantity <= minimum_stock:

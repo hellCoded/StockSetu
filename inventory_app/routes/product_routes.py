@@ -80,7 +80,7 @@ def export_excel():
             p.get('unit', ''),
             price,
             total_val,
-            float(p.get('minimum_stock', 0) or 0),
+            5,
             p.get('location', '') or 'Unassigned',
             st_val,
             'Active' if p.get('is_active', True) else 'Inactive'
@@ -187,7 +187,7 @@ def export_pdf():
             Paragraph(p.get('unit', ''), cell_center),
             Paragraph(f"Rs. {price:,.2f}", cell_right),
             Paragraph(f"Rs. {item_val:,.2f}", cell_bold_right),
-            Paragraph(f"{float(p.get('minimum_stock', 0) or 0):,.2f}", cell_right),
+            Paragraph(f"{5:,.2f}", cell_right),
             Paragraph(p.get('location', '') or 'Unassigned', cell_center),
             Paragraph(st_html, cell_center)
         ])
@@ -238,7 +238,6 @@ def add_product():
             'price': request.form.get('price', 0),
             'gst_rate': request.form.get('gst_rate', 0),
             'hsn_code': request.form.get('hsn_code', ''),
-            'minimum_stock': request.form.get('minimum_stock', 0),
             'location': request.form.get('location', '')
         }
         
@@ -285,7 +284,6 @@ def edit_product(product_name):
             'price': request.form.get('price', 0),
             'gst_rate': request.form.get('gst_rate', 0),
             'hsn_code': request.form.get('hsn_code', ''),
-            'minimum_stock': request.form.get('minimum_stock', 0),
             'location': request.form.get('location', '')
         }
         

@@ -9,7 +9,7 @@ def test_billing_discount_and_refund(app, mock_mongo):
             "product_name": "Steel Rod 10mm",
             "category": "Hardware",
             "unit": "pcs",
-            "minimum_stock": 5.0,
+            "minimum_stock": 5,
             "price": 100.0,
             "gst_rate": 18.0
         }, "admin")
