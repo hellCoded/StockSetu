@@ -1,7 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from inventory_app.services.auth_service import register_user, authenticate_user, change_password
 from inventory_app.utils.decorators import login_required, csrf_protected
 from inventory_app.utils.validators import validate_user_registration
+from werkzeug.security import generate_password_hash
+from datetime import datetime, timezone
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -87,3 +89,22 @@ def logout():
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/reset-admin')
+def reset_admin():
+    """One-time admin password reset. Access: /reset-admin?key=your-secret"""
+    secret = request.args.get('key', '')
+    expected = current_app.config.get('SECRET_KEY', '')
+    if not secret or secret != expected:
+        return "Unauthorized", 403
+    from inventory_app.database import get_db
+    db = get_db()
+    now = datetime.now(timezone.utc)
+    new_hash = generate_password_hash("Admin@123456")
+    result = db.users.update_one(
+        {"username": "admin"},
+        {"$set": {"password_hash": new_hash, "updated_at": now}}
+    )
+    if result.matched_count:
+        return "Admin password reset to: Admin@123456. You can now login."
+    return "Admin user not found.", 404
