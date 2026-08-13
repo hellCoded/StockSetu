@@ -1,3 +1,4 @@
+import time
 from flask import Flask, render_template, session
 from config import Config
 from inventory_app.database import init_db
@@ -12,35 +13,44 @@ def create_app(config_class=Config, custom_mongo_client=None):
     init_db(app, custom_client=custom_mongo_client)
 
     # Context Processor for Templates
+    # Lightweight in-memory TTL cache to prevent DB reads on every HTTP request
+    _cache = {}
+
     @app.context_processor
     def inject_utilities():
         user_id = session.get('user_id')
         user_role = session.get('role', 'staff')
         username = session.get('username', '')
-        
-        if user_id:
-            from inventory_app.services.auth_service import get_user_by_id
-            live_user = get_user_by_id(user_id)
-            if live_user:
-                user_role = live_user.get('role', 'staff')
-                username = live_user.get('username', username)
-                session['role'] = user_role
 
+        now = time.time()
         pending_requests_count = 0
-        if user_id and user_role == 'admin':
-            from inventory_app.services.auth_service import get_all_pending_role_requests
-            try:
-                pending_requests_count = len(get_all_pending_role_requests())
-            except Exception:
-                pass
-
         unread_notifications_count = 0
+
         if user_id:
-            from inventory_app.services.notification_service import get_unread_notifications_count
-            try:
-                unread_notifications_count = get_unread_notifications_count()
-            except Exception:
-                pass
+            # 30-second cached badges to eliminate DB lag on page transitions
+            cached_entry = _cache.get(user_id)
+            if cached_entry and (now - cached_entry['ts']) < 30:
+                pending_requests_count = cached_entry.get('pending', 0)
+                unread_notifications_count = cached_entry.get('unread', 0)
+            else:
+                if user_role == 'admin':
+                    from inventory_app.services.auth_service import get_all_pending_role_requests
+                    try:
+                        pending_requests_count = len(get_all_pending_role_requests())
+                    except Exception:
+                        pass
+                
+                from inventory_app.services.notification_service import get_unread_notifications_count
+                try:
+                    unread_notifications_count = get_unread_notifications_count()
+                except Exception:
+                    pass
+
+                _cache[user_id] = {
+                    'pending': pending_requests_count,
+                    'unread': unread_notifications_count,
+                    'ts': now
+                }
 
         return {
             'csrf_token': generate_csrf_token,
