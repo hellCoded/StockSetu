@@ -109,6 +109,25 @@
     </a>
   </div>
 
+  <!-- Quick Actions -->
+  <div class="dash-quick-actions" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.25rem;">
+    <a href="{{ url_for('billing.pos') }}" class="btn btn-primary" style="justify-content:center;">
+      <i class="fa-solid fa-cart-shopping"></i> New Bill
+    </a>
+    <a href="{{ url_for('inventory.handle_stock_in') }}" class="btn btn-secondary" style="justify-content:center;">
+      <i class="fa-solid fa-arrow-down"></i> Stock In
+    </a>
+    <a href="{{ url_for('inventory.handle_stock_out') }}" class="btn btn-secondary" style="justify-content:center;">
+      <i class="fa-solid fa-arrow-up"></i> Stock Out
+    </a>
+    <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" class="btn btn-secondary" style="justify-content:center;">
+      <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> Low Stock ({{ metrics.low_stock_count }})
+    </a>
+    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary" style="justify-content:center;">
+      <i class="fa-solid fa-receipt"></i> Recent Bills
+    </a>
+  </div>
+
   <!-- Charts Section -->
   <div class="charts-grid">
     <!-- Chart 1: Stock levels by category (Bar) -->
