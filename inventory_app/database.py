@@ -38,10 +38,14 @@ def init_db(app, custom_client=None):
         try:
             db_client = MongoClient(
                 mongo_uri,
-                serverSelectionTimeoutMS=2000,
-                maxPoolSize=100,
-                minPoolSize=10,
-                maxIdleTimeMS=45000,
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=10000,
+                socketTimeoutMS=20000,
+                maxPoolSize=5,
+                minPoolSize=0,
+                maxIdleTimeMS=10000,
+                retryWrites=True,
+                retryReads=True,
             )
             # Test connection
             db_client.admin.command('ping')
@@ -73,10 +77,14 @@ def get_db():
         try:
             db_client = MongoClient(
                 mongo_uri,
-                serverSelectionTimeoutMS=2000,
-                maxPoolSize=100,
-                minPoolSize=10,
-                maxIdleTimeMS=45000,
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=10000,
+                socketTimeoutMS=20000,
+                maxPoolSize=5,
+                minPoolSize=0,
+                maxIdleTimeMS=10000,
+                retryWrites=True,
+                retryReads=True,
             )
             db_client.admin.command('ping')
             current_db = db_client[db_name]
