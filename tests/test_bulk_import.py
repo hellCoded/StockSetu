@@ -121,3 +121,37 @@ def test_bulk_import_confirm_missing_session(admin_client):
 
     assert response.status_code == 302
     assert '/inventory/bulk-stock-in' in response.headers.get('Location')
+
+
+def test_bulk_import_confirm_no_items(admin_client):
+    """Confirm with no item data at all redirects back to upload."""
+    response = admin_client.post('/inventory/bulk-stock-in/confirm', data={
+        'mapping[]': ['Steel Bolts M10'],
+    }, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"No items to import" in response.data
+
+
+def test_bulk_import_confirm_from_form_fields(admin_client, mock_mongo):
+    """Confirm works from hidden form fields alone (no session dependency)."""
+    db = mock_mongo['inventory_test_db']
+    response = admin_client.post('/inventory/bulk-stock-in/confirm', data={
+        'mapping[]': ['__new__'],
+        'item_name[]': ['Steel Bolts M10'],
+        'item_qty[]': ['500'],
+        'item_unit[]': ['PCS'],
+        'item_hsn[]': ['7318'],
+        'new_category[]': ['Fasteners'],
+        'new_price[]': ['10.5'],
+        'new_gst[]': ['18'],
+        'new_location[]': ['Rack A1'],
+        'new_desc[]': ['From supplier bill'],
+        'reason': 'Bulk import test',
+    }, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Created 1 new product(s)" in response.data
+    bolts = db.products.find_one({'product_name': 'Steel Bolts M10'})
+    assert bolts is not None
+    assert float(bolts['quantity']) == 500.0

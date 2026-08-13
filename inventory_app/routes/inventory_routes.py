@@ -122,12 +122,11 @@ def bulk_stock_in():
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
 def bulk_stock_in_confirm():
-    items = session.pop('bulk_import_items', None)
-    if not items:
-        flash("Session expired. Please upload the bill again.", "danger")
-        return redirect(url_for('inventory.bulk_stock_in'))
-
     mapping = request.form.getlist('mapping[]')
+    item_names = request.form.getlist('item_name[]')
+    item_qtys = request.form.getlist('item_qty[]')
+    item_units = request.form.getlist('item_unit[]')
+    item_hsns = request.form.getlist('item_hsn[]')
     new_categories = request.form.getlist('new_category[]')
     new_prices = request.form.getlist('new_price[]')
     new_gsts = request.form.getlist('new_gst[]')
@@ -135,6 +134,25 @@ def bulk_stock_in_confirm():
     new_descs = request.form.getlist('new_desc[]')
     reason = request.form.get('reason', 'Bulk import from supplier bill')
     username = session.get('username', 'System')
+
+    items = session.pop('bulk_import_items', None)
+    if not items:
+        items = []
+        for i, name in enumerate(item_names):
+            try:
+                qty = float(item_qtys[i]) if i < len(item_qtys) else 0
+            except (ValueError, TypeError):
+                qty = 0
+            items.append({
+                'item_name': name,
+                'quantity': qty,
+                'unit': item_units[i] if i < len(item_units) else '',
+                'hsn_code': item_hsns[i] if i < len(item_hsns) else '',
+            })
+
+    if not items:
+        flash("No items to import. Please upload the bill again.", "danger")
+        return redirect(url_for('inventory.bulk_stock_in'))
 
     success_count = 0
     created_count = 0
