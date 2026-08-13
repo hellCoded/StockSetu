@@ -97,3 +97,25 @@ def test_parse_excel_mixed_complete_and_incomplete():
     assert items[0] == {"item_name": "Steel Bolts M10", "quantity": 500.0, "unit": "PCS", "hsn_code": "7318"}
     assert items[1] == {"item_name": "Junction Box IP54", "quantity": 120.0, "unit": "", "hsn_code": ""}
     assert items[2] == {"item_name": "Cable Tray 300mm", "quantity": 60.0, "unit": "MTR", "hsn_code": ""}
+
+
+def test_parse_excel_trims_names_and_keeps_duplicates():
+    """Whitespace-trimmed names, case preserved, duplicate rows kept."""
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["SUPPLIER INVOICE"])
+    ws.append(["", "", "", ""])
+    ws.append(["Item Description", "Quantity", "Unit", "HSN Code"])
+    ws.append(["  Steel Bolts M10  ", "500", "PCS", "7318"])
+    ws.append(["COPPER WIRE 2.5SQMM", "200", "MTR", "7408"])
+    ws.append(["Steel Bolts M10", "100", "PCS", "7318"])
+    buf = io.BytesIO()
+    wb.save(buf)
+
+    fs = FakeFileStorage(buf.getvalue(), "dup_bill.xlsx")
+    ok, err, items = parse_supplier_bill(fs)
+    assert ok is True
+    assert len(items) == 3
+    assert items[0]["item_name"] == "Steel Bolts M10"
+    assert items[1]["item_name"] == "COPPER WIRE 2.5SQMM"
+    assert items[2]["item_name"] == "Steel Bolts M10"
