@@ -16,14 +16,37 @@
 {% if step == 'upload' %}
 {# ── Step 1: File Upload ── #}
 <div class="card" style="max-width: 600px;">
-  <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data">
+  <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="upload-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="form-group">
       <label class="form-label"><i class="fa-solid fa-file-pdf" style="color: var(--primary); margin-right: 0.3rem;"></i> Supplier Bill File <span style="color: #dc2626;">*</span></label>
-      <input type="file" name="bill_file" class="form-control" accept=".pdf,.xlsx,.xls" required
-             style="padding: 0.6rem;">
-      <small style="color: var(--text-muted); font-size: 0.75rem;">Supported formats: PDF, Excel (.xlsx). The file should contain a table with product/item names and quantities.</small>
+
+      <div id="drop-zone" style="
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #f8fafc;
+      ">
+        <input type="file" name="bill_file" id="file-input" accept=".pdf,.xlsx,.xls" hidden required>
+        <div id="drop-icon">
+          <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.5rem; color: var(--primary); opacity: 0.7;"></i>
+          <p style="margin: 0.75rem 0 0.25rem; font-weight: 600; color: #334155;">Drag & drop your file here</p>
+          <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">or <span style="color: var(--primary); font-weight: 600; text-decoration: underline;">browse</span> to choose</p>
+          <p style="margin: 0.5rem 0 0; color: var(--text-muted); font-size: 0.75rem;">PDF or Excel (.xlsx) — max 10MB</p>
+        </div>
+        <div id="file-info" style="display: none;">
+          <i class="fa-solid fa-file-lines" style="font-size: 2rem; color: #059669;"></i>
+          <p id="file-name" style="margin: 0.5rem 0 0.15rem; font-weight: 600; color: #334155;"></p>
+          <p id="file-size" style="margin: 0; color: var(--text-muted); font-size: 0.8rem;"></p>
+          <button type="button" id="remove-file" style="margin-top: 0.5rem; background: none; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.8rem; color: #64748b;">
+            <i class="fa-solid fa-xmark"></i> Remove
+          </button>
+        </div>
+      </div>
     </div>
 
     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
@@ -34,11 +57,78 @@
     </div>
 
     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-cloud-arrow-up"></i> Upload & Parse</button>
+      <button type="submit" class="btn btn-primary" id="submit-btn" disabled><i class="fa-solid fa-cloud-arrow-up"></i> Upload & Parse</button>
       <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
     </div>
   </form>
 </div>
+
+<script>
+(function() {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const dropIcon = document.getElementById('drop-icon');
+  const fileInfo = document.getElementById('file-info');
+  const fileName = document.getElementById('file-name');
+  const fileSize = document.getElementById('file-size');
+  const removeBtn = document.getElementById('remove-file');
+  const submitBtn = document.getElementById('submit-btn');
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function showFile(file) {
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    dropIcon.style.display = 'none';
+    fileInfo.style.display = 'block';
+    dropZone.style.borderColor = '#059669';
+    dropZone.style.background = '#f0fdf4';
+    submitBtn.disabled = false;
+  }
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--primary)';
+    dropZone.style.background = '#eff6ff';
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = '#cbd5e1';
+    dropZone.style.background = '#f8fafc';
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#cbd5e1';
+    dropZone.style.background = '#f8fafc';
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      fileInput.files = e.dataTransfer.files;
+      showFile(file);
+    }
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) showFile(fileInput.files[0]);
+  });
+
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.value = '';
+    dropIcon.style.display = 'block';
+    fileInfo.style.display = 'none';
+    dropZone.style.borderColor = '#cbd5e1';
+    dropZone.style.background = '#f8fafc';
+    submitBtn.disabled = true;
+  });
+})();
+</script>
 
 {% elif step == 'map' %}
 {# ── Step 2: Map Items to Products ── #}
