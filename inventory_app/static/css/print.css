@@ -1,0 +1,51 @@
+/* ============================================================
+   Print Optimization — Clean receipts, invoices
+   ============================================================ */
+@media print {
+  /* Hide non-print elements */
+  .sidebar, .top-navbar, .no-print, .mobile-sidebar-toggle,
+  .sidebar-overlay, #toast-container, .btn, .dash-head-actions,
+  .q-pos-toolbar, .q-cart-head, #theme-toggle {
+    display: none !important;
+  }
+
+  /* Layout */
+  .app-container { display: block !important; }
+  .main-wrapper { margin-left: 0 !important; width: 100% !important; }
+  .content-body { padding: 0 !important; }
+
+  /* Cards */
+  .card, .kpi-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+
+  /* Tables */
+  table { border-collapse: collapse; }
+  th, td { border: 1px solid #ddd !important; padding: 6px 8px !important; }
+  th { background: #f5f5f5 !important; }
+
+  /* Page break */
+  .page-break-before { page-break-before: always; }
+  .page-break-after { page-break-after: always; }
+  .no-break { page-break-inside: avoid; }
+
+  /* Invoice specific */
+  .invoice-print { font-size: 12pt; }
+  .invoice-print .invoice-header { margin-bottom: 1rem; }
+  .invoice-print .invoice-total { font-size: 14pt; font-weight: bold; }
+
+  /* Receipt specific */
+  .receipt-print {
+    width: 80mm;
+    font-family: 'Courier New', monospace;
+    font-size: 10pt;
+  }
+  .receipt-print .receipt-header { text-align: center; font-weight: bold; }
+  .receipt-print .receipt-line { border-top: 1px dashed #000; margin: 0.5rem 0; }
+  .receipt-print .receipt-total { font-weight: bold; font-size: 12pt; }
+
+  /* Colors */
+  * { color: #000 !important; background: #fff !important; }
+
+  /* Links */
+  a[href]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #666; }
+  a[href^="#"]::after, a[href^="javascript"]::after { content: ""; }
+}
