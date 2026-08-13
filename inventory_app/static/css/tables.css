@@ -1,0 +1,63 @@
+/* ============================================================
+   Data Table Improvements — Sorting, hover, bulk select
+   ============================================================ */
+
+/* Sortable column headers */
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 1.5rem !important;
+}
+th.sortable::after {
+  content: '\f0dc';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint, #9ca3af);
+  font-size: 0.7rem;
+}
+th.sort-asc::after { content: '\f0de'; color: var(--primary, #0B3D6E); }
+th.sort-desc::after { content: '\f0dd'; color: var(--primary, #0B3D6E); }
+
+/* Hover row highlight */
+.table-hover tbody tr {
+  transition: background 0.15s;
+}
+.table-hover tbody tr:hover {
+  background: var(--primary-light, rgba(11,61,110,0.05));
+}
+
+/* Bulk select checkboxes */
+.bulk-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  accent-color: var(--primary, #0B3D6E);
+}
+
+/* Bulk action bar */
+.bulk-actions {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--primary-light, rgba(11,61,110,0.1));
+  border-radius: var(--r-md, 12px);
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+.bulk-actions.show { display: flex; }
+.bulk-count { font-weight: 600; color: var(--primary, #0B3D6E); }
+
+/* Empty state */
+.empty-table {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-faint, #9ca3af);
+}
+.empty-table i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }

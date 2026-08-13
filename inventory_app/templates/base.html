@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/skeletons.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dark.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   {% block extra_head %}{% endblock %}
 </head>
@@ -78,6 +79,58 @@
           if (sidebar) sidebar.classList.remove('open');
           overlay.classList.remove('show');
         });
+      }
+
+      // Sortable table columns
+      document.querySelectorAll('th.sortable').forEach(function(th) {
+        th.addEventListener('click', function() {
+          var table = th.closest('table');
+          var tbody = table.querySelector('tbody');
+          var idx = Array.from(th.parentNode.children).indexOf(th);
+          var rows = Array.from(tbody.querySelectorAll('tr'));
+          var isAsc = th.classList.contains('sort-asc');
+
+          table.querySelectorAll('th.sortable').forEach(function(h) {
+            h.classList.remove('sort-asc', 'sort-desc');
+          });
+
+          rows.sort(function(a, b) {
+            var aVal = a.children[idx] ? a.children[idx].textContent.trim() : '';
+            var bVal = b.children[idx] ? b.children[idx].textContent.trim() : '';
+            var aNum = parseFloat(aVal.replace(/[₹,]/g, ''));
+            var bNum = parseFloat(bVal.replace(/[₹,]/g, ''));
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+              return isAsc ? bNum - aNum : aNum - bNum;
+            }
+            return isAsc ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
+          });
+
+          th.classList.add(isAsc ? 'sort-desc' : 'sort-asc');
+          rows.forEach(function(r) { tbody.appendChild(r); });
+        });
+      });
+
+      // Bulk select
+      var selectAll = document.getElementById('select-all');
+      var bulkCheckboxes = document.querySelectorAll('.bulk-checkbox');
+      var bulkBar = document.getElementById('bulk-actions');
+      var bulkCount = document.getElementById('bulk-count');
+
+      if (selectAll) {
+        selectAll.addEventListener('change', function() {
+          bulkCheckboxes.forEach(function(cb) { cb.checked = selectAll.checked; });
+          updateBulkBar();
+        });
+      }
+      bulkCheckboxes.forEach(function(cb) {
+        cb.addEventListener('change', updateBulkBar);
+      });
+
+      function updateBulkBar() {
+        var checked = document.querySelectorAll('.bulk-checkbox:checked').length;
+        if (bulkBar) bulkBar.classList.toggle('show', checked > 0);
+        if (bulkCount) bulkCount.textContent = checked + ' selected';
+        if (selectAll) selectAll.checked = checked === bulkCheckboxes.length && checked > 0;
       }
     });
   })();
