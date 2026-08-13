@@ -155,3 +155,46 @@ def test_bulk_import_confirm_from_form_fields(admin_client, mock_mongo):
     bolts = db.products.find_one({'product_name': 'Steel Bolts M10'})
     assert bolts is not None
     assert float(bolts['quantity']) == 500.0
+
+
+def test_bulk_import_confirm_mixed_existing_and_new(admin_client, mock_mongo):
+    """Existing items stock in, new items are created in one confirm."""
+    db = mock_mongo['inventory_test_db']
+    db.products.insert_one({
+        'product_name': 'Steel Bolts M10',
+        'category': 'Fasteners',
+        'unit': 'PCS',
+        'quantity': 5,
+        'minimum_stock': 5,
+        'price': 10.5,
+        'gst_rate': 18,
+        'hsn_code': '7318',
+        'is_active': True,
+    })
+
+    response = admin_client.post('/inventory/bulk-stock-in/confirm', data={
+        'mapping[]': ['Steel Bolts M10', '__new__'],
+        'item_name[]': ['Steel Bolts M10', 'Copper Wire 2.5sqmm'],
+        'item_qty[]': ['500', '200'],
+        'item_unit[]': ['PCS', 'MTR'],
+        'item_hsn[]': ['7318', '7408'],
+        'new_category[]': ['Electrical'],
+        'new_price[]': ['120.0'],
+        'new_gst[]': ['18'],
+        'new_location[]': ['Rack B2'],
+        'new_desc[]': ['From bill'],
+        'reason': 'Bulk import test',
+    }, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Created 1 new product(s)" in response.data
+    assert b"Successfully stocked in 2 item(s)" in response.data
+
+    bolts = db.products.find_one({'product_name': 'Steel Bolts M10'})
+    assert float(bolts['quantity']) == 505.0
+
+    wire = db.products.find_one({'product_name': 'Copper Wire 2.5sqmm'})
+    assert wire is not None
+    assert float(wire['quantity']) == 200.0
+    assert wire['category'] == 'Electrical'
+    assert wire['unit'] == 'MTR'

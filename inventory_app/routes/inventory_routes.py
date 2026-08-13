@@ -4,6 +4,7 @@ from inventory_app.services.inventory_service import (
     stock_in, stock_out, stock_adjust, get_all_transactions
 )
 from inventory_app.utils.decorators import login_required, roles_required, csrf_protected
+from inventory_app.utils.validators import generate_csrf_token
 
 inventory_bp = Blueprint('inventory', __name__)
 
@@ -109,11 +110,27 @@ def bulk_stock_in():
             flash(err, "danger")
             return redirect(url_for('inventory.bulk_stock_in'))
 
-        products = search_products(is_active=True)
+        products = search_products(is_active=True, limit=500)
         product_names = [p['product_name'] for p in products]
+        product_map = {}
+        for p in products:
+            key = p['product_name'].strip().lower()
+            if key not in product_map:
+                product_map[key] = p['product_name']
+
+        for item in items:
+            matched = product_map.get(item['item_name'].strip().lower(), None)
+            item['is_new'] = matched is None
+            item['matched_name'] = matched or ''
 
         session['bulk_import_items'] = items
-        return render_template('inventory/bulk_stock_in.html', items=items, product_names=product_names, step='map')
+        return render_template(
+            'inventory/bulk_stock_in.html',
+            items=items,
+            product_names=product_names,
+            step='map',
+            csrf_value=generate_csrf_token(),
+        )
 
     return render_template('inventory/bulk_stock_in.html', step='upload')
 
