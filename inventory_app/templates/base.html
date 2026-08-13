@@ -8,10 +8,12 @@
 
   <title>{% block title %}StockSetu - Smart Inventory Management{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/toasts.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
+  <div id="toast-container"></div>
   {% if current_user.id %}
     <div class="app-container">
       {% include 'components/sidebar.html' %}
@@ -34,6 +36,7 @@
 
   {% include 'components/user_credentials_modal.html' %}
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/toasts.js') }}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>
