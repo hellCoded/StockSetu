@@ -159,6 +159,12 @@ def create_app(config_class=Config, custom_mongo_client=None):
             'pending_requests_count': pending_requests_count
         }
 
+    # Lightweight health check (used by keep-warm pings / uptime monitors).
+    # Deliberately avoids DB access so a cold start stays fast.
+    @app.get('/health')
+    def health():
+        return 'OK', 200
+
     # Register Blueprints
     from inventory_app.routes.auth_routes import auth_bp
     from inventory_app.routes.dashboard_routes import dashboard_bp

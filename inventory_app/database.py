@@ -20,56 +20,61 @@ def _mock_enabled(app=None) -> bool:
         return True
     return os.environ.get('MOCK_MONGO', '').strip().lower() in ('1', 'true', 'yes')
 
+# Deferred DB setup: indexes + admin seeding run at most once per process
+# (serverless instances reuse the connection pool across warm requests).
+_db_setup_done = False
+
+
 def init_db(app, custom_client=None):
     """
-    Initialize PyMongo database connection and create indexes.
+    Initialize PyMongo database connection.
+
+    Connection is LAZY: no network I/O happens here, so Vercel cold starts
+    boot fast. The MongoClient constructor only resolves config; the actual
+    handshake occurs on the first DB operation. Index creation and admin
+    seeding are deferred to get_db() and run once per process.
     Supports injecting custom_client (e.g., mongomock) for unit testing.
     """
     global db_client, current_db
-    
+
     if custom_client is not None:
         db_client = custom_client
         db_name = app.config.get('DATABASE_NAME', 'inventory_db')
         current_db = db_client[db_name]
+        _setup_db_once(current_db)
     else:
         mongo_uri = app.config.get('MONGO_URI', 'mongodb://localhost:27017/inventory_db')
         db_name = app.config.get('DATABASE_NAME', 'inventory_db')
-        
-        try:
-            db_client = MongoClient(
-                mongo_uri,
-                serverSelectionTimeoutMS=5000,
-                connectTimeoutMS=10000,
-                socketTimeoutMS=20000,
-                maxPoolSize=5,
-                minPoolSize=0,
-                maxIdleTimeMS=10000,
-                retryWrites=True,
-                retryReads=True,
-            )
-            # Test connection
-            db_client.admin.command('ping')
-            current_db = db_client[db_name]
-            logger.info("Successfully connected to MongoDB server.")
-        except (ConnectionFailure, ServerSelectionTimeoutError) as e:
-            if _mock_enabled(app):
-                logger.warning(f"Could not connect to live MongoDB server ({e}). Using in-memory database fallback for testing/offline mode.")
-                import mongomock
-                db_client = mongomock.MongoClient()
-                current_db = db_client[db_name]
-            else:
-                logger.error(f"Could not connect to MongoDB at {mongo_uri}.")
-                raise RuntimeError(
-                    f"Could not connect to MongoDB at {mongo_uri}. Check MONGO_URI / DATABASE_NAME. "
-                    "Set MOCK_MONGO=1 to run against an in-memory database (data will NOT persist)."
-                ) from e
+        db_client = MongoClient(
+            mongo_uri,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=10000,
+            socketTimeoutMS=20000,
+            maxPoolSize=5,
+            minPoolSize=0,
+            maxIdleTimeMS=10000,
+            retryWrites=True,
+            retryReads=True,
+        )
+        current_db = db_client[db_name]
 
-    init_db_indexes(current_db)
-    seed_default_admin(current_db)
     return current_db
 
+
+def _setup_db_once(current_db):
+    """Run index creation + admin seeding exactly once per process."""
+    global _db_setup_done
+    if _db_setup_done:
+        return
+    try:
+        init_db_indexes(current_db)
+        seed_default_admin(current_db)
+    finally:
+        _db_setup_done = True
+
+
 def get_db():
-    """Retrieve active MongoDB database instance."""
+    """Retrieve active MongoDB database instance (lazy connect on first use)."""
     global db_client, current_db
     if current_db is None:
         mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/inventory_db')
@@ -88,19 +93,19 @@ def get_db():
             )
             db_client.admin.command('ping')
             current_db = db_client[db_name]
+            _setup_db_once(current_db)
         except (ConnectionFailure, ServerSelectionTimeoutError) as e:
             if _mock_enabled():
                 logger.warning(f"Could not connect to live MongoDB server ({e}). Using in-memory database fallback.")
                 import mongomock
                 db_client = mongomock.MongoClient()
                 current_db = db_client[db_name]
+                _setup_db_once(current_db)
             else:
                 logger.error(f"Could not connect to MongoDB at {mongo_uri}.")
                 raise RuntimeError(
                     f"Could not connect to MongoDB at {mongo_uri}. Check MONGO_URI / DATABASE_NAME."
                 ) from e
-        init_db_indexes(current_db)
-        seed_default_admin(current_db)
     return current_db
 
 def init_db_indexes(db):
