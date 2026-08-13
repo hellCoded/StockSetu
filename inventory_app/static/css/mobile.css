@@ -1,0 +1,104 @@
+/* ============================================================
+   Mobile Responsiveness — Collapsible sidebar, touch-friendly
+   ============================================================ */
+
+/* Mobile sidebar toggle button */
+.mobile-sidebar-toggle {
+  display: none !important;
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 200;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary, #0B3D6E);
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-lg);
+  font-size: 1.2rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.sidebar-overlay.show { opacity: 1; }
+
+/* Mobile breakpoint */
+@media (max-width: 768px) {
+  .mobile-sidebar-toggle { display: flex !important; }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s var(--ease, cubic-bezier(0.4,0,0.2,1));
+    z-index: 200;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay { display: block; }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .app-container { flex-direction: column; }
+
+  /* Navbar mobile */
+  .top-navbar {
+    padding: 0.5rem 1rem !important;
+    height: auto !important;
+    flex-wrap: wrap;
+  }
+
+  /* KPI grid mobile */
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .kpi-card { padding: 1rem !important; }
+
+  /* Content padding */
+  .content-body { padding: 1rem !important; }
+
+  /* Tables mobile scroll */
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Forms mobile */
+  .form-row { flex-direction: column !important; }
+  .form-row > div { width: 100% !important; }
+
+  /* Buttons mobile */
+  .btn { min-height: 44px; font-size: 0.9rem; }
+  .btn-sm { min-height: 36px; }
+
+  /* POS mobile */
+  .q-pos-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modal mobile */
+  .modal-dialog { margin: 0.5rem; }
+  .modal-content { max-height: 90vh; overflow-y: auto; }
+
+  /* Chart mobile */
+  .chart-container { height: 200px !important; }
+}
+
+/* Touch-friendly tap targets */
+@media (pointer: coarse) {
+  .btn, button, a, input, select, textarea {
+    min-height: 44px;
+  }
+  .q-prod-card { min-height: 120px; }
+  .q-cart-row { padding: 0.75rem 0.5rem; }
+}
