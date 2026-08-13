@@ -32,11 +32,10 @@ def _parse_pdf(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
                 for table in tables:
                     if not table or len(table) < 2:
                         continue
-                    header_row = table[0]
-                    name_idx, qty_idx = _find_columns(header_row)
+                    header_idx, name_idx, qty_idx = _find_header_and_columns(table)
                     if name_idx is None or qty_idx is None:
                         continue
-                    for row in table[1:]:
+                    for row in table[header_idx + 1:]:
                         if not row or len(row) <= max(name_idx, qty_idx):
                             continue
                         item_name = _clean_text(row[name_idx])
@@ -63,11 +62,10 @@ def _parse_excel(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
             rows = list(sheet.iter_rows(values_only=True))
             if len(rows) < 2:
                 continue
-            header_row = rows[0]
-            name_idx, qty_idx = _find_columns(header_row)
+            header_idx, name_idx, qty_idx = _find_header_and_columns(rows)
             if name_idx is None or qty_idx is None:
                 continue
-            for row in rows[1:]:
+            for row in rows[header_idx + 1:]:
                 if not row or len(row) <= max(name_idx, qty_idx):
                     continue
                 item_name = _clean_text(row[name_idx])
@@ -86,39 +84,31 @@ def _parse_excel(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
     return True, "", items
 
 
-def _find_columns(header_row) -> tuple:
+def _find_header_and_columns(rows: list) -> tuple:
     """
-    Attempts to find the item name and quantity column indices from a header row.
-    Returns (name_idx, qty_idx) or (None, None) if not found.
+    Scans the first rows to find a header row containing item/quantity keywords.
+    Returns (header_row_index, name_idx, qty_idx) or (-1, None, None) if not found.
     """
-    name_idx = None
-    qty_idx = None
     name_keywords = ['item', 'product', 'name', 'description', 'material', 'article', 'goods', 'part', 'component']
-    qty_keywords = ['qty', 'quantity', 'nos', 'pcs', 'units', 'count', 'amount', 'total']
+    qty_keywords = ['qty', 'quantity', 'nos', 'pcs', 'units', 'count']
 
-    for i, cell in enumerate(header_row):
-        cell_text = _clean_text(cell).lower()
-        if not cell_text:
+    for idx, row in enumerate(rows[:15]):
+        if not row:
             continue
-        if name_idx is None and any(kw in cell_text for kw in name_keywords):
-            name_idx = i
-        if qty_idx is None and any(kw in cell_text for kw in qty_keywords):
-            qty_idx = i
-
-    # Fallback: if we have a header but can't match keywords,
-    # assume first text-like column is name, second numeric-like column is qty
-    if name_idx is None and qty_idx is None and len(header_row) >= 2:
-        for i, cell in enumerate(header_row):
-            cell_text = _clean_text(cell)
+        name_idx = None
+        qty_idx = None
+        for i, cell in enumerate(row):
+            cell_text = _clean_text(cell).lower()
             if not cell_text:
                 continue
-            if name_idx is None:
+            if name_idx is None and any(kw in cell_text for kw in name_keywords):
                 name_idx = i
-            elif qty_idx is None:
+            if qty_idx is None and any(kw in cell_text for kw in qty_keywords):
                 qty_idx = i
-                break
+        if name_idx is not None and qty_idx is not None:
+            return idx, name_idx, qty_idx
 
-    return name_idx, qty_idx
+    return -1, None, None
 
 
 def _parse_quantity(raw) -> float | None:

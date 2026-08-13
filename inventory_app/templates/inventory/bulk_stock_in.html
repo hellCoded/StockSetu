@@ -18,35 +18,53 @@
   <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="upload-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <label class="form-label" style="font-weight: 600;">
-      <i class="fa-solid fa-file-pdf" style="color: var(--primary); margin-right: 0.3rem;"></i>
-      Supplier Bill File <span style="color: #dc2626;">*</span>
-    </label>
-
-    <div id="drop-zone">
-      <input type="file" name="bill_file" id="file-input" accept=".pdf,.xlsx,.xls">
-      <div id="drop-prompt">
-        <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
-        <p class="drop-title">Drag & drop your file here</p>
-        <p class="drop-sub">or <span class="drop-browse">browse</span> to choose</p>
-        <p class="drop-hint">PDF or Excel (.xlsx)</p>
+    <div class="upload-header">
+      <i class="fa-solid fa-file-import upload-header-icon"></i>
+      <div>
+        <h2 class="upload-title">Upload Supplier Bill</h2>
+        <p class="upload-sub">PDF or Excel (.xlsx, .xls) — the system will extract items & quantities automatically</p>
       </div>
-      <div id="file-info" style="display: none;">
-        <i class="fa-solid fa-file-lines" style="font-size: 2rem; color: #059669;"></i>
-        <p id="file-name"></p>
-        <p id="file-size"></p>
-        <button type="button" id="remove-file"><i class="fa-solid fa-xmark"></i> Remove</button>
+    </div>
+
+    <div class="file-picker" id="file-picker">
+      <input type="file" name="bill_file" id="file-input" accept=".pdf,.xlsx,.xls">
+      <div class="file-picker-idle" id="picker-idle">
+        <div class="file-picker-icon">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <p class="file-picker-label">Choose a file</p>
+        <p class="file-picker-hint">or drag it here</p>
+      </div>
+      <div class="file-picker-selected" id="picker-selected" style="display:none;">
+        <div class="file-icon" id="file-icon-box">
+          <i class="fa-solid fa-file-lines"></i>
+        </div>
+        <div class="file-meta">
+          <p class="file-name" id="file-name"></p>
+          <p class="file-size" id="file-size"></p>
+        </div>
+        <button type="button" class="file-remove" id="remove-file" title="Remove file">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
     </div>
 
     <div class="info-box">
       <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
-      <strong>How it works:</strong> Upload your supplier's bill → the system extracts item names and quantities → you map each item to a product → confirm to stock in.
+      <div>
+        <strong>How it works:</strong>
+        <ol class="info-steps">
+          <li>Upload your supplier's bill</li>
+          <li>System extracts item names &amp; quantities</li>
+          <li>Map each item to a product in your inventory</li>
+          <li>Confirm to stock in</li>
+        </ol>
+      </div>
     </div>
 
     <div class="btn-row">
       <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
-        <i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Parse
+        <i class="fa-solid fa-arrow-right"></i> Continue
       </button>
       <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
         <i class="fa-solid fa-xmark"></i> Cancel
@@ -56,53 +74,74 @@
 </div>
 
 <style>
-  #drop-zone {
+  .upload-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+  .upload-header-icon { font-size: 1.8rem; color: var(--primary); margin-top: 0.15rem; }
+  .upload-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0; }
+  .upload-sub { font-size: 0.85rem; color: #64748b; margin: 0.25rem 0 0; }
+
+  .file-picker {
+    position: relative;
     border: 2px dashed #cbd5e1;
     border-radius: 12px;
-    padding: 2.5rem 1.5rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
     background: #f8fafc;
-    position: relative;
-  }
-  #drop-zone:hover { border-color: #93c5fd; background: #f0f7ff; }
-  #drop-zone.dragover { border-color: #3b82f6; background: #eff6ff; border-style: solid; }
-  #drop-zone.has-file { border-color: #059669; background: #f0fdf4; border-style: solid; }
-  #file-input {
-    position: absolute;
-    width: 1px; height: 1px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     overflow: hidden;
-    clip: rect(0,0,0,0);
   }
-  .drop-icon { font-size: 2.5rem; color: #3b82f6; opacity: 0.7; }
-  .drop-title { margin: 0.5rem 0 0.25rem; font-weight: 600; color: #334155; font-size: 1rem; pointer-events: none; }
-  .drop-sub { margin: 0; color: #64748b; font-size: 0.85rem; pointer-events: none; }
-  .drop-browse { color: #3b82f6; font-weight: 600; text-decoration: underline; pointer-events: auto; cursor: pointer; }
-  .drop-hint { margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.75rem; pointer-events: none; }
-  #file-name { margin: 0.5rem 0 0.15rem; font-weight: 600; color: #334155; font-size: 0.95rem; word-break: break-all; pointer-events: none; }
-  #file-size { margin: 0; color: #64748b; font-size: 0.8rem; pointer-events: none; }
-  #remove-file {
-    margin-top: 0.5rem; background: none; border: 1px solid #e2e8f0;
-    border-radius: 6px; padding: 0.3rem 0.8rem; cursor: pointer;
-    font-size: 0.8rem; color: #64748b; transition: background 0.15s;
-    position: relative; z-index: 3;
+  .file-picker:hover { border-color: #93c5fd; background: #f0f7ff; }
+  .file-picker:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+  .file-picker input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2;
   }
-  #remove-file:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
-  #drop-prompt > * { pointer-events: none; }
-  #drop-prompt .drop-browse { pointer-events: auto; }
-  #file-info > * { pointer-events: none; }
-  #file-info #remove-file { pointer-events: auto; }
+
+  .file-picker-idle {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 2.5rem 1.5rem; text-align: center;
+  }
+  .file-picker-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 0.75rem;
+  }
+  .file-picker-icon i { font-size: 1.4rem; color: #3b82f6; }
+  .file-picker-label { font-weight: 600; color: #334155; font-size: 0.95rem; margin: 0; }
+  .file-picker-hint { font-size: 0.8rem; color: #94a3b8; margin: 0.25rem 0 0; }
+
+  .file-picker-selected {
+    display: flex; align-items: center; gap: 0.85rem;
+    padding: 1rem 1.25rem; background: #f0fdf4;
+    border-color: #059669; border-style: solid;
+  }
+  .file-picker-selected .file-icon {
+    width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .file-picker-selected .file-icon i { font-size: 1.2rem; color: #059669; }
+  .file-picker-selected .file-icon.pdf i { color: #dc2626; }
+  .file-meta { flex: 1; min-width: 0; }
+  .file-name { font-weight: 600; color: #0f172a; font-size: 0.9rem; margin: 0; word-break: break-all; }
+  .file-size { font-size: 0.78rem; color: #64748b; margin: 0.15rem 0 0; }
+  .file-remove {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    background: none; border: 1px solid #e2e8f0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #94a3b8; transition: all 0.15s; z-index: 3; position: relative;
+  }
+  .file-remove:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+
   .info-box {
     background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
     padding: 0.85rem 1rem; margin: 1.25rem 0; font-size: 0.85rem; color: #64748b;
   }
+  .info-steps { margin: 0.4rem 0 0; padding-left: 1.2rem; }
+  .info-steps li { margin-bottom: 0.15rem; }
+
   .btn-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
 
   @media (max-width: 640px) {
-    #drop-zone { padding: 1.5rem 1rem; }
-    .drop-icon { font-size: 2rem; }
-    .drop-title { font-size: 0.9rem; }
+    .file-picker-idle { padding: 1.5rem 1rem; }
     .btn-row { flex-direction: column; }
     .btn-row .btn { width: 100%; justify-content: center; }
   }
@@ -110,78 +149,46 @@
 
 <script>
 (function() {
-  var dz = document.getElementById('drop-zone');
   var fi = document.getElementById('file-input');
-  var dp = document.getElementById('drop-prompt');
-  var fi_info = document.getElementById('file-info');
+  var idle = document.getElementById('picker-idle');
+  var sel = document.getElementById('picker-selected');
   var fn = document.getElementById('file-name');
   var fs = document.getElementById('file-size');
+  var iconBox = document.getElementById('file-icon-box');
   var rb = document.getElementById('remove-file');
   var sb = document.getElementById('submit-btn');
-  var frm = document.getElementById('upload-form');
-  var dc = 0;
 
-  if (!dz || !fi) return;
+  if (!fi) return;
 
   function fmt(b) { return b < 1024 ? b+' B' : b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB'; }
 
   function show(f) {
     fn.textContent = f.name;
     fs.textContent = fmt(f.size);
-    dp.style.display = 'none';
-    fi_info.style.display = 'block';
-    dz.classList.add('has-file');
+    iconBox.className = 'file-icon' + (f.name.toLowerCase().endsWith('.pdf') ? ' pdf' : '');
+    idle.style.display = 'none';
+    sel.style.display = 'flex';
     sb.disabled = false;
   }
 
   function clear() {
     fi.value = '';
-    dp.style.display = 'block';
-    fi_info.style.display = 'none';
-    dz.classList.remove('has-file');
+    idle.style.display = 'flex';
+    sel.style.display = 'none';
     sb.disabled = true;
   }
 
-  // Prevent browser from navigating to the dropped file
-  ['dragover', 'drop'].forEach(function(evt) {
-    window.addEventListener(evt, function(e) { e.preventDefault(); });
-  });
-
-  // Visual highlight on drag
-  dz.addEventListener('dragenter', function(e) { e.preventDefault(); dc++; dz.classList.add('dragover'); });
-  dz.addEventListener('dragover', function(e) { e.preventDefault(); });
-  dz.addEventListener('dragleave', function(e) { e.preventDefault(); dc--; if(dc<=0){dc=0; dz.classList.remove('dragover');} });
-
-  // Drop: capture file from dataTransfer and set on input via DataTransfer API
-  dz.addEventListener('drop', function(e) {
-    e.preventDefault();
-    dc = 0;
-    dz.classList.remove('dragover');
-    var files = e.dataTransfer && e.dataTransfer.files;
-    if (files && files.length > 0) {
-      try {
-        var dt = new DataTransfer();
-        dt.items.add(files[0]);
-        fi.files = dt.files;
-      } catch(ex) {}
-      show(files[0]);
-    }
-  });
-
-  // Click on drop zone opens browse dialog
-  dz.addEventListener('click', function(e) {
-    if (e.target === rb || rb.contains(e.target)) return;
-    fi.click();
-  });
-
-  // Browse: native change event
   fi.addEventListener('change', function() {
     if (fi.files.length > 0) show(fi.files[0]);
   });
 
-  rb.addEventListener('click', function(e) { e.stopPropagation(); clear(); });
+  rb.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    clear();
+  });
 
-  frm.addEventListener('submit', function(e) {
+  document.getElementById('upload-form').addEventListener('submit', function(e) {
     if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); }
   });
 })();
