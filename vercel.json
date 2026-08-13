@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "crons": [
-    { "path": "/health", "schedule": "*/5 * * * *" }
-  ],
   "functions": {
     "api/index.py": {
       "maxDuration": 30,
