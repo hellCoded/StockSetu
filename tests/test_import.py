@@ -73,3 +73,27 @@ def test_parse_excel_skips_empty_rows():
     ok, err, items = parse_supplier_bill(fs)
     assert ok is True
     assert len(items) == 2
+
+
+def test_parse_excel_mixed_complete_and_incomplete():
+    """Rows with metadata, some complete (unit+hsn) and some incomplete (missing fields)."""
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["SUPPLIER INVOICE - MIXED"])
+    ws.append(["Invoice #: BM-1", "Date: 2026-08-13"])
+    ws.append(["", "", "", ""])
+    ws.append(["Item Description", "Quantity", "Unit", "HSN Code"])
+    ws.append(["Steel Bolts M10", "500", "PCS", "7318"])   # complete
+    ws.append(["Junction Box IP54", "120", "", ""])         # missing unit + hsn
+    ws.append(["Cable Tray 300mm", "60", "MTR", ""])        # missing hsn
+    buf = io.BytesIO()
+    wb.save(buf)
+
+    fs = FakeFileStorage(buf.getvalue(), "mixed_bill.xlsx")
+    ok, err, items = parse_supplier_bill(fs)
+    assert ok is True
+    assert len(items) == 3
+
+    assert items[0] == {"item_name": "Steel Bolts M10", "quantity": 500.0, "unit": "PCS", "hsn_code": "7318"}
+    assert items[1] == {"item_name": "Junction Box IP54", "quantity": 120.0, "unit": "", "hsn_code": ""}
+    assert items[2] == {"item_name": "Cable Tray 300mm", "quantity": 60.0, "unit": "MTR", "hsn_code": ""}
