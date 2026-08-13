@@ -145,11 +145,12 @@
     sb.disabled = true;
   }
 
-  // Visual drag-over state on the zone (the input handles the actual drop natively)
+  // Visual drag-over state only. Do NOT call preventDefault on 'drop' —
+  // that would cancel the file input's native file acceptance.
   dz.addEventListener('dragenter', function(e) { e.preventDefault(); e.stopPropagation(); dc++; dz.classList.add('dragover'); });
   dz.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); });
   dz.addEventListener('dragleave', function(e) { e.preventDefault(); e.stopPropagation(); dc--; if(dc<=0){dc=0; dz.classList.remove('dragover');} });
-  dz.addEventListener('drop', function(e) { e.preventDefault(); e.stopPropagation(); dc=0; dz.classList.remove('dragover'); });
+  dz.addEventListener('drop', function(e) { dc=0; dz.classList.remove('dragover'); });
 
   // Native change event fires for both Browse AND dropped files
   fi.addEventListener('change', function() {
