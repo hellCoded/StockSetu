@@ -3,8 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Python Inventory Management System powered by Flask and MongoDB">
+  <meta name="description" content="StockSetu — a smart inventory management system to track products, stock levels, supplier bills, and billing in real time.">
+  <meta name="keywords" content="inventory management, stock tracking, StockSetu, supplier bills, billing software, warehouse management">
+  <meta name="author" content="StockSetu">
+  <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#0f172a">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="StockSetu">
+  <meta property="og:title" content="StockSetu - Smart Inventory Management">
+  <meta property="og:description" content="Track products, stock levels, supplier bills, and billing in real time with StockSetu.">
+  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:image" content="{{ url_for('static', filename='img/og-cover.png', _external=True) }}">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="StockSetu - Smart Inventory Management">
+  <meta name="twitter:description" content="Track products, stock levels, supplier bills, and billing in real time with StockSetu.">
+  <meta name="twitter:image" content="{{ url_for('static', filename='img/og-cover.png', _external=True) }}">
+
+  <link rel="canonical" href="{{ request.url }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
 
   <title>{% block title %}StockSetu - Smart Inventory Management{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
