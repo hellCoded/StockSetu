@@ -12,6 +12,9 @@ class Config:
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() in ('true', '1', 't')
     PERMANENT_SESSION_LIFETIME = 86400  # 24 hours in seconds
+    # Upstash Redis (global cache + rate limiting for Vercel serverless)
+    UPSTASH_REDIS_REST_URL = os.getenv('UPSTASH_REDIS_REST_URL', '')
+    UPSTASH_REDIS_REST_TOKEN = os.getenv('UPSTASH_REDIS_REST_TOKEN', '')
 
 class TestConfig(Config):
     TESTING = True

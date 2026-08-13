@@ -414,6 +414,35 @@
 }
 .q-cart-overlay.show { display: block; opacity: 1; }
 
+/* ─── POS Extended: Line Discount / Free / Charges / Split ─── */
+.q-cart-row-disc { display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem; }
+.q-cart-row-disc label { font-size: 0.58rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+.q-cart-row-disc input { width: 44px; padding: 0.1rem 0.2rem; font-size: 0.65rem; text-align: right; border: 1px solid var(--bg-card-border); border-radius: 4px; background: var(--bg-body); }
+.q-cart-row-disc .free-btn { font-size: 0.55rem; padding: 0.1rem 0.35rem; border-radius: 4px; border: 1px solid var(--bg-card-border); background: var(--bg-body); cursor: pointer; font-weight: 700; color: var(--text-muted); }
+.q-cart-row-disc .free-btn.active { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+.q-split-section { padding: 0.5rem 1rem; border-top: 1px dashed var(--bg-card-border); display: none; }
+.q-split-section.open { display: block; }
+.q-split-row { display: flex; gap: 0.35rem; margin-bottom: 0.35rem; align-items: center; }
+.q-split-row select, .q-split-row input { font-size: 0.72rem; padding: 0.2rem 0.35rem; border: 1px solid var(--bg-card-border); border-radius: 4px; background: var(--bg-body); }
+.q-split-row select { width: 70px; }
+.q-split-row input[type="number"] { width: 70px; text-align: right; }
+.q-split-row input[type="text"] { flex: 1; }
+.q-split-add { font-size: 0.62rem; color: var(--primary); cursor: pointer; font-weight: 700; margin-top: 0.2rem; display: inline-block; }
+.q-split-add:hover { text-decoration: underline; }
+
+.q-charges-row { display: flex; gap: 0.35rem; margin-bottom: 0.35rem; align-items: center; }
+.q-charges-row label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); min-width: 58px; }
+.q-charges-row input { width: 70px; padding: 0.2rem 0.35rem; font-size: 0.72rem; text-align: right; border: 1px solid var(--bg-card-border); border-radius: 4px; background: var(--bg-body); }
+
+.q-due-date-row { display: flex; align-items: center; gap: 0.35rem; margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px dashed var(--bg-card-border); display: none; }
+.q-due-date-row.show { display: flex; }
+.q-due-date-row label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+.q-due-date-row input { padding: 0.2rem 0.35rem; font-size: 0.72rem; border: 1px solid var(--bg-card-border); border-radius: 4px; background: var(--bg-body); }
+
+.q-total-row.extra { font-size: 0.7rem; color: var(--text-muted); }
+.q-total-row.extra .val { font-size: 0.72rem; }
+
 /* ─── Animations ─── */
 @keyframes cardEntrance { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .q-prod-card { animation: cardEntrance 0.3s var(--ease) both; }
@@ -547,6 +576,32 @@
             <span class="q-cart-label" style="margin: 0;">Discount (%)</span>
             <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100" step="0.5" style="width: 80px; padding: 0.2rem 0.4rem; font-size: 0.8rem; text-align: right;" oninput="window.__posRenderCart && window.__posRenderCart()">
           </div>
+
+          <!-- Extra Charges -->
+          <div style="margin-top: 0.5rem;">
+            <div class="q-cart-label">Extra Charges</div>
+            <div class="q-charges-row">
+              <label>Shipping</label>
+              <input type="number" id="shipping_charge" name="shipping_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
+            </div>
+            <div class="q-charges-row">
+              <label>Packing</label>
+              <input type="number" id="packing_charge" name="packing_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
+            </div>
+          </div>
+
+          <!-- Split Payment (visible for CASH/UPI/CARD) -->
+          <div class="q-split-section" id="split-section">
+            <div class="q-cart-label">Split Payment</div>
+            <div id="split-rows"></div>
+            <span class="q-split-add" id="add-split">+ Add payment</span>
+          </div>
+
+          <!-- Due Date (visible for CREDIT) -->
+          <div class="q-due-date-row" id="due-date-row">
+            <label>Due Date *</label>
+            <input type="date" id="due_date" name="due_date" class="form-control">
+          </div>
         </div>
       </div>
 
@@ -559,11 +614,15 @@
 
       <div class="q-cart-totals">
         <div class="q-total-row"><span>Taxable</span><span class="val" id="t-subtotal">₹0.00</span></div>
-        <div class="q-total-row"><span>Discount</span><span class="val" id="t-discount" style="color: #ef4444;">-₹0.00</span></div>
+        <div class="q-total-row"><span>Line Disc.</span><span class="val" id="t-line-disc" style="color: #ef4444;">-₹0.00</span></div>
+        <div class="q-total-row"><span>Bill Disc.</span><span class="val" id="t-discount" style="color: #ef4444;">-₹0.00</span></div>
         <div class="q-total-row"><span>CGST</span><span class="val" id="t-cgst">₹0.00</span></div>
         <div class="q-total-row"><span>SGST</span><span class="val" id="t-sgst">₹0.00</span></div>
+        <div class="q-total-row extra" id="t-charges-row" style="display:none;"><span>Charges</span><span class="val" id="t-charges">₹0.00</span></div>
+        <div class="q-total-row extra" id="t-roundoff-row" style="display:none;"><span>Round-off</span><span class="val" id="t-roundoff">₹0.00</span></div>
         <div class="q-total-row"><span>Items</span><span class="val" id="t-items">0</span></div>
         <div class="q-grand-row"><span>GRAND TOTAL</span><span class="val" id="t-grand">₹0.00</span></div>
+        <div class="q-total-row" id="t-free-row" style="display:none;"><span style="color:#16a34a;font-weight:700;">Free Lines</span><span class="val" id="t-free" style="color:#16a34a;">₹0.00</span></div>
       </div>
 
       <div class="q-cart-submit">
@@ -662,7 +721,7 @@
         if (typeof showToast === 'function') showToast(name + ' is out of stock', 'danger');
         return;
       }
-      cart.push({ name, price: parseFloat(price), gst: parseFloat(gst || 0), qty: 1, stock: parseFloat(stock) });
+      cart.push({ name, price: parseFloat(price), gst: parseFloat(gst || 0), qty: 1, stock: parseFloat(stock), disc: 0, isFree: false });
       if (typeof showToast === 'function') showToast(name + ' added to cart', 'success', 1800);
     }
     renderCart();
@@ -701,16 +760,23 @@
     } else {
       cartEl.innerHTML = '';
       cart.forEach(item => {
-        const taxable = item.price * item.qty;
+        const rawTax = item.price * item.qty;
+        const discAmt = rawTax * (item.disc || 0) / 100;
+        const taxable = rawTax - discAmt;
         const gstAmt = taxable * item.gst / 100;
-        const total = taxable + gstAmt;
+        const total = item.isFree ? 0 : (taxable + gstAmt);
         const atMax = item.qty >= item.stock;
         const row = document.createElement('div');
         row.className = 'q-cart-row';
         row.innerHTML =
           '<div>' +
-            '<div class="q-cart-row-name">' + item.name + (atMax ? '<span class="q-cart-row-max">MAX</span>' : '') + '</div>' +
-            '<div class="q-cart-row-sub">' + fmt(item.price) + (item.gst ? ' +' + item.gst + '% GST' : '') + '</div>' +
+            '<div class="q-cart-row-name">' + item.name + (item.isFree ? ' <span style="color:#16a34a;font-weight:800;font-size:0.6rem;">FREE</span>' : '') + (atMax ? '<span class="q-cart-row-max">MAX</span>' : '') + '</div>' +
+            '<div class="q-cart-row-sub">' + fmt(item.price) + (item.gst ? ' +' + item.gst + '% GST' : '') + (item.disc > 0 ? ' <span style="color:#ef4444">-' + item.disc + '%</span>' : '') + '</div>' +
+            '<div class="q-cart-row-disc">' +
+              '<label>Disc%</label>' +
+              '<input type="number" min="0" max="100" step="0.5" value="' + (item.disc || 0) + '" onchange="window.__posLineDisc(\'' + esc(item.name) + '\', this.value)">' +
+              '<button type="button" class="free-btn ' + (item.isFree ? 'active' : '') + '" onclick="window.__posToggleFree(\'' + esc(item.name) + '\')">FREE</button>' +
+            '</div>' +
           '</div>' +
           '<div class="q-cart-row-right">' +
             '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',-1)">&minus;</button>' +
@@ -742,25 +808,51 @@
     });
 
     /* ── Totals ── */
-    let subtotal = 0, cgst = 0, sgst = 0;
+    let subtotal = 0, lineDiscTotal = 0, cgst = 0, sgst = 0, freeTotal = 0;
     cart.forEach(item => {
-      const taxable = item.price * item.qty;
+      const rawTax = item.price * item.qty;
+      const discAmt = rawTax * (item.disc || 0) / 100;
+      const taxable = rawTax - discAmt;
       const gstAmt = taxable * item.gst / 100;
-      subtotal += taxable;
-      cgst += gstAmt / 2;
-      sgst += gstAmt / 2;
+      if (item.isFree) {
+        freeTotal += (taxable + gstAmt);
+      } else {
+        subtotal += rawTax;
+        lineDiscTotal += discAmt;
+        cgst += gstAmt / 2;
+        sgst += gstAmt / 2;
+      }
     });
 
+    const taxableAfterLineDisc = subtotal - lineDiscTotal;
     const discInput = document.getElementById('discount_percent');
     const discPct = Math.max(0, Math.min(100, parseFloat(discInput ? discInput.value : 0) || 0));
-    const discAmt = (subtotal * discPct) / 100;
-    const grand = (subtotal - discAmt) + cgst + sgst;
+    const discAmt = (taxableAfterLineDisc * discPct) / 100;
+
+    const shipInput = document.getElementById('shipping_charge');
+    const packInput = document.getElementById('packing_charge');
+    const charges = parseFloat(shipInput ? shipInput.value : 0) + parseFloat(packInput ? packInput.value : 0);
+    const taxableFinal = taxableAfterLineDisc - discAmt;
+    const grandRaw = taxableFinal + cgst + sgst + charges;
+    const roundOff = Math.round(grandRaw) - grandRaw;
+    const grand = grandRaw + roundOff;
 
     document.getElementById('t-subtotal').textContent = fmt(subtotal);
+    document.getElementById('t-line-disc').textContent = '-' + fmt(lineDiscTotal);
     document.getElementById('t-discount').textContent = '-' + fmt(discAmt);
     document.getElementById('t-cgst').textContent = fmt(cgst);
     document.getElementById('t-sgst').textContent = fmt(sgst);
     document.getElementById('t-grand').textContent = fmt(grand);
+
+    const chargesRow = document.getElementById('t-charges-row');
+    const roundoffRow = document.getElementById('t-roundoff-row');
+    const freeRow = document.getElementById('t-free-row');
+    if (charges > 0) { chargesRow.style.display = ''; document.getElementById('t-charges').textContent = fmt(charges); }
+    else { chargesRow.style.display = 'none'; }
+    if (Math.abs(roundOff) > 0.001) { roundoffRow.style.display = ''; document.getElementById('t-roundoff').textContent = (roundOff >= 0 ? '+' : '') + fmt(roundOff); }
+    else { roundoffRow.style.display = 'none'; }
+    if (freeTotal > 0) { freeRow.style.display = ''; document.getElementById('t-free').textContent = fmt(freeTotal); }
+    else { freeRow.style.display = 'none'; }
 
     const total = cart.reduce((s, i) => s + i.qty, 0);
     document.getElementById('t-items').textContent = total;
@@ -775,6 +867,14 @@
       const n = document.createElement('input'); n.type = 'hidden'; n.name = 'item_name[]'; n.value = item.name;
       const q = document.createElement('input'); q.type = 'hidden'; q.name = 'item_quantity[]'; q.value = item.qty;
       holder.appendChild(n); holder.appendChild(q);
+      if (item.disc > 0) {
+        const d = document.createElement('input'); d.type = 'hidden'; d.name = 'item_discount[]'; d.value = item.disc;
+        holder.appendChild(d);
+      }
+      if (item.isFree) {
+        const f = document.createElement('input'); f.type = 'hidden'; f.name = 'item_free[]'; f.value = '1';
+        holder.appendChild(f);
+      }
     });
 
     submitBtn.disabled = cart.length === 0;
@@ -821,11 +921,74 @@
   });
 
   /* ── Payment Method ── */
+  const splitSection = document.getElementById('split-section');
+  const dueDateRow = document.getElementById('due-date-row');
+  const splitRowsEl = document.getElementById('split-rows');
+  let splitPayments = [];
+
+  function updatePaymentUI() {
+    const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
+    if (method === 'CREDIT') {
+      splitSection.classList.remove('open');
+      dueDateRow.classList.add('show');
+    } else {
+      dueDateRow.classList.remove('show');
+      // Show split for CASH/UPI/CARD
+      splitSection.classList.add('open');
+    }
+  }
+
+  function renderSplitRows() {
+    splitRowsEl.innerHTML = '';
+    splitPayments.forEach((sp, i) => {
+      const row = document.createElement('div');
+      row.className = 'q-split-row';
+      row.innerHTML =
+        '<select name="split_method[]" onchange="window.__posSplitMethod(' + i + ', this.value)">' +
+          '<option value="CASH"' + (sp.method === 'CASH' ? ' selected' : '') + '>Cash</option>' +
+          '<option value="UPI"' + (sp.method === 'UPI' ? ' selected' : '') + '>UPI</option>' +
+          '<option value="CARD"' + (sp.method === 'CARD' ? ' selected' : '') + '>Card</option>' +
+          '<option value="CREDIT"' + (sp.method === 'CREDIT' ? ' selected' : '') + '>Credit</option>' +
+        '</select>' +
+        '<input type="number" name="split_amount[]" value="' + sp.amount + '" min="0" step="0.01" placeholder="Amount" onchange="window.__posSplitAmount(' + i + ', this.value)">' +
+        '<input type="text" name="split_reference[]" value="' + (sp.reference || '') + '" placeholder="Ref/UPI ID">' +
+        '<button type="button" class="trash-btn" onclick="window.__posSplitRemove(' + i + ')" style="font-size:0.65rem;"><i class="fa-solid fa-xmark"></i></button>';
+      splitRowsEl.appendChild(row);
+    });
+  }
+
+  window.__posSplitMethod = function(i, val) { splitPayments[i].method = val; renderSplitRows(); };
+  window.__posSplitAmount = function(i, val) { splitPayments[i].amount = parseFloat(val) || 0; };
+  window.__posSplitRemove = function(i) { splitPayments.splice(i, 1); renderSplitRows(); };
+
+  document.getElementById('add-split').addEventListener('click', function() {
+    const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
+    splitPayments.push({ method: method, amount: 0, reference: '' });
+    renderSplitRows();
+  });
+
   document.querySelectorAll('.q-pay-opt input[name="payment_method"]').forEach(radio => {
     radio.addEventListener('change', () => {
       document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
+      updatePaymentUI();
     });
   });
+
+  /* ── Line Discount & Free Toggle ── */
+  window.__posLineDisc = function(name, val) {
+    const item = cart.find(i => i.name === name);
+    if (!item) return;
+    item.disc = Math.max(0, Math.min(100, parseFloat(val) || 0));
+    renderCart();
+  };
+  window.__posToggleFree = function(name) {
+    const item = cart.find(i => i.name === name);
+    if (!item) return;
+    item.isFree = !item.isFree;
+    if (item.isFree) item.disc = 100;
+    else item.disc = 0;
+    renderCart();
+  };
 
   /* ── Customer Toggle ── */
   custToggle.addEventListener('click', () => {
@@ -868,6 +1031,7 @@
   updateChipCounts();
   renderCart();
   applyFilters();
+  updatePaymentUI();
 })();
 </script>
 {% endblock %}

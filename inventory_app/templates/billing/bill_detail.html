@@ -282,7 +282,12 @@
       {% if bill.payment_status == 'REFUNDED' %}
         <span class="badge" style="background: #ef4444; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;">REFUNDED / CANCELLED</span>
       {% else %}
-        <button onclick="document.getElementById('refundModal').style.display='flex'" class="btn btn-danger btn-sm"><i class="fa-solid fa-rotate-left"></i> Refund / Cancel Bill</button>
+        {% if bill.payment_status in ['DUE', 'PARTIAL'] %}
+          <button onclick="document.getElementById('payModal').style.display='flex'" class="btn btn-primary btn-sm"><i class="fa-solid fa-money-bill-wave"></i> Record Payment</button>
+        {% endif %}
+        <button onclick="document.getElementById('refundLineModal').style.display='flex'" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i> Refund Lines</button>
+        <button onclick="document.getElementById('editModal').style.display='flex'" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen-to-square"></i> Edit Bill</button>
+        <button onclick="document.getElementById('refundModal').style.display='flex'" class="btn btn-danger btn-sm"><i class="fa-solid fa-ban"></i> Full Refund</button>
       {% endif %}
     {% endif %}
   </div>
@@ -383,8 +388,20 @@
       {# ── Tax Breakdown ── #}
       <div class="rcpt-totals">
         <div class="rcpt-tot-row"><span class="lbl">Taxable Amount</span><span class="val">{{ "%.2f"|format(bill.subtotal) }}</span></div>
+        {% if bill.total_line_discount and bill.total_line_discount > 0 %}
+        <div class="rcpt-tot-row" style="color:#ef4444;"><span class="lbl">Line Discounts</span><span class="val">-{{ "%.2f"|format(bill.total_line_discount) }}</span></div>
+        {% endif %}
         <div class="rcpt-tot-row"><span class="lbl">CGST</span><span class="val">{{ "%.2f"|format(bill.cgst_total) }}</span></div>
         <div class="rcpt-tot-row"><span class="lbl">SGST</span><span class="val">{{ "%.2f"|format(bill.sgst_total) }}</span></div>
+        {% if bill.shipping_charge and bill.shipping_charge > 0 %}
+        <div class="rcpt-tot-row"><span class="lbl">Shipping</span><span class="val">{{ "%.2f"|format(bill.shipping_charge) }}</span></div>
+        {% endif %}
+        {% if bill.packing_charge and bill.packing_charge > 0 %}
+        <div class="rcpt-tot-row"><span class="lbl">Packing</span><span class="val">{{ "%.2f"|format(bill.packing_charge) }}</span></div>
+        {% endif %}
+        {% if bill.round_off and bill.round_off != 0 %}
+        <div class="rcpt-tot-row"><span class="lbl">Round-off</span><span class="val">{{ "%+.2f"|format(bill.round_off) }}</span></div>
+        {% endif %}
         <div class="rcpt-grand">
           <span>Grand Total</span>
           <span>₹{{ "%.2f"|format(bill.grand_total) }}</span>
@@ -430,8 +447,36 @@
         <div class="rcpt-barcode">{{ bill.bill_number }}</div>
       </div>
 
-    </div>
   </div>
+  </div>
+
+  {% if payments %}
+  <div style="margin-top: 1.5rem; background: var(--bg-card); border: 1px solid var(--bg-card-border); border-radius: 8px; padding: 1rem;">
+    <h3 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 0.75rem;"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Payment Ledger</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+      <thead>
+        <tr style="background: #f1f5f9;">
+          <th style="padding: 0.4rem; text-align: left; border-bottom: 1px solid var(--bg-card-border);">Date</th>
+          <th style="padding: 0.4rem; text-align: left; border-bottom: 1px solid var(--bg-card-border);">Method</th>
+          <th style="padding: 0.4rem; text-align: right; border-bottom: 1px solid var(--bg-card-border);">Amount</th>
+          <th style="padding: 0.4rem; text-align: left; border-bottom: 1px solid var(--bg-card-border);">Reference</th>
+          <th style="padding: 0.4rem; text-align: left; border-bottom: 1px solid var(--bg-card-border);">By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9;">{{ format_datetime(p.created_at) }}</td>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9;">{{ p.method }}</td>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9; text-align: right; font-weight: 700;">₹{{ "%.2f"|format(p.amount) }}</td>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9; color: var(--text-muted);">{{ p.reference or '—' }}</td>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9; color: var(--text-muted);">{{ p.performed_by }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 
 {% else %}
 
@@ -572,13 +617,33 @@
       <div class="inv-totals">
         <table class="inv-tot-tbl">
           <tr><td>Taxable Amount</td><td>{{ "%.2f"|format(bill.subtotal) }}</td></tr>
+          {% if bill.total_line_discount and bill.total_line_discount > 0 %}
+          <tr style="color:#ef4444;"><td>Line Discounts</td><td>-{{ "%.2f"|format(bill.total_line_discount) }}</td></tr>
+          {% endif %}
+          <tr><td>Bill Discount{% if bill.discount_percent %} ({{ "%.1f"|format(bill.discount_percent) }}%){% endif %}</td><td>{% if bill.discount_amount %}-{% endif %}{{ "%.2f"|format(bill.discount_amount or 0) }}</td></tr>
           <tr><td>Add : CGST</td><td>{{ "%.2f"|format(bill.cgst_total) }}</td></tr>
           <tr><td>Add : SGST</td><td>{{ "%.2f"|format(bill.sgst_total) }}</td></tr>
           <tr><td>Total Tax</td><td>{{ "%.2f"|format(bill.gst_total) }}</td></tr>
+          {% if bill.shipping_charge and bill.shipping_charge > 0 %}
+          <tr><td>Shipping</td><td>{{ "%.2f"|format(bill.shipping_charge) }}</td></tr>
+          {% endif %}
+          {% if bill.packing_charge and bill.packing_charge > 0 %}
+          <tr><td>Packing</td><td>{{ "%.2f"|format(bill.packing_charge) }}</td></tr>
+          {% endif %}
+          {% if bill.round_off and bill.round_off != 0 %}
+          <tr><td>Round-off</td><td>{{ "%+.2f"|format(bill.round_off) }}</td></tr>
+          {% endif %}
           <tr class="grand">
             <td>Total After Tax</td>
             <td>₹{{ "%.2f"|format(bill.grand_total) }}</td>
           </tr>
+          {% if bill.free_total and bill.free_total > 0 %}
+          <tr style="color:#16a34a;"><td>Free Supply Value</td><td>₹{{ "%.2f"|format(bill.free_total) }}</td></tr>
+          {% endif %}
+          {% if bill.payment_status != 'REFUNDED' %}
+          <tr><td>Amount Paid</td><td style="color:#16a34a;">₹{{ "%.2f"|format(bill.amount_paid or bill.grand_total) }}</td></tr>
+          <tr><td>Amount Due</td><td style="{% if (bill.amount_due or 0) > 0 %}color:#ef4444;font-weight:900;{% endif %}">₹{{ "%.2f"|format(bill.amount_due or 0) }}</td></tr>
+          {% endif %}
         </table>
         <div class="inv-cert">
           <div>
@@ -592,6 +657,34 @@
 
   </div>
   </div>
+
+  {% if payments %}
+  <div style="margin-top: 1.5rem; background: var(--bg-card); border: 1px solid var(--bg-card-border); border-radius: 8px; padding: 1rem;">
+    <h3 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 0.75rem;"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Payment Ledger</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+      <thead>
+        <tr style="background: #f1f5f9;">
+          <th style="padding: 0.4rem; text-align: left; border-bottom: 1px solid var(--bg-card-border);">Date</th>
+          <th style="padding: 0.4rem; text-align: left; border-bottom: 1px solid var(--bg-card-border);">Method</th>
+          <th style="padding: 0.4rem; text-align: right; border-bottom: 1px solid var(--bg-card-border);">Amount</th>
+          <th style="padding: 0.4rem; text-align: left; border-bottom: 1px solid var(--bg-card-border);">Reference</th>
+          <th style="padding: 0.4rem; text-align: left; border-bottom: 1px solid var(--bg-card-border);">By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9;">{{ format_datetime(p.created_at) }}</td>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9;">{{ p.method }}</td>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9; text-align: right; font-weight: 700;">₹{{ "%.2f"|format(p.amount) }}</td>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9; color: var(--text-muted);">{{ p.reference or '—' }}</td>
+          <td style="padding: 0.35rem 0.4rem; border-bottom: 1px solid #f1f5f9; color: var(--text-muted);">{{ p.performed_by }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 
 {% endif %}
 
@@ -619,4 +712,127 @@
   </div>
 </div>
 {% endif %}
+
+{% if bill.payment_status in ['DUE', 'PARTIAL'] %}
+<div id="payModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+  <div class="modal-card" style="background: var(--bg-card); width: 100%; max-width: 420px; border-radius: 12px; padding: 1.5rem; border: 1px solid var(--bg-card-border);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Record Payment</h3>
+      <button style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" onclick="document.getElementById('payModal').style.display='none'">&times;</button>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Remaining due: <strong style="color: #ef4444;">₹{{ "%.2f"|format(bill.amount_due or bill.grand_total) }}</strong>
+    </p>
+    <form action="{{ url_for('billing.pay', bill_id=bill._id or bill.id) }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Amount *</label>
+        <input type="number" name="amount" class="form-control" required min="0.01" max="{{ bill.amount_due or bill.grand_total }}" step="0.01" value="{{ "%.2f"|format(bill.amount_due or bill.grand_total) }}" style="width: 100%;">
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Method</label>
+        <select name="method" class="form-control" style="width: 100%;">
+          <option value="CASH">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="CARD">Card</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 1.25rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Reference (optional)</label>
+        <input type="text" name="reference" class="form-control" placeholder="e.g. UPI transaction ID" style="width: 100%;">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('payModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Confirm Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if current_user.role in ['admin', 'inventory_manager'] and bill.payment_status != 'REFUNDED' %}
+<div id="refundLineModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+  <div class="modal-card" style="background: var(--bg-card); width: 100%; max-width: 500px; border-radius: 12px; padding: 1.5rem; border: 1px solid var(--bg-card-border);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #f97316;">Refund Selected Lines</h3>
+      <button style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" onclick="document.getElementById('refundLineModal').style.display='none'">&times;</button>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Select the line(s) to refund. Stock will be restored for refunded items.</p>
+    <form action="{{ url_for('billing.refund_lines', bill_id=bill._id or bill.id) }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="margin-bottom: 1rem; max-height: 250px; overflow-y: auto;">
+        {% for item in bill.line_items %}
+        {% if not item.is_refunded %}
+        <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid #f1f5f9; cursor: pointer;">
+          <input type="checkbox" name="line_index[]" value="{{ loop.index0 }}" style="width: 16px; height: 16px;">
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 0.85rem;">{{ item.product_name }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Qty: {{ item.quantity|int }} | ₹{{ "%.2f"|format(item.line_total) }}</div>
+          </div>
+          {% if item.is_free %}<span style="color: #16a34a; font-size: 0.7rem; font-weight: 700;">FREE</span>{% endif %}
+        </label>
+        {% endif %}
+        {% endfor %}
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Reason *</label>
+        <input type="text" name="reason" class="form-control" required placeholder="e.g. Customer return, billing error" style="width: 100%;">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('refundLineModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-danger">Confirm Line Refund</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if current_user.role in ['admin', 'inventory_manager'] and bill.payment_status != 'REFUNDED' %}
+<div id="editModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+  <div class="modal-card" style="background: var(--bg-card); width: 100%; max-width: 550px; border-radius: 12px; padding: 1.5rem; border: 1px solid var(--bg-card-border); max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;"><i class="fa-solid fa-pen-to-square"></i> Edit Bill</h3>
+      <button style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" onclick="document.getElementById('editModal').style.display='none'">&times;</button>
+    </div>
+    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Edit items and charges. Stock will be adjusted for added/removed items.
+    </p>
+    <form action="{{ url_for('billing.edit', bill_id=bill._id or bill.id) }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="customer_name" value="{{ bill.customer_name }}">
+      <input type="hidden" name="customer_phone" value="{{ bill.customer_phone or '' }}">
+      <input type="hidden" name="customer_gstin" value="{{ bill.customer_gstin or '' }}">
+      <input type="hidden" name="payment_method" value="{{ bill.payment_method }}">
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Bill Discount (%)</label>
+        <input type="number" name="discount_percent" class="form-control" value="{{ bill.discount_percent or 0 }}" min="0" max="100" step="0.5" style="width: 100px;">
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Shipping Charge</label>
+        <input type="number" name="shipping_charge" class="form-control" value="{{ bill.shipping_charge or 0 }}" min="0" step="0.01" style="width: 120px;">
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Packing Charge</label>
+        <input type="number" name="packing_charge" class="form-control" value="{{ bill.packing_charge or 0 }}" min="0" step="0.01" style="width: 120px;">
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 700; margin-bottom: 0.4rem; font-size: 0.85rem;">Line Items</label>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem;">Edit quantities below. Set to 0 to remove an item.</p>
+        {% for item in bill.line_items %}
+        <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem; padding: 0.35rem; background: #f8fafc; border-radius: 6px;">
+          <input type="hidden" name="item_name[]" value="{{ item.product_name }}">
+          <span style="flex: 1; font-size: 0.82rem; font-weight: 600;">{{ item.product_name }}</span>
+          <input type="number" name="item_quantity[]" value="{{ item.quantity|int }}" min="0" step="1" style="width: 60px; padding: 0.2rem 0.3rem; font-size: 0.8rem; text-align: center; border: 1px solid var(--bg-card-border); border-radius: 4px;">
+        </div>
+        {% endfor %}
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

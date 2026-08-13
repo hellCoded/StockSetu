@@ -5,14 +5,30 @@ from inventory_app.services.product_service import (
     get_low_stock_by_category,
     get_top_products_stock
 )
+from inventory_app.services.billing_service import _cached_billing_summary
 from inventory_app.services.auth_service import get_role_requests_by_status_count
 from inventory_app.utils.decorators import login_required
+from inventory_app import cache_get, cache_set
+import json
 
 dashboard_bp = Blueprint('dashboard', __name__)
+
+# Dashboard data cache TTL (global via Upstash on Vercel)
+_DASHBOARD_CACHE_TTL = 30
+
 
 @dashboard_bp.route('/')
 @login_required
 def index():
+    # Check global cache first
+    cached = cache_get("dashboard:main")
+    if cached:
+        try:
+            data = json.loads(cached)
+            return render_template('dashboard/index.html', **data)
+        except Exception:
+            pass
+
     metrics = get_dashboard_metrics()
     chart_data = {
         "stock_by_category": get_stock_by_category(),
@@ -20,4 +36,10 @@ def index():
         "top_products_stock": get_top_products_stock(),
         "role_requests_by_status": get_role_requests_by_status_count()
     }
-    return render_template('dashboard/index.html', metrics=metrics, chart_data=chart_data)
+    billing = _cached_billing_summary()
+    data = {"metrics": metrics, "chart_data": chart_data, "billing": billing}
+
+    # Cache globally
+    cache_set("dashboard:main", json.dumps(data, default=str), ttl=_DASHBOARD_CACHE_TTL)
+
+    return render_template('dashboard/index.html', **data)

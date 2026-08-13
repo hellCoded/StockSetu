@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from inventory_app.database import get_db
-from inventory_app.services.product_service import get_product_by_name
+from inventory_app.services.product_service import get_product_by_name, invalidate_product_cache
 from inventory_app.services.audit_service import log_audit
 from inventory_app.utils.helpers import calculate_stock_status
 
@@ -52,6 +52,7 @@ def stock_in(product_name: str, quantity: float, reason: str, performed_by: str)
         db.inventory_transactions.insert_one(tx_doc)
         
         log_audit("STOCK_IN", performed_by, canonical_name, {"qty_added": quantity, "new_qty": new_qty})
+        invalidate_product_cache(canonical_name)
         
         updated_product = get_product_by_name(canonical_name)
         return True, f"Successfully added {quantity} units to '{canonical_name}'.", updated_product
@@ -118,6 +119,7 @@ def stock_out(product_name: str, quantity: float, reason: str, performed_by: str
         db.inventory_transactions.insert_one(tx_doc)
         
         log_audit("STOCK_OUT", performed_by, canonical_name, {"qty_removed": quantity, "new_qty": new_qty})
+        invalidate_product_cache(canonical_name)
         
         updated_product = get_product_by_name(canonical_name)
         return True, f"Successfully removed {quantity} units from '{canonical_name}'.", updated_product
@@ -180,6 +182,7 @@ def stock_adjust(product_name: str, target_quantity: float, reason: str, perform
             "diff": diff,
             "reason": reason
         })
+        invalidate_product_cache(canonical_name)
         
         updated_product = get_product_by_name(canonical_name)
         return True, f"Stock for '{canonical_name}' adjusted to {target_quantity}.", updated_product

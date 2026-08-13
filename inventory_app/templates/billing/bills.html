@@ -24,10 +24,17 @@
   <form method="GET" action="{{ url_for('billing.list_bills') }}" style="display: flex; gap: 0.65rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
     <div style="position: relative; flex: 1; min-width: 220px;">
       <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-faint); font-size: 0.82rem; pointer-events: none;"></i>
-      <input type="text" name="q" class="form-control" placeholder="Search by bill number or customer name…" value="{{ current_search }}" style="padding-left: 2.3rem;">
+      <input type="text" name="q" class="form-control" placeholder="Search by bill number or customer name..." value="{{ current_search }}" style="padding-left: 2.3rem;">
     </div>
+    <select name="status" class="form-control" style="width: 150px; padding: 0.5rem 0.7rem; font-size: 0.85rem;">
+      <option value="">All Status</option>
+      <option value="PAID" {% if current_status == 'PAID' %}selected{% endif %}>PAID</option>
+      <option value="PARTIAL" {% if current_status == 'PARTIAL' %}selected{% endif %}>PARTIAL</option>
+      <option value="DUE" {% if current_status == 'DUE' %}selected{% endif %}>DUE</option>
+      <option value="REFUNDED" {% if current_status == 'REFUNDED' %}selected{% endif %}>REFUNDED</option>
+    </select>
     <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-    {% if current_search %}
+    {% if current_search or current_status %}
       <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-xmark"></i> Clear</a>
     {% endif %}
   </form>
@@ -40,10 +47,12 @@
           <th>Bill No.</th>
           <th>Date &amp; Time</th>
           <th>Customer</th>
-          <th>GSTIN</th>
           <th style="text-align: center;">Items</th>
           <th>Payment</th>
+          <th>Status</th>
           <th style="text-align: right;">Grand Total</th>
+          <th style="text-align: right;">Paid</th>
+          <th style="text-align: right;">Due</th>
           <th>By</th>
           <th style="text-align: center;">Action</th>
         </tr>
@@ -57,7 +66,6 @@
             <span style="font-weight: 600; color: var(--text-main);">{{ bill.customer_name }}</span>
             {% if bill.customer_phone %}<br><small style="color: var(--text-muted); font-size: 0.75rem;">{{ bill.customer_phone }}</small>{% endif %}
           </td>
-          <td style="font-size: 0.8rem; color: var(--text-muted);">{{ bill.customer_gstin or '—' }}</td>
           <td style="text-align: center;">
             <span class="badge badge-secondary">{{ bill.line_items | length }} item{{ 's' if (bill.line_items | length) != 1 }}</span>
           </td>
@@ -75,7 +83,25 @@
               <span class="badge badge-secondary">{{ bill.payment_method }}</span>
             {% endif %}
           </td>
+          <td>
+            {% set ps = bill.payment_status or 'PAID' %}
+            {% if ps == 'PAID' %}
+              <span class="badge" style="background:#dcfce7; color:#166534;">PAID</span>
+            {% elif ps == 'PARTIAL' %}
+              <span class="badge" style="background:#fef3c7; color:#92400e;">PARTIAL</span>
+            {% elif ps == 'DUE' %}
+              <span class="badge" style="background:#fee2e2; color:#991b1b;">DUE</span>
+            {% elif ps == 'REFUNDED' %}
+              <span class="badge" style="background:#e0e7ff; color:#3730a3;">REFUNDED</span>
+            {% else %}
+              <span class="badge badge-secondary">{{ ps }}</span>
+            {% endif %}
+          </td>
           <td style="text-align: right; font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 0.92rem;">{{ format_currency(bill.grand_total) }}</td>
+          <td style="text-align: right; font-size: 0.82rem; color: var(--text-muted);">{{ format_currency(bill.amount_paid or bill.grand_total) }}</td>
+          <td style="text-align: right; font-size: 0.82rem; {% if (bill.amount_due or 0) > 0 %}color: #ef4444; font-weight: 700;{% else %}color: var(--text-muted);{% endif %}">
+            {{ format_currency(bill.amount_due or 0) }}
+          </td>
           <td style="font-size: 0.8rem; color: var(--text-muted);">
             <i class="fa-solid fa-user" style="font-size: 0.7rem;"></i> {{ bill.created_by }}
           </td>
@@ -88,13 +114,19 @@
         {% endfor %}
       </tbody>
       <tfoot>
-        {% set ns = namespace(total=0) %}
-        {% for b in bills %}{% set ns.total = ns.total + (b.grand_total or 0) %}{% endfor %}
+        {% set ns = namespace(total=0, paid=0, due=0) %}
+        {% for b in bills %}
+          {% set ns.total = ns.total + (b.grand_total or 0) %}
+          {% set ns.paid = ns.paid + (b.amount_paid or b.grand_total or 0) %}
+          {% set ns.due = ns.due + (b.amount_due or 0) %}
+        {% endfor %}
         <tr style="background: #f8fafc;">
-          <td colspan="6" style="text-align: right; font-weight: 700; color: var(--text-muted); font-size: 0.8rem; padding: 0.875rem 1rem;">Total Sales (shown):</td>
+          <td colspan="6" style="text-align: right; font-weight: 700; color: var(--text-muted); font-size: 0.8rem; padding: 0.875rem 1rem;">Total (shown):</td>
           <td style="text-align: right; font-family: var(--font-display); font-weight: 800; color: var(--success-text); font-size: 1rem; padding: 0.875rem 1rem;">
             {{ format_currency(ns.total) }}
           </td>
+          <td style="text-align: right; font-size: 0.85rem; padding: 0.875rem 1rem;">{{ format_currency(ns.paid) }}</td>
+          <td style="text-align: right; font-size: 0.85rem; padding: 0.875rem 1rem; {% if ns.due > 0 %}color:#ef4444;font-weight:700;{% endif %}">{{ format_currency(ns.due) }}</td>
           <td colspan="2" style="padding: 0.875rem 1rem;"></td>
         </tr>
       </tfoot>

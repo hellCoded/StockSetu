@@ -1,10 +1,16 @@
 import re
+import time
+import json
 from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError
 from inventory_app.database import get_db
 from inventory_app.utils.validators import normalize_product_name, validate_product_data
 from inventory_app.utils.helpers import calculate_stock_status
 from inventory_app.services.audit_service import log_audit
+from inventory_app import cache_get, cache_set, cache_delete
+
+# ── Product lookup cache TTL (global via Upstash on Vercel) ──
+_PRODUCT_CACHE_TTL = 30
 
 def create_product(product_data: dict, performed_by: str) -> tuple[bool, str, dict]:
     """
@@ -71,6 +77,7 @@ def create_product(product_data: dict, performed_by: str) -> tuple[bool, str, di
             })
             
         log_audit("PRODUCT_CREATE", performed_by, product_name, {"initial_stock": quantity})
+        invalidate_product_cache(product_name)
         return True, f"Product '{product_name}' created successfully.", product_doc
     except DuplicateKeyError as e:
         err_str = str(e)
@@ -83,9 +90,18 @@ def create_product(product_data: dict, performed_by: str) -> tuple[bool, str, di
         return False, f"Error creating product: {str(e)}", {}
 
 def get_product_by_name(product_name: str) -> dict:
-    """Retrieves product by normalized product_name."""
+    """Retrieves product by normalized product_name (cached globally for10s)."""
     db = get_db()
     norm_name = normalize_product_name(product_name)
+    
+    # Check global cache (Upstash on Vercel, redislite locally)
+    cache_key = f"product:{norm_name}"
+    cached = cache_get(cache_key)
+    if cached:
+        try:
+            return json.loads(cached)
+        except Exception:
+            pass
     
     product = db.products.find_one({"product_name": norm_name})
     if not product:
@@ -100,7 +116,21 @@ def get_product_by_name(product_name: str) -> dict:
             product.get("quantity", 0),
             product.get("minimum_stock", 0)
         )
+    
+    # Cache result globally
+    if product:
+        cache_set(cache_key, json.dumps(product, default=str), ttl=_PRODUCT_CACHE_TTL)
+    
     return product
+
+
+def invalidate_product_cache(product_name: str = None):
+    """Invalidates product cache globally. Call after stock changes."""
+    if product_name:
+        cache_delete(f"product:{normalize_product_name(product_name)}")
+    else:
+        # Flush all product caches (only works with redis/redislite, not dict)
+        pass
 
 def search_products(query: str = "", category: str = "", location: str = "", stock_status: str = "", is_active: bool = True, sort_by: str = "product_name", sort_dir: int = 1, limit: int = 50) -> list:
     """
@@ -134,7 +164,6 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         "hsn_code": 1,
         "location": 1,
         "is_active": 1,
-        "description": 1
     }
     products = list(db.products.find(filter_query, projection).sort(sort_by, sort_dir).limit(limit))
     
@@ -210,6 +239,7 @@ def update_product(product_name: str, update_data: dict, performed_by: str) -> t
     try:
         db.products.update_one({"product_name": norm_name}, {"$set": set_fields})
         log_audit("PRODUCT_UPDATE", performed_by, norm_name, set_fields)
+        invalidate_product_cache(norm_name)
         updated_prod = get_product_by_name(norm_name)
         return True, f"Product '{norm_name}' updated successfully.", updated_prod
     except Exception as e:
@@ -276,6 +306,8 @@ def rename_product(old_name: str, new_name: str, performed_by: str) -> tuple[boo
             "old_name": canonical_old_name,
             "new_name": canonical_new_name
         })
+        invalidate_product_cache(canonical_old_name)
+        invalidate_product_cache(canonical_new_name)
         
         return True, f"Product renamed from '{canonical_old_name}' to '{canonical_new_name}' successfully."
     except DuplicateKeyError:
@@ -301,6 +333,7 @@ def toggle_product_active(product_name: str, performed_by: str) -> tuple[bool, s
     
     action_str = "activated" if new_status else "deactivated"
     log_audit("PRODUCT_TOGGLE_ACTIVE", performed_by, norm_name, {"is_active": new_status})
+    invalidate_product_cache(norm_name)
     return True, f"Product '{norm_name}' has been {action_str}.", new_status
 
 def get_distinct_categories() -> list:
@@ -325,18 +358,27 @@ def get_stock_by_category() -> list:
     return [{"category": r["_id"] or "Uncategorized", "total_stock": r["total_stock"]} for r in results]
 
 def get_low_stock_by_category() -> list:
-    """Aggregates count of low stock / out of stock active products by category."""
+    """Aggregates count of low stock / out of stock active products by category (server-side)."""
     db = get_db()
-    active_products = list(db.products.find({"is_active": True}, {"category": 1, "quantity": 1, "minimum_stock": 1}))
-    counts = {}
-    for p in active_products:
-        qty = float(p.get("quantity", 0))
-        min_stock = float(p.get("minimum_stock", 0))
-        status = calculate_stock_status(qty, min_stock)
-        if status in ["LOW STOCK", "OUT OF STOCK"]:
-            cat = p.get("category", "") or "Uncategorized"
-            counts[cat] = counts.get(cat, 0) + 1
-    return [{"category": cat, "low_stock_count": count} for cat, count in sorted(counts.items(), key=lambda x: x[1], reverse=True)]
+    # LOW STOCK: quantity > 0 AND quantity < minimum_stock
+    # OUT OF STOCK: quantity <= 0
+    pipeline = [
+        {"$match": {"is_active": True}},
+        {"$addFields": {
+            "is_low": {
+                "$and": [
+                    {"$gt": ["$quantity", 0]},
+                    {"$lt": ["$quantity", "$minimum_stock"]}
+                ]
+            },
+            "is_out": {"$lte": ["$quantity", 0]}
+        }},
+        {"$match": {"$or": [{"is_low": True}, {"is_out": True}]}},
+        {"$group": {"_id": "$category", "low_stock_count": {"$sum": 1}}},
+        {"$sort": {"low_stock_count": -1}}
+    ]
+    results = list(db.products.aggregate(pipeline))
+    return [{"category": r["_id"] or "Uncategorized", "low_stock_count": r["low_stock_count"]} for r in results]
 
 def get_top_products_stock(limit: int = 10) -> list:
     """Retrieves top products by quantity for rendering in the bar chart."""

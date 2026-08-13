@@ -1,13 +1,127 @@
 import time
+import os
+import logging
 from flask import Flask, render_template, session
 from config import Config
 from inventory_app.database import init_db
 from inventory_app.utils.validators import generate_csrf_token
 from inventory_app.utils.helpers import calculate_stock_status, get_status_badge_class, format_currency, format_datetime, amount_in_words
 
+logger = logging.getLogger(__name__)
+
+# ── Global cache: Upstash Redis (Vercel) or local fallback ──
+_cache_store = None
+_use_upstash = False
+
+
+def _get_cache():
+    global _cache_store, _use_upstash
+    if _cache_store is not None:
+        return _cache_store
+
+    upstash_url = os.environ.get('UPSTASH_REDIS_REST_URL', '')
+    upstash_token = os.environ.get('UPSTASH_REDIS_REST_TOKEN', '')
+
+    if upstash_url and upstash_token:
+        try:
+            from upstash_redis import Redis
+            _cache_store = Redis(url=upstash_url, token=upstash_token)
+            _use_upstash = True
+            logger.info("Upstash Redis global cache initialized.")
+            return _cache_store
+        except Exception as e:
+            logger.warning(f"Upstash Redis failed ({e}), falling back to local cache.")
+
+    # Fallback: redislite (in-process) → dict
+    try:
+        import redislite
+        _cache_store = redislite.StrictRedis(dbfilename=':memory:')
+        logger.info("Redislite in-process cache initialized (local mode).")
+        return _cache_store
+    except Exception:
+        _cache_store = {}
+        logger.warning("Redislite unavailable, using dict cache.")
+        return _cache_store
+
+
+def cache_get(key):
+    c = _get_cache()
+    if isinstance(c, dict):
+        return c.get(key)
+    try:
+        val = c.get(key)
+        return val.decode() if isinstance(val, bytes) else val
+    except Exception:
+        return None
+
+
+def cache_set(key, value, ttl=60):
+    c = _get_cache()
+    if isinstance(c, dict):
+        c[key] = value
+        return
+    try:
+        c.setex(key, ttl, str(value))
+    except Exception:
+        if isinstance(c, dict):
+            c[key] = value
+
+
+def cache_delete(key):
+    c = _get_cache()
+    if isinstance(c, dict):
+        c.pop(key, None)
+        return
+    try:
+        c.delete(key)
+    except Exception:
+        pass
+
+
+def cache_flush():
+    c = _get_cache()
+    if isinstance(c, dict):
+        c.clear()
+        return
+    try:
+        c.flushall()
+    except Exception:
+        pass
+
 def create_app(config_class=Config, custom_mongo_client=None):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # ── Flask-Limiter (rate limiting) ──
+    try:
+        from flask_limiter import Limiter
+        from flask_limiter.util import get_remote_address
+
+        upstash_url = app.config.get('UPSTASH_REDIS_REST_URL', '')
+        upstash_token = app.config.get('UPSTASH_REDIS_REST_TOKEN', '')
+
+        if upstash_url and upstash_token:
+            storage_uri = f"redis://:{upstash_token}@{upstash_url.replace('https://', '').replace('http://', '')}"
+            limiter = Limiter(
+                get_remote_address,
+                app=app,
+                default_limits=["200 per minute", "50 per second"],
+                storage_uri=storage_uri,
+            )
+            logger.info("Flask-Limiter: Redis-backed global rate limiting enabled.")
+        else:
+            limiter = Limiter(
+                get_remote_address,
+                app=app,
+                default_limits=["200 per minute", "50 per second"],
+                storage_uri="memory://",
+            )
+            logger.info("Flask-Limiter: in-memory rate limiting (local mode).")
+
+        app.extensions['limiter'] = limiter
+    except Exception as e:
+        logger.warning(f"Flask-Limiter not available: {e}")
+        limiter = None
 
     # Initialize Database Connection
     init_db(app, custom_client=custom_mongo_client)

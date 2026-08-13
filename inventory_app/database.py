@@ -36,7 +36,13 @@ def init_db(app, custom_client=None):
         db_name = app.config.get('DATABASE_NAME', 'inventory_db')
         
         try:
-            db_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
+            db_client = MongoClient(
+                mongo_uri,
+                serverSelectionTimeoutMS=2000,
+                maxPoolSize=100,
+                minPoolSize=10,
+                maxIdleTimeMS=45000,
+            )
             # Test connection
             db_client.admin.command('ping')
             current_db = db_client[db_name]
@@ -65,7 +71,13 @@ def get_db():
         mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/inventory_db')
         db_name = os.environ.get('DATABASE_NAME', 'inventory_db')
         try:
-            db_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
+            db_client = MongoClient(
+                mongo_uri,
+                serverSelectionTimeoutMS=2000,
+                maxPoolSize=100,
+                minPoolSize=10,
+                maxIdleTimeMS=45000,
+            )
             db_client.admin.command('ping')
             current_db = db_client[db_name]
         except (ConnectionFailure, ServerSelectionTimeoutError) as e:
@@ -134,6 +146,15 @@ def init_db_indexes(db):
         db.invoices.create_index([("bill_number", ASCENDING)], unique=True)
         db.invoices.create_index([("created_at", DESCENDING)])
         db.invoices.create_index([("customer_name", ASCENDING)])
+        db.invoices.create_index([("payment_status", ASCENDING), ("created_at", DESCENDING)])
+        db.invoices.create_index([("created_by", ASCENDING), ("created_at", DESCENDING)])
+
+        # Bill payments indexes
+        db.bill_payments.create_index([("bill_number", ASCENDING)])
+        db.bill_payments.create_index([("bill_id", ASCENDING)])
+
+        # Audit logs — compound indexes for bill lookups
+        db.audit_logs.create_index([("target_resource", ASCENDING), ("created_at", DESCENDING)])
 
 
 
