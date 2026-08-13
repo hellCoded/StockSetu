@@ -1,0 +1,58 @@
+/* ============================================================
+   Accessibility — Focus, keyboard nav, screen reader
+   ============================================================ */
+
+/* Focus visible */
+*:focus-visible {
+  outline: 2px solid var(--primary, #0B3D6E);
+  outline-offset: 2px;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--primary, #0B3D6E);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 10000;
+  font-size: 0.875rem;
+  border-radius: 0 0 var(--r-sm, 8px) 0;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast */
+@media (prefers-contrast: high) {
+  :root {
+    --text-main: #000;
+    --text-sub: #333;
+    --bg-card-border: #000;
+  }
+  .btn { border: 2px solid currentColor; }
+}

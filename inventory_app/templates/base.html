@@ -14,10 +14,12 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/accessibility.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <div id="toast-container"></div>
   {% if current_user.id %}
     <div class="app-container">
@@ -28,7 +30,7 @@
       </button>
       <div class="main-wrapper">
         {% include 'components/navbar.html' %}
-        <div class="content-body">
+        <div class="content-body" id="main-content">
           {% include 'components/flash_messages.html' %}
           {% block content %}{% endblock %}
         </div>
