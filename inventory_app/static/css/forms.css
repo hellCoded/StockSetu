@@ -1,0 +1,64 @@
+/* ============================================================
+   Form Improvements — Auto-save, validation, progress
+   ============================================================ */
+
+/* Inline validation */
+.form-control.is-valid { border-color: var(--success, #10b981); }
+.form-control.is-invalid { border-color: var(--danger, #ef4444); }
+.form-error {
+  font-size: 0.75rem;
+  color: var(--danger, #ef4444);
+  margin-top: 0.25rem;
+  display: none;
+}
+.form-control.is-invalid ~ .form-error { display: block; }
+
+/* Auto-save indicator */
+.autosave-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--bg-card-border, #E5E7EB);
+  border-radius: var(--r-md, 12px);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: var(--text-sub, #6B7280);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
+  z-index: 1000;
+}
+.autosave-indicator.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.autosave-indicator .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success, #10b981);
+}
+
+/* Progress bar for multi-step forms */
+.form-progress {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.form-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--jklc-grey-200, #E5E7EB);
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+.form-progress-step.active {
+  background: var(--primary, #0B3D6E);
+}
+.form-progress-step.done {
+  background: var(--success, #10b981);
+}

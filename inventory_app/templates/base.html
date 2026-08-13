@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dark.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   {% block extra_head %}{% endblock %}
 </head>
@@ -132,6 +133,64 @@
         if (bulkCount) bulkCount.textContent = checked + ' selected';
         if (selectAll) selectAll.checked = checked === bulkCheckboxes.length && checked > 0;
       }
+
+      // Auto-save form drafts to localStorage
+      var saveTimer = null;
+      var indicator = document.createElement('div');
+      indicator.className = 'autosave-indicator';
+      indicator.innerHTML = '<span class="dot"></span> Draft saved';
+      document.body.appendChild(indicator);
+
+      document.querySelectorAll('form[data-autosave]').forEach(function(form) {
+        var key = 'draft_' + (form.dataset.autosave || form.action);
+        // Restore saved values
+        try {
+          var saved = JSON.parse(localStorage.getItem(key));
+          if (saved) {
+            Object.keys(saved).forEach(function(name) {
+              var el = form.querySelector('[name="' + name + '"]');
+              if (el && !el.value) el.value = saved[name];
+            });
+          }
+        } catch(e) {}
+
+        form.addEventListener('input', function() {
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(function() {
+            var data = {};
+            form.querySelectorAll('input, textarea, select').forEach(function(el) {
+              if (el.name) data[el.name] = el.value;
+            });
+            localStorage.setItem(key, JSON.stringify(data));
+            indicator.classList.add('show');
+            setTimeout(function() { indicator.classList.remove('show'); }, 2000);
+          }, 1000);
+        });
+
+        form.addEventListener('submit', function() {
+          localStorage.removeItem(key);
+        });
+      });
+
+      // Inline validation
+      document.querySelectorAll('form[data-validate]').forEach(function(form) {
+        form.querySelectorAll('[required]').forEach(function(el) {
+          el.addEventListener('blur', function() {
+            el.classList.toggle('is-invalid', !el.value.trim());
+            el.classList.toggle('is-valid', !!el.value.trim());
+          });
+        });
+        form.addEventListener('submit', function(e) {
+          var invalid = false;
+          form.querySelectorAll('[required]').forEach(function(el) {
+            if (!el.value.trim()) {
+              el.classList.add('is-invalid');
+              invalid = true;
+            }
+          });
+          if (invalid) e.preventDefault();
+        });
+      });
     });
   })();
   </script>
