@@ -32,7 +32,7 @@ def _parse_pdf(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
                 for table in tables:
                     if not table or len(table) < 2:
                         continue
-                    header_idx, name_idx, qty_idx = _find_header_and_columns(table)
+                    header_idx, name_idx, qty_idx, unit_idx, hsn_idx = _find_header_and_columns(table)
                     if name_idx is None or qty_idx is None:
                         continue
                     for row in table[header_idx + 1:]:
@@ -44,7 +44,12 @@ def _parse_pdf(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
                             continue
                         qty = _parse_quantity(qty_raw)
                         if qty is not None and qty > 0:
-                            items.append({"item_name": item_name, "quantity": qty})
+                            item = {"item_name": item_name, "quantity": qty}
+                            if unit_idx is not None and len(row) > unit_idx:
+                                item["unit"] = _clean_text(row[unit_idx])
+                            if hsn_idx is not None and len(row) > hsn_idx:
+                                item["hsn_code"] = _clean_text(row[hsn_idx])
+                            items.append(item)
     except Exception as e:
         return False, f"Failed to parse PDF: {str(e)}", []
 
@@ -62,7 +67,7 @@ def _parse_excel(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
             rows = list(sheet.iter_rows(values_only=True))
             if len(rows) < 2:
                 continue
-            header_idx, name_idx, qty_idx = _find_header_and_columns(rows)
+            header_idx, name_idx, qty_idx, unit_idx, hsn_idx = _find_header_and_columns(rows)
             if name_idx is None or qty_idx is None:
                 continue
             for row in rows[header_idx + 1:]:
@@ -74,7 +79,12 @@ def _parse_excel(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
                     continue
                 qty = _parse_quantity(qty_raw)
                 if qty is not None and qty > 0:
-                    items.append({"item_name": item_name, "quantity": qty})
+                    item = {"item_name": item_name, "quantity": qty}
+                    if unit_idx is not None and len(row) > unit_idx:
+                        item["unit"] = _clean_text(row[unit_idx])
+                    if hsn_idx is not None and len(row) > hsn_idx:
+                        item["hsn_code"] = _clean_text(row[hsn_idx])
+                    items.append(item)
         wb.close()
     except Exception as e:
         return False, f"Failed to parse Excel file: {str(e)}", []
@@ -87,16 +97,20 @@ def _parse_excel(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
 def _find_header_and_columns(rows: list) -> tuple:
     """
     Scans the first rows to find a header row containing item/quantity keywords.
-    Returns (header_row_index, name_idx, qty_idx) or (-1, None, None) if not found.
+    Returns (header_row_index, name_idx, qty_idx, unit_idx, hsn_idx) or (-1, None, None, None, None).
     """
     name_keywords = ['item', 'product', 'name', 'description', 'material', 'article', 'goods', 'part', 'component']
     qty_keywords = ['qty', 'quantity', 'nos', 'pcs', 'units', 'count']
+    unit_keywords = ['unit', 'uom', 'measure', 'type']
+    hsn_keywords = ['hsn', 'hsn code', 'hsncode', 'sac']
 
     for idx, row in enumerate(rows[:15]):
         if not row:
             continue
         name_idx = None
         qty_idx = None
+        unit_idx = None
+        hsn_idx = None
         for i, cell in enumerate(row):
             cell_text = _clean_text(cell).lower()
             if not cell_text:
@@ -105,10 +119,14 @@ def _find_header_and_columns(rows: list) -> tuple:
                 name_idx = i
             if qty_idx is None and any(kw in cell_text for kw in qty_keywords):
                 qty_idx = i
+            if unit_idx is None and any(kw in cell_text for kw in unit_keywords):
+                unit_idx = i
+            if hsn_idx is None and any(kw in cell_text for kw in hsn_keywords):
+                hsn_idx = i
         if name_idx is not None and qty_idx is not None:
-            return idx, name_idx, qty_idx
+            return idx, name_idx, qty_idx, unit_idx, hsn_idx
 
-    return -1, None, None
+    return -1, None, None, None, None
 
 
 def _parse_quantity(raw) -> float | None:

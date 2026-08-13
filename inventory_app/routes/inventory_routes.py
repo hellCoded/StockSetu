@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from inventory_app.services.product_service import search_products, get_product_by_name
+from inventory_app.services.product_service import search_products, get_product_by_name, create_product
 from inventory_app.services.inventory_service import (
     stock_in, stock_out, stock_adjust, get_all_transactions
 )
@@ -128,24 +128,61 @@ def bulk_stock_in_confirm():
         return redirect(url_for('inventory.bulk_stock_in'))
 
     mapping = request.form.getlist('mapping[]')
+    new_categories = request.form.getlist('new_category[]')
+    new_prices = request.form.getlist('new_price[]')
+    new_gsts = request.form.getlist('new_gst[]')
+    new_locations = request.form.getlist('new_location[]')
+    new_descs = request.form.getlist('new_desc[]')
     reason = request.form.get('reason', 'Bulk import from supplier bill')
     username = session.get('username', 'System')
 
     success_count = 0
+    created_count = 0
     errors = []
+    new_i = 0
 
     for i, item in enumerate(items):
         product_name = mapping[i] if i < len(mapping) else ""
         if not product_name:
-            errors.append(f"'{item['item_name']}' — skipped (no product selected)")
             continue
 
-        ok, msg, _ = stock_in(product_name, item['quantity'], reason, performed_by=username)
-        if ok:
+        if product_name == '__new__':
+            # New product: build data from bill fields + user-entered missing params
+            category = new_categories[new_i] if new_i < len(new_categories) else ''
+            price = new_prices[new_i] if new_i < len(new_prices) else 0
+            gst = new_gsts[new_i] if new_i < len(new_gsts) else 0
+            location = new_locations[new_i] if new_i < len(new_locations) else ''
+            desc = new_descs[new_i] if new_i < len(new_descs) else ''
+            new_i += 1
+
+            product_data = {
+                "product_name": item['item_name'],
+                "category": category,
+                "unit": item.get('unit', ''),
+                "price": price,
+                "gst_rate": gst,
+                "hsn_code": item.get('hsn_code', ''),
+                "location": location,
+                "description": desc,
+            }
+
+            ok, msg, _ = create_product(product_data, performed_by=username,
+                                        initial_quantity=item['quantity'])
+            if not ok:
+                errors.append(f"'{item['item_name']}' — {msg}")
+                continue
+            created_count += 1
             success_count += 1
         else:
-            errors.append(f"'{product_name}' — {msg}")
+            # Existing product: stock in
+            ok, msg, _ = stock_in(product_name, item['quantity'], reason, performed_by=username)
+            if ok:
+                success_count += 1
+            else:
+                errors.append(f"'{product_name}' — {msg}")
 
+    if created_count > 0:
+        flash(f"Created {created_count} new product(s).", "success")
     if success_count > 0:
         flash(f"Successfully stocked in {success_count} item(s).", "success")
     if errors:

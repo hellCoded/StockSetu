@@ -12,11 +12,12 @@ from inventory_app import cache_get, cache_set, cache_delete
 # ── Product lookup cache TTL (global via Upstash on Vercel) ──
 _PRODUCT_CACHE_TTL = 30
 
-def create_product(product_data: dict, performed_by: str) -> tuple[bool, str, dict]:
+def create_product(product_data: dict, performed_by: str, initial_quantity: float = None) -> tuple[bool, str, dict]:
     """
     Creates a new product in MongoDB.
     Validates input, checks name uniqueness, calculates initial stock status,
     and inserts INITIAL_STOCK transaction if initial quantity > 0.
+    initial_quantity overrides the default quantity (5) when provided.
     """
     db = get_db()
     
@@ -35,7 +36,7 @@ def create_product(product_data: dict, performed_by: str) -> tuple[bool, str, di
     if existing:
         return False, f"A product with the name '{product_name}' already exists.", {}
         
-    quantity = 5
+    quantity = initial_quantity if initial_quantity is not None else 5
     minimum_stock = 5
     price = float(product_data.get('price', 0))
     gst_rate = float(product_data.get('gst_rate', 0))
