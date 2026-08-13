@@ -9,7 +9,33 @@
 {% block content %}
 <div class="dashboard dash-loading">
 
-  <!-- Page Header -->
+  <!-- Skeleton Loading State -->
+  <div class="skeleton-container" id="dash-skeleton">
+    <div class="dash-head">
+      <div>
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text-sm"></div>
+      </div>
+    </div>
+    <div class="kpi-grid">
+      {% for _ in range(5) %}
+      <div class="skeleton-kpi">
+        <div class="skeleton skeleton-circle"></div>
+        <div style="flex:1">
+          <div class="skeleton skeleton-text" style="width:70%"></div>
+          <div class="skeleton skeleton-text-sm" style="width:50%"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
+      <div class="skeleton skeleton-card"><div class="skeleton skeleton-bar"></div></div>
+      <div class="skeleton skeleton-card"><div class="skeleton skeleton-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- Real Content -->
+  <div class="dash-real-content" style="display:none">
   <div class="dash-head">
     <div>
       <h1 class="dash-head-title">Inventory Overview</h1>
@@ -208,9 +234,18 @@
   </div>
 
   <script type="application/json" id="dash-chart-data">{{ chart_data | tojson }}</script>
+  </div><!-- /dash-real-content -->
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var skel = document.getElementById('dash-skeleton');
+  var real = document.querySelector('.dash-real-content');
+  if (skel) skel.style.display = 'none';
+  if (real) real.style.display = 'block';
+});
+</script>
 {% endblock %}
