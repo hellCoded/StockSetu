@@ -14,7 +14,6 @@
 </div>
 
 {% if step == 'upload' %}
-{# ── Step 1: File Upload ── #}
 <div class="card" style="max-width: 600px; width: 100%;">
   <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="upload-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -77,18 +76,22 @@
   }
   #file-input { display: none; }
   .drop-icon { font-size: 2.5rem; color: #3b82f6; opacity: 0.7; margin-bottom: 0.5rem; }
-  .drop-title { margin: 0.5rem 0 0.25rem; font-weight: 600; color: #334155; font-size: 1rem; }
-  .drop-sub { margin: 0; color: #64748b; font-size: 0.85rem; }
-  .drop-browse { color: #3b82f6; font-weight: 600; text-decoration: underline; cursor: pointer; }
-  .drop-hint { margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.75rem; }
-  #file-name { margin: 0.5rem 0 0.15rem; font-weight: 600; color: #334155; font-size: 0.95rem; word-break: break-all; }
-  #file-size { margin: 0; color: #64748b; font-size: 0.8rem; }
+  .drop-title { margin: 0.5rem 0 0.25rem; font-weight: 600; color: #334155; font-size: 1rem; pointer-events: none; }
+  .drop-sub { margin: 0; color: #64748b; font-size: 0.85rem; pointer-events: none; }
+  .drop-browse { color: #3b82f6; font-weight: 600; text-decoration: underline; }
+  .drop-hint { margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.75rem; pointer-events: none; }
+  #file-name { margin: 0.5rem 0 0.15rem; font-weight: 600; color: #334155; font-size: 0.95rem; word-break: break-all; pointer-events: none; }
+  #file-size { margin: 0; color: #64748b; font-size: 0.8rem; pointer-events: none; }
   #remove-file {
     margin-top: 0.5rem; background: none; border: 1px solid #e2e8f0;
     border-radius: 6px; padding: 0.3rem 0.8rem; cursor: pointer;
     font-size: 0.8rem; color: #64748b; transition: background 0.15s;
   }
   #remove-file:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  #drop-prompt > * { pointer-events: none; }
+  #drop-prompt .drop-browse { pointer-events: auto; }
+  #file-info > * { pointer-events: none; }
+  #file-info #remove-file { pointer-events: auto; }
   .info-box {
     background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
     padding: 0.85rem 1rem; margin: 1.25rem 0; font-size: 0.85rem; color: #64748b;
@@ -104,88 +107,7 @@
   }
 </style>
 
-<script>
-(function() {
-  var dropZone = document.getElementById('drop-zone');
-  var fileInput = document.getElementById('file-input');
-  var dropPrompt = document.getElementById('drop-prompt');
-  var fileInfo = document.getElementById('file-info');
-  var fileName = document.getElementById('file-name');
-  var fileSize = document.getElementById('file-size');
-  var removeBtn = document.getElementById('remove-file');
-  var submitBtn = document.getElementById('submit-btn');
-
-  function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
-  }
-
-  function showFile(file) {
-    fileName.textContent = file.name;
-    fileSize.textContent = formatSize(file.size);
-    dropPrompt.style.display = 'none';
-    fileInfo.style.display = 'block';
-    dropZone.classList.add('has-file');
-    submitBtn.disabled = false;
-  }
-
-  function clearFile() {
-    fileInput.value = '';
-    dropPrompt.style.display = 'block';
-    fileInfo.style.display = 'none';
-    dropZone.classList.remove('has-file');
-    submitBtn.disabled = true;
-  }
-
-  dropZone.addEventListener('click', function(e) {
-    if (e.target === removeBtn || removeBtn.contains(e.target)) return;
-    fileInput.click();
-  });
-
-  dropZone.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.add('dragover');
-  });
-
-  dropZone.addEventListener('dragleave', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.remove('dragover');
-  });
-
-  dropZone.addEventListener('drop', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.remove('dragover');
-    var files = e.dataTransfer.files;
-    if (files.length > 0) {
-      fileInput.files = files;
-      showFile(files[0]);
-    }
-  });
-
-  fileInput.addEventListener('change', function() {
-    if (fileInput.files.length > 0) showFile(fileInput.files[0]);
-  });
-
-  removeBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    clearFile();
-  });
-
-  document.getElementById('upload-form').addEventListener('submit', function(e) {
-    if (!fileInput.files.length) {
-      e.preventDefault();
-      alert('Please select a file to upload.');
-    }
-  });
-})();
-</script>
-
 {% elif step == 'map' %}
-{# ── Step 2: Map Items to Products ── #}
 <div class="card" style="max-width: 800px; width: 100%;">
   <form method="POST" action="{{ url_for('inventory.bulk_stock_in_confirm') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -271,5 +193,115 @@
     .btn-row .btn { width: 100%; justify-content: center; }
   }
 </style>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if step == 'upload' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var dropZone = document.getElementById('drop-zone');
+  var fileInput = document.getElementById('file-input');
+  var dropPrompt = document.getElementById('drop-prompt');
+  var fileInfo = document.getElementById('file-info');
+  var fileName = document.getElementById('file-name');
+  var fileSize = document.getElementById('file-size');
+  var removeBtn = document.getElementById('remove-file');
+  var submitBtn = document.getElementById('submit-btn');
+  var form = document.getElementById('upload-form');
+
+  if (!dropZone || !fileInput) return;
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function showFile(file) {
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    dropPrompt.style.display = 'none';
+    fileInfo.style.display = 'block';
+    dropZone.classList.add('has-file');
+    submitBtn.disabled = false;
+  }
+
+  function clearFile() {
+    fileInput.value = '';
+    dropPrompt.style.display = 'block';
+    fileInfo.style.display = 'none';
+    dropZone.classList.remove('has-file');
+    submitBtn.disabled = true;
+  }
+
+  // Click to browse
+  dropZone.addEventListener('click', function(e) {
+    if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+    fileInput.click();
+  });
+
+  // Prevent default browser behavior for all drag events on the document
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(evt) {
+    document.addEventListener(evt, function(e) { e.preventDefault(); });
+  });
+
+  // Drag enter — highlight
+  dropZone.addEventListener('dragenter', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add('dragover');
+  });
+
+  // Drag over — must preventDefault to allow drop
+  dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  // Drag leave — only remove highlight if leaving the drop zone entirely
+  dropZone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var rect = dropZone.getBoundingClientRect();
+    var x = e.clientX;
+    var y = e.clientY;
+    if (x <= rect.left || x >= rect.right || y <= rect.top || y >= rect.bottom) {
+      dropZone.classList.remove('dragover');
+    }
+  });
+
+  // Drop
+  dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('dragover');
+    var files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      showFile(files[0]);
+    }
+  });
+
+  // File input change (browse)
+  fileInput.addEventListener('change', function() {
+    if (fileInput.files.length > 0) showFile(fileInput.files[0]);
+  });
+
+  // Remove button
+  removeBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    clearFile();
+  });
+
+  // Form submit validation
+  form.addEventListener('submit', function(e) {
+    if (!fileInput.files.length) {
+      e.preventDefault();
+      alert('Please select a file to upload.');
+    }
+  });
+});
+</script>
 {% endif %}
 {% endblock %}
