@@ -28,7 +28,7 @@
       <div id="drop-prompt">
         <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
         <p class="drop-title">Drag & drop your file here</p>
-        <p class="drop-sub">or <span class="drop-browse" id="browse-btn">browse</span> to choose</p>
+        <p class="drop-sub">or <span class="drop-browse">browse</span> to choose</p>
         <p class="drop-hint">PDF or Excel (.xlsx)</p>
       </div>
       <div id="file-info" style="display: none;">
@@ -69,7 +69,15 @@
   #drop-zone:hover { border-color: #93c5fd; background: #f0f7ff; }
   #drop-zone.dragover { border-color: #3b82f6; background: #eff6ff; border-style: solid; }
   #drop-zone.has-file { border-color: #059669; background: #f0fdf4; border-style: solid; }
-  #file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  #file-input {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
   .drop-icon { font-size: 2.5rem; color: #3b82f6; opacity: 0.7; }
   .drop-title { margin: 0.5rem 0 0.25rem; font-weight: 600; color: #334155; font-size: 1rem; pointer-events: none; }
   .drop-sub { margin: 0; color: #64748b; font-size: 0.85rem; pointer-events: none; }
@@ -81,6 +89,7 @@
     margin-top: 0.5rem; background: none; border: 1px solid #e2e8f0;
     border-radius: 6px; padding: 0.3rem 0.8rem; cursor: pointer;
     font-size: 0.8rem; color: #64748b; transition: background 0.15s;
+    position: relative; z-index: 3;
   }
   #remove-file:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
   #drop-prompt > * { pointer-events: none; }
@@ -112,9 +121,7 @@
   var fs = document.getElementById('file-size');
   var rb = document.getElementById('remove-file');
   var sb = document.getElementById('submit-btn');
-  var frm = document.getElementById('upload-form');
   var dc = 0;
-  var droppedFile = null;
 
   if (!dz || !fi) return;
 
@@ -131,84 +138,27 @@
 
   function clear() {
     fi.value = '';
-    droppedFile = null;
     dp.style.display = 'block';
     fi_info.style.display = 'none';
     dz.classList.remove('has-file');
     sb.disabled = true;
   }
 
-  function handleDrop(dt) {
-    if (!dt || !dt.files || dt.files.length === 0) return;
-    var f = dt.files[0];
-    droppedFile = f;
-    show(f);
-    // Try to populate the input so native form submit works too
-    try {
-      var t = new DataTransfer();
-      t.items.add(f);
-      fi.files = t.files;
-    } catch(e) {}
-  }
-
-  // Prevent the browser from navigating to the file when dropped
-  ['dragover', 'drop'].forEach(function(evt) {
-    window.addEventListener(evt, function(e) { e.preventDefault(); });
-  });
-
-  dz.addEventListener('click', function(e) {
-    if (e.target === rb || (rb && rb.contains(e.target))) return;
-    if (e.target.id === 'browse-btn') return;
-    fi.click();
-  });
-  if (document.getElementById('browse-btn')) {
-    document.getElementById('browse-btn').addEventListener('click', function(e) {
-      e.stopPropagation();
-      fi.click();
-    });
-  }
-
+  // Visual drag-over state on the zone (the input handles the actual drop natively)
   dz.addEventListener('dragenter', function(e) { e.preventDefault(); e.stopPropagation(); dc++; dz.classList.add('dragover'); });
   dz.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); });
   dz.addEventListener('dragleave', function(e) { e.preventDefault(); e.stopPropagation(); dc--; if(dc<=0){dc=0; dz.classList.remove('dragover');} });
-  dz.addEventListener('drop', function(e) { e.preventDefault(); e.stopPropagation(); dc=0; dz.classList.remove('dragover'); handleDrop(e.dataTransfer); });
+  dz.addEventListener('drop', function(e) { e.preventDefault(); e.stopPropagation(); dc=0; dz.classList.remove('dragover'); });
 
+  // Native change event fires for both Browse AND dropped files
   fi.addEventListener('change', function() {
-    if (fi.files.length > 0) { droppedFile = fi.files[0]; show(fi.files[0]); }
+    if (fi.files.length > 0) show(fi.files[0]);
   });
 
   rb.addEventListener('click', function(e) { e.stopPropagation(); clear(); });
 
   frm.addEventListener('submit', function(e) {
-    if (fi.files.length > 0) return; // native submit path (browse)
-    if (droppedFile) {
-      // Drag & drop path: if the input couldn't be populated, upload via AJAX
-      if (fi.files.length === 0) {
-        e.preventDefault();
-        var fd = new FormData();
-        var tok = frm.querySelector('[name="csrf_token"]');
-        if (tok) fd.append('csrf_token', tok.value);
-        fd.append('bill_file', droppedFile, droppedFile.name);
-        sb.disabled = true;
-        sb.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading…';
-        fetch(frm.action, { method: 'POST', body: fd, credentials: 'same-origin' })
-          .then(function(resp) {
-            if (resp.redirected) { window.location.href = resp.url; return null; }
-            return resp.text();
-          })
-          .then(function(html) {
-            if (html) { document.open(); document.write(html); document.close(); }
-          })
-          .catch(function() {
-            sb.disabled = false;
-            sb.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload & Parse';
-            alert('Upload failed. Please try again or use Browse to select the file.');
-          });
-      }
-      return;
-    }
-    e.preventDefault();
-    alert('Please select a file to upload.');
+    if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); }
   });
 })();
 </script>
