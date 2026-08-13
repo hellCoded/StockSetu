@@ -66,19 +66,14 @@
     background: #f8fafc;
     position: relative;
   }
-  #drop-zone:hover, #drop-zone.dragover {
-    border-color: #3b82f6;
-    background: #eff6ff;
-  }
-  #drop-zone.has-file {
-    border-color: #059669;
-    background: #f0fdf4;
-  }
-  #file-input { display: none; }
-  .drop-icon { font-size: 2.5rem; color: #3b82f6; opacity: 0.7; margin-bottom: 0.5rem; }
+  #drop-zone:hover { border-color: #93c5fd; background: #f0f7ff; }
+  #drop-zone.dragover { border-color: #3b82f6; background: #eff6ff; border-style: solid; }
+  #drop-zone.has-file { border-color: #059669; background: #f0fdf4; border-style: solid; }
+  #file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  .drop-icon { font-size: 2.5rem; color: #3b82f6; opacity: 0.7; }
   .drop-title { margin: 0.5rem 0 0.25rem; font-weight: 600; color: #334155; font-size: 1rem; pointer-events: none; }
   .drop-sub { margin: 0; color: #64748b; font-size: 0.85rem; pointer-events: none; }
-  .drop-browse { color: #3b82f6; font-weight: 600; text-decoration: underline; }
+  .drop-browse { color: #3b82f6; font-weight: 600; text-decoration: underline; pointer-events: auto; cursor: pointer; }
   .drop-hint { margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.75rem; pointer-events: none; }
   #file-name { margin: 0.5rem 0 0.15rem; font-weight: 600; color: #334155; font-size: 0.95rem; word-break: break-all; pointer-events: none; }
   #file-size { margin: 0; color: #64748b; font-size: 0.8rem; pointer-events: none; }
@@ -199,7 +194,7 @@
 {% block extra_js %}
 {% if step == 'upload' %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
   var dropZone = document.getElementById('drop-zone');
   var fileInput = document.getElementById('file-input');
   var dropPrompt = document.getElementById('drop-prompt');
@@ -209,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var removeBtn = document.getElementById('remove-file');
   var submitBtn = document.getElementById('submit-btn');
   var form = document.getElementById('upload-form');
+  var dragCounter = 0;
 
   if (!dropZone || !fileInput) return;
 
@@ -235,73 +231,65 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.disabled = true;
   }
 
-  // Click to browse
+  function setFileFromDrop(dataTransfer) {
+    if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
+      var dt = new DataTransfer();
+      dt.items.add(dataTransfer.files[0]);
+      fileInput.files = dt.files;
+      showFile(dataTransfer.files[0]);
+    }
+  }
+
   dropZone.addEventListener('click', function(e) {
     if (e.target === removeBtn || removeBtn.contains(e.target)) return;
     fileInput.click();
   });
 
-  // Prevent default browser behavior for all drag events on the document
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(evt) {
-    document.addEventListener(evt, function(e) { e.preventDefault(); });
-  });
-
-  // Drag enter — highlight
   dropZone.addEventListener('dragenter', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    dragCounter++;
     dropZone.classList.add('dragover');
   });
 
-  // Drag over — must preventDefault to allow drop
   dropZone.addEventListener('dragover', function(e) {
     e.preventDefault();
     e.stopPropagation();
   });
 
-  // Drag leave — only remove highlight if leaving the drop zone entirely
   dropZone.addEventListener('dragleave', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    var rect = dropZone.getBoundingClientRect();
-    var x = e.clientX;
-    var y = e.clientY;
-    if (x <= rect.left || x >= rect.right || y <= rect.top || y >= rect.bottom) {
+    dragCounter--;
+    if (dragCounter === 0) {
       dropZone.classList.remove('dragover');
     }
   });
 
-  // Drop
   dropZone.addEventListener('drop', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    dragCounter = 0;
     dropZone.classList.remove('dragover');
-    var files = e.dataTransfer.files;
-    if (files.length > 0) {
-      fileInput.files = files;
-      showFile(files[0]);
-    }
+    setFileFromDrop(e.dataTransfer);
   });
 
-  // File input change (browse)
   fileInput.addEventListener('change', function() {
     if (fileInput.files.length > 0) showFile(fileInput.files[0]);
   });
 
-  // Remove button
   removeBtn.addEventListener('click', function(e) {
     e.stopPropagation();
     clearFile();
   });
 
-  // Form submit validation
   form.addEventListener('submit', function(e) {
     if (!fileInput.files.length) {
       e.preventDefault();
       alert('Please select a file to upload.');
     }
   });
-});
+})();
 </script>
 {% endif %}
 {% endblock %}
