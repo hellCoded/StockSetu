@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Stock In - StockSetu{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm">
+    <i class="fa-solid fa-arrow-left"></i> Back to Products
+  </a>
+  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem;">
+    <i class="fa-solid fa-file-import" style="color: var(--primary);"></i> Bulk Stock In from Supplier Bill
+  </h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">Upload a PDF or Excel file of your supplier's bill to auto-enter stock</p>
+</div>
+
+{% if step == 'upload' %}
+{# ── Step 1: File Upload ── #}
+<div class="card" style="max-width: 600px;">
+  <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label class="form-label"><i class="fa-solid fa-file-pdf" style="color: var(--primary); margin-right: 0.3rem;"></i> Supplier Bill File <span style="color: #dc2626;">*</span></label>
+      <input type="file" name="bill_file" class="form-control" accept=".pdf,.xlsx,.xls" required
+             style="padding: 0.6rem;">
+      <small style="color: var(--text-muted); font-size: 0.75rem;">Supported formats: PDF, Excel (.xlsx). The file should contain a table with product/item names and quantities.</small>
+    </div>
+
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+        <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
+        <strong>How it works:</strong> Upload your supplier's bill → the system extracts item names and quantities → you map each item to a product in your inventory → confirm to stock in.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-cloud-arrow-up"></i> Upload & Parse</button>
+      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% elif step == 'map' %}
+{# ── Step 2: Map Items to Products ── #}
+<div class="card" style="max-width: 800px;">
+  <form method="POST" action="{{ url_for('inventory.bulk_stock_in_confirm') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">
+        <i class="fa-solid fa-table" style="color: var(--primary);"></i> Parsed Items ({{ items|length }} found)
+      </h3>
+      <p style="color: var(--text-muted); font-size: 0.85rem;">Map each item from the supplier bill to a product in your inventory. Leave blank to skip an item.</p>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
+            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569;">#</th>
+            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569;">Item from Bill</th>
+            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569;">Qty</th>
+            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569;">Map to Product <span style="color: #dc2626;">*</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 0.6rem 0.75rem; color: var(--text-muted);">{{ loop.index }}</td>
+            <td style="padding: 0.6rem 0.75rem; font-weight: 500;">{{ item.item_name }}</td>
+            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--primary);">{{ item.quantity }}</td>
+            <td style="padding: 0.6rem 0.75rem;">
+              <select name="mapping[]" class="form-select" style="font-size: 0.85rem;">
+                <option value="">-- Skip this item --</option>
+                {% for pname in product_names %}
+                  <option value="{{ pname }}" {% if pname|lower == item.item_name|lower %}selected{% endif %}>
+                    {{ pname }}
+                  </option>
+                {% endfor %}
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="form-group" style="margin-top: 1.5rem;">
+      <label for="reason" class="form-label"><i class="fa-solid fa-clipboard-list" style="color: var(--primary); margin-right: 0.3rem;"></i> Reason / Reference Notes</label>
+      <input type="text" id="reason" name="reason" class="form-control" value="Bulk import from supplier bill" placeholder="e.g., PO #45091">
+    </div>
+
+    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+      <button type="submit" class="btn btn-primary" onclick="return confirm('Stock in {{ items|length }} items?')">
+        <i class="fa-solid fa-check"></i> Confirm & Stock In
+      </button>
+      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Upload Different File</a>
+    </div>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

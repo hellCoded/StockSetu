@@ -43,6 +43,12 @@
     </li>
     {% if current_user.role in ['admin', 'inventory_manager'] %}
     <li>
+      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('inventory.bulk_stock_in') %}active{% endif %}">
+        <i class="fa-solid fa-file-import"></i>
+        <span>Bulk Stock In</span>
+      </a>
+    </li>
+    <li>
       <a href="{{ url_for('inventory.handle_adjust') }}" class="sidebar-link {% if request.endpoint == 'inventory.handle_adjust' %}active{% endif %}">
         <i class="fa-solid fa-sliders"></i>
         <span>Adjust Stock</span>

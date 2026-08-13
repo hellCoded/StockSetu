@@ -91,6 +91,68 @@ def handle_adjust(product_name=None):
     selected_product = get_product_by_name(product_name) if product_name else None
     return render_template('inventory/adjust.html', products=products, selected_product=selected_product)
 
+@inventory_bp.route('/inventory/bulk-stock-in', methods=['GET', 'POST'])
+@login_required
+@roles_required('admin', 'inventory_manager')
+@csrf_protected
+def bulk_stock_in():
+    from inventory_app.services.import_service import parse_supplier_bill
+
+    if request.method == 'POST':
+        file = request.files.get('bill_file')
+        if not file or not file.filename:
+            flash("Please select a file to upload.", "danger")
+            return redirect(url_for('inventory.bulk_stock_in'))
+
+        ok, err, items = parse_supplier_bill(file)
+        if not ok:
+            flash(err, "danger")
+            return redirect(url_for('inventory.bulk_stock_in'))
+
+        products = search_products(is_active=True)
+        product_names = [p['product_name'] for p in products]
+
+        session['bulk_import_items'] = items
+        return render_template('inventory/bulk_stock_in.html', items=items, product_names=product_names, step='map')
+
+    return render_template('inventory/bulk_stock_in.html', step='upload')
+
+@inventory_bp.route('/inventory/bulk-stock-in/confirm', methods=['POST'])
+@login_required
+@roles_required('admin', 'inventory_manager')
+@csrf_protected
+def bulk_stock_in_confirm():
+    items = session.pop('bulk_import_items', None)
+    if not items:
+        flash("Session expired. Please upload the bill again.", "danger")
+        return redirect(url_for('inventory.bulk_stock_in'))
+
+    mapping = request.form.getlist('mapping[]')
+    reason = request.form.get('reason', 'Bulk import from supplier bill')
+    username = session.get('username', 'System')
+
+    success_count = 0
+    errors = []
+
+    for i, item in enumerate(items):
+        product_name = mapping[i] if i < len(mapping) else ""
+        if not product_name:
+            errors.append(f"'{item['item_name']}' — skipped (no product selected)")
+            continue
+
+        ok, msg, _ = stock_in(product_name, item['quantity'], reason, performed_by=username)
+        if ok:
+            success_count += 1
+        else:
+            errors.append(f"'{product_name}' — {msg}")
+
+    if success_count > 0:
+        flash(f"Successfully stocked in {success_count} item(s).", "success")
+    if errors:
+        flash("Issues: " + "; ".join(errors), "warning")
+
+    return redirect(url_for('inventory.view_transactions'))
+
 @inventory_bp.route('/transactions')
 @login_required
 def view_transactions():

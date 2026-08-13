@@ -1,0 +1,142 @@
+import io
+import re
+import openpyxl
+import pdfplumber
+
+
+def parse_supplier_bill(file_storage) -> tuple[bool, str, list[dict]]:
+    """
+    Parses a supplier bill file (PDF or Excel) and extracts line items.
+    Returns (success, error_message, items) where each item is:
+        {"item_name": str, "quantity": float}
+    """
+    filename = (file_storage.filename or "").lower()
+    file_bytes = file_storage.read()
+    file_storage.seek(0)
+
+    if filename.endswith('.pdf'):
+        return _parse_pdf(file_bytes)
+    elif filename.endswith(('.xlsx', '.xls')):
+        return _parse_excel(file_bytes)
+    else:
+        return False, "Unsupported file type. Please upload a PDF or Excel (.xlsx) file.", []
+
+
+def _parse_pdf(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
+    """Extracts item name + quantity from a PDF using pdfplumber table detection."""
+    items = []
+    try:
+        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables()
+                for table in tables:
+                    if not table or len(table) < 2:
+                        continue
+                    header_row = table[0]
+                    name_idx, qty_idx = _find_columns(header_row)
+                    if name_idx is None or qty_idx is None:
+                        continue
+                    for row in table[1:]:
+                        if not row or len(row) <= max(name_idx, qty_idx):
+                            continue
+                        item_name = _clean_text(row[name_idx])
+                        qty_raw = _clean_text(row[qty_idx])
+                        if not item_name or not qty_raw:
+                            continue
+                        qty = _parse_quantity(qty_raw)
+                        if qty is not None and qty > 0:
+                            items.append({"item_name": item_name, "quantity": qty})
+    except Exception as e:
+        return False, f"Failed to parse PDF: {str(e)}", []
+
+    if not items:
+        return False, "No valid items found in the PDF. Ensure the bill has a table with product names and quantities.", []
+    return True, "", items
+
+
+def _parse_excel(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
+    """Extracts item name + quantity from an Excel workbook."""
+    items = []
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(file_bytes), read_only=True, data_only=True)
+        for sheet in wb.worksheets:
+            rows = list(sheet.iter_rows(values_only=True))
+            if len(rows) < 2:
+                continue
+            header_row = rows[0]
+            name_idx, qty_idx = _find_columns(header_row)
+            if name_idx is None or qty_idx is None:
+                continue
+            for row in rows[1:]:
+                if not row or len(row) <= max(name_idx, qty_idx):
+                    continue
+                item_name = _clean_text(row[name_idx])
+                qty_raw = _clean_text(row[qty_idx])
+                if not item_name or not qty_raw:
+                    continue
+                qty = _parse_quantity(qty_raw)
+                if qty is not None and qty > 0:
+                    items.append({"item_name": item_name, "quantity": qty})
+        wb.close()
+    except Exception as e:
+        return False, f"Failed to parse Excel file: {str(e)}", []
+
+    if not items:
+        return False, "No valid items found in the Excel file. Ensure the bill has a table with product names and quantities.", []
+    return True, "", items
+
+
+def _find_columns(header_row) -> tuple:
+    """
+    Attempts to find the item name and quantity column indices from a header row.
+    Returns (name_idx, qty_idx) or (None, None) if not found.
+    """
+    name_idx = None
+    qty_idx = None
+    name_keywords = ['item', 'product', 'name', 'description', 'material', 'article', 'goods', 'part', 'component']
+    qty_keywords = ['qty', 'quantity', 'nos', 'pcs', 'units', 'count', 'amount', 'total']
+
+    for i, cell in enumerate(header_row):
+        cell_text = _clean_text(cell).lower()
+        if not cell_text:
+            continue
+        if name_idx is None and any(kw in cell_text for kw in name_keywords):
+            name_idx = i
+        if qty_idx is None and any(kw in cell_text for kw in qty_keywords):
+            qty_idx = i
+
+    # Fallback: if we have a header but can't match keywords,
+    # assume first text-like column is name, second numeric-like column is qty
+    if name_idx is None and qty_idx is None and len(header_row) >= 2:
+        for i, cell in enumerate(header_row):
+            cell_text = _clean_text(cell)
+            if not cell_text:
+                continue
+            if name_idx is None:
+                name_idx = i
+            elif qty_idx is None:
+                qty_idx = i
+                break
+
+    return name_idx, qty_idx
+
+
+def _parse_quantity(raw) -> float | None:
+    """Parses a quantity value from various formats (e.g., '50', '50.0', '1,200', '50 PCS')."""
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    text = re.sub(r'[a-zA-Z]+', '', text).strip()
+    text = text.replace(',', '')
+    try:
+        val = float(text)
+        return val if val > 0 else None
+    except (ValueError, TypeError):
+        return None
+
+
+def _clean_text(val) -> str:
+    """Cleans a cell value to a stripped string."""
+    if val is None:
+        return ""
+    return str(val).strip()
