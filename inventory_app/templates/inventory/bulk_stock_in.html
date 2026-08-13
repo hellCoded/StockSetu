@@ -28,7 +28,7 @@
       <div id="drop-prompt">
         <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
         <p class="drop-title">Drag & drop your file here</p>
-        <p class="drop-sub">or <span class="drop-browse">browse</span> to choose</p>
+        <p class="drop-sub">or <span class="drop-browse" id="browse-btn">browse</span> to choose</p>
         <p class="drop-hint">PDF or Excel (.xlsx)</p>
       </div>
       <div id="file-info" style="display: none;">
@@ -101,6 +101,74 @@
     .btn-row .btn { width: 100%; justify-content: center; }
   }
 </style>
+
+<script>
+document.getElementById('browse-btn').addEventListener('click', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('file-input').click();
+});
+
+document.getElementById('drop-zone').addEventListener('click', function(e) {
+  if (e.target.id === 'remove-file' || e.target.closest('#remove-file')) return;
+  if (e.target.id === 'browse-btn') return;
+  document.getElementById('file-input').click();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  var dz = document.getElementById('drop-zone');
+  var fi = document.getElementById('file-input');
+  var dp = document.getElementById('drop-prompt');
+  var fi_info = document.getElementById('file-info');
+  var fn = document.getElementById('file-name');
+  var fs = document.getElementById('file-size');
+  var rb = document.getElementById('remove-file');
+  var sb = document.getElementById('submit-btn');
+  var frm = document.getElementById('upload-form');
+  var dc = 0;
+
+  function fmt(b) { return b < 1024 ? b+' B' : b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB'; }
+
+  function show(f) {
+    fn.textContent = f.name;
+    fs.textContent = fmt(f.size);
+    dp.style.display = 'none';
+    fi_info.style.display = 'block';
+    dz.classList.add('has-file');
+    sb.disabled = false;
+  }
+
+  function clear() {
+    fi.value = '';
+    dp.style.display = 'block';
+    fi_info.style.display = 'none';
+    dz.classList.remove('has-file');
+    sb.disabled = true;
+  }
+
+  function handleDrop(dt) {
+    if (dt && dt.files && dt.files.length > 0) {
+      try {
+        var t = new DataTransfer();
+        t.items.add(dt.files[0]);
+        fi.files = t.files;
+      } catch(e) {
+        fi.files = dt.files;
+      }
+      show(dt.files[0]);
+    }
+  }
+
+  dz.addEventListener('dragenter', function(e) { e.preventDefault(); e.stopPropagation(); dc++; dz.classList.add('dragover'); });
+  dz.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); });
+  dz.addEventListener('dragleave', function(e) { e.preventDefault(); e.stopPropagation(); dc--; if(dc<=0){dc=0; dz.classList.remove('dragover');} });
+  dz.addEventListener('drop', function(e) { e.preventDefault(); e.stopPropagation(); dc=0; dz.classList.remove('dragover'); handleDrop(e.dataTransfer); });
+
+  fi.addEventListener('change', function() { if(fi.files.length>0) show(fi.files[0]); });
+  rb.addEventListener('click', function(e) { e.stopPropagation(); clear(); });
+  frm.addEventListener('submit', function(e) { if(!fi.files.length){e.preventDefault();alert('Please select a file to upload.');} });
+});
+</script>
 
 {% elif step == 'map' %}
 <div class="card" style="max-width: 800px; width: 100%;">
@@ -188,108 +256,5 @@
     .btn-row .btn { width: 100%; justify-content: center; }
   }
 </style>
-{% endif %}
-{% endblock %}
-
-{% block extra_js %}
-{% if step == 'upload' %}
-<script>
-(function() {
-  var dropZone = document.getElementById('drop-zone');
-  var fileInput = document.getElementById('file-input');
-  var dropPrompt = document.getElementById('drop-prompt');
-  var fileInfo = document.getElementById('file-info');
-  var fileName = document.getElementById('file-name');
-  var fileSize = document.getElementById('file-size');
-  var removeBtn = document.getElementById('remove-file');
-  var submitBtn = document.getElementById('submit-btn');
-  var form = document.getElementById('upload-form');
-  var dragCounter = 0;
-
-  if (!dropZone || !fileInput) return;
-
-  function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
-  }
-
-  function showFile(file) {
-    fileName.textContent = file.name;
-    fileSize.textContent = formatSize(file.size);
-    dropPrompt.style.display = 'none';
-    fileInfo.style.display = 'block';
-    dropZone.classList.add('has-file');
-    submitBtn.disabled = false;
-  }
-
-  function clearFile() {
-    fileInput.value = '';
-    dropPrompt.style.display = 'block';
-    fileInfo.style.display = 'none';
-    dropZone.classList.remove('has-file');
-    submitBtn.disabled = true;
-  }
-
-  function setFileFromDrop(dataTransfer) {
-    if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
-      var dt = new DataTransfer();
-      dt.items.add(dataTransfer.files[0]);
-      fileInput.files = dt.files;
-      showFile(dataTransfer.files[0]);
-    }
-  }
-
-  dropZone.addEventListener('click', function(e) {
-    if (e.target === removeBtn || removeBtn.contains(e.target)) return;
-    fileInput.click();
-  });
-
-  dropZone.addEventListener('dragenter', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter++;
-    dropZone.classList.add('dragover');
-  });
-
-  dropZone.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  });
-
-  dropZone.addEventListener('dragleave', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter--;
-    if (dragCounter === 0) {
-      dropZone.classList.remove('dragover');
-    }
-  });
-
-  dropZone.addEventListener('drop', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter = 0;
-    dropZone.classList.remove('dragover');
-    setFileFromDrop(e.dataTransfer);
-  });
-
-  fileInput.addEventListener('change', function() {
-    if (fileInput.files.length > 0) showFile(fileInput.files[0]);
-  });
-
-  removeBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    clearFile();
-  });
-
-  form.addEventListener('submit', function(e) {
-    if (!fileInput.files.length) {
-      e.preventDefault();
-      alert('Please select a file to upload.');
-    }
-  });
-})();
-</script>
 {% endif %}
 {% endblock %}
