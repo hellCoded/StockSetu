@@ -15,64 +15,105 @@
 
 {% if step == 'upload' %}
 {# ── Step 1: File Upload ── #}
-<div class="card" style="max-width: 600px;">
+<div class="card" style="max-width: 600px; width: 100%;">
   <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="upload-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="form-group">
-      <label class="form-label"><i class="fa-solid fa-file-pdf" style="color: var(--primary); margin-right: 0.3rem;"></i> Supplier Bill File <span style="color: #dc2626;">*</span></label>
+    <label class="form-label" style="font-weight: 600;">
+      <i class="fa-solid fa-file-pdf" style="color: var(--primary); margin-right: 0.3rem;"></i>
+      Supplier Bill File <span style="color: #dc2626;">*</span>
+    </label>
 
-      <div id="drop-zone" style="
-        border: 2px dashed #cbd5e1;
-        border-radius: 12px;
-        padding: 2.5rem 1.5rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: #f8fafc;
-      ">
-        <input type="file" name="bill_file" id="file-input" accept=".pdf,.xlsx,.xls" hidden required>
-        <div id="drop-icon">
-          <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.5rem; color: var(--primary); opacity: 0.7;"></i>
-          <p style="margin: 0.75rem 0 0.25rem; font-weight: 600; color: #334155;">Drag & drop your file here</p>
-          <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">or <span style="color: var(--primary); font-weight: 600; text-decoration: underline;">browse</span> to choose</p>
-          <p style="margin: 0.5rem 0 0; color: var(--text-muted); font-size: 0.75rem;">PDF or Excel (.xlsx) — max 10MB</p>
-        </div>
-        <div id="file-info" style="display: none;">
-          <i class="fa-solid fa-file-lines" style="font-size: 2rem; color: #059669;"></i>
-          <p id="file-name" style="margin: 0.5rem 0 0.15rem; font-weight: 600; color: #334155;"></p>
-          <p id="file-size" style="margin: 0; color: var(--text-muted); font-size: 0.8rem;"></p>
-          <button type="button" id="remove-file" style="margin-top: 0.5rem; background: none; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.8rem; color: #64748b;">
-            <i class="fa-solid fa-xmark"></i> Remove
-          </button>
-        </div>
+    <div id="drop-zone">
+      <input type="file" name="bill_file" id="file-input" accept=".pdf,.xlsx,.xls">
+      <div id="drop-prompt">
+        <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+        <p class="drop-title">Drag & drop your file here</p>
+        <p class="drop-sub">or <span class="drop-browse">browse</span> to choose</p>
+        <p class="drop-hint">PDF or Excel (.xlsx)</p>
+      </div>
+      <div id="file-info" style="display: none;">
+        <i class="fa-solid fa-file-lines" style="font-size: 2rem; color: #059669;"></i>
+        <p id="file-name"></p>
+        <p id="file-size"></p>
+        <button type="button" id="remove-file"><i class="fa-solid fa-xmark"></i> Remove</button>
       </div>
     </div>
 
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
-        <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
-        <strong>How it works:</strong> Upload your supplier's bill → the system extracts item names and quantities → you map each item to a product in your inventory → confirm to stock in.
-      </p>
+    <div class="info-box">
+      <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
+      <strong>How it works:</strong> Upload your supplier's bill → the system extracts item names and quantities → you map each item to a product → confirm to stock in.
     </div>
 
-    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary" id="submit-btn" disabled><i class="fa-solid fa-cloud-arrow-up"></i> Upload & Parse</button>
-      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+        <i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Parse
+      </button>
+      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-xmark"></i> Cancel
+      </a>
     </div>
   </form>
 </div>
 
+<style>
+  #drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #f8fafc;
+    position: relative;
+  }
+  #drop-zone:hover, #drop-zone.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+  #drop-zone.has-file {
+    border-color: #059669;
+    background: #f0fdf4;
+  }
+  #file-input { display: none; }
+  .drop-icon { font-size: 2.5rem; color: #3b82f6; opacity: 0.7; margin-bottom: 0.5rem; }
+  .drop-title { margin: 0.5rem 0 0.25rem; font-weight: 600; color: #334155; font-size: 1rem; }
+  .drop-sub { margin: 0; color: #64748b; font-size: 0.85rem; }
+  .drop-browse { color: #3b82f6; font-weight: 600; text-decoration: underline; cursor: pointer; }
+  .drop-hint { margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.75rem; }
+  #file-name { margin: 0.5rem 0 0.15rem; font-weight: 600; color: #334155; font-size: 0.95rem; word-break: break-all; }
+  #file-size { margin: 0; color: #64748b; font-size: 0.8rem; }
+  #remove-file {
+    margin-top: 0.5rem; background: none; border: 1px solid #e2e8f0;
+    border-radius: 6px; padding: 0.3rem 0.8rem; cursor: pointer;
+    font-size: 0.8rem; color: #64748b; transition: background 0.15s;
+  }
+  #remove-file:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .info-box {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 0.85rem 1rem; margin: 1.25rem 0; font-size: 0.85rem; color: #64748b;
+  }
+  .btn-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+  @media (max-width: 640px) {
+    #drop-zone { padding: 1.5rem 1rem; }
+    .drop-icon { font-size: 2rem; }
+    .drop-title { font-size: 0.9rem; }
+    .btn-row { flex-direction: column; }
+    .btn-row .btn { width: 100%; justify-content: center; }
+  }
+</style>
+
 <script>
 (function() {
-  const dropZone = document.getElementById('drop-zone');
-  const fileInput = document.getElementById('file-input');
-  const dropIcon = document.getElementById('drop-icon');
-  const fileInfo = document.getElementById('file-info');
-  const fileName = document.getElementById('file-name');
-  const fileSize = document.getElementById('file-size');
-  const removeBtn = document.getElementById('remove-file');
-  const submitBtn = document.getElementById('submit-btn');
+  var dropZone = document.getElementById('drop-zone');
+  var fileInput = document.getElementById('file-input');
+  var dropPrompt = document.getElementById('drop-prompt');
+  var fileInfo = document.getElementById('file-info');
+  var fileName = document.getElementById('file-name');
+  var fileSize = document.getElementById('file-size');
+  var removeBtn = document.getElementById('remove-file');
+  var submitBtn = document.getElementById('submit-btn');
 
   function formatSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
@@ -83,85 +124,98 @@
   function showFile(file) {
     fileName.textContent = file.name;
     fileSize.textContent = formatSize(file.size);
-    dropIcon.style.display = 'none';
+    dropPrompt.style.display = 'none';
     fileInfo.style.display = 'block';
-    dropZone.style.borderColor = '#059669';
-    dropZone.style.background = '#f0fdf4';
+    dropZone.classList.add('has-file');
     submitBtn.disabled = false;
   }
 
-  dropZone.addEventListener('click', () => fileInput.click());
+  function clearFile() {
+    fileInput.value = '';
+    dropPrompt.style.display = 'block';
+    fileInfo.style.display = 'none';
+    dropZone.classList.remove('has-file');
+    submitBtn.disabled = true;
+  }
 
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.style.borderColor = 'var(--primary)';
-    dropZone.style.background = '#eff6ff';
+  dropZone.addEventListener('click', function(e) {
+    if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+    fileInput.click();
   });
 
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.style.borderColor = '#cbd5e1';
-    dropZone.style.background = '#f8fafc';
+  dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add('dragover');
   });
 
-  dropZone.addEventListener('drop', (e) => {
+  dropZone.addEventListener('dragleave', function(e) {
     e.preventDefault();
-    dropZone.style.borderColor = '#cbd5e1';
-    dropZone.style.background = '#f8fafc';
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      fileInput.files = e.dataTransfer.files;
-      showFile(file);
+    e.stopPropagation();
+    dropZone.classList.remove('dragover');
+  });
+
+  dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('dragover');
+    var files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      showFile(files[0]);
     }
   });
 
-  fileInput.addEventListener('change', () => {
-    if (fileInput.files[0]) showFile(fileInput.files[0]);
+  fileInput.addEventListener('change', function() {
+    if (fileInput.files.length > 0) showFile(fileInput.files[0]);
   });
 
-  removeBtn.addEventListener('click', (e) => {
+  removeBtn.addEventListener('click', function(e) {
     e.stopPropagation();
-    fileInput.value = '';
-    dropIcon.style.display = 'block';
-    fileInfo.style.display = 'none';
-    dropZone.style.borderColor = '#cbd5e1';
-    dropZone.style.background = '#f8fafc';
-    submitBtn.disabled = true;
+    clearFile();
+  });
+
+  document.getElementById('upload-form').addEventListener('submit', function(e) {
+    if (!fileInput.files.length) {
+      e.preventDefault();
+      alert('Please select a file to upload.');
+    }
   });
 })();
 </script>
 
 {% elif step == 'map' %}
 {# ── Step 2: Map Items to Products ── #}
-<div class="card" style="max-width: 800px;">
+<div class="card" style="max-width: 800px; width: 100%;">
   <form method="POST" action="{{ url_for('inventory.bulk_stock_in_confirm') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div style="margin-bottom: 1.5rem;">
-      <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">
+    <div style="margin-bottom: 1.25rem;">
+      <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4rem;">
         <i class="fa-solid fa-table" style="color: var(--primary);"></i> Parsed Items ({{ items|length }} found)
       </h3>
-      <p style="color: var(--text-muted); font-size: 0.85rem;">Map each item from the supplier bill to a product in your inventory. Leave blank to skip an item.</p>
+      <p style="color: var(--text-muted); font-size: 0.85rem;">Map each item to a product in your inventory. Leave blank to skip.</p>
     </div>
 
-    <div style="overflow-x: auto;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+    <div class="table-wrap">
+      <table class="map-table">
         <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
-            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569;">#</th>
-            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569;">Item from Bill</th>
-            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569;">Qty</th>
-            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569;">Map to Product <span style="color: #dc2626;">*</span></th>
+          <tr>
+            <th>#</th>
+            <th>Item from Bill</th>
+            <th>Qty</th>
+            <th>Map to Product <span style="color: #dc2626;">*</span></th>
           </tr>
         </thead>
         <tbody>
           {% for item in items %}
-          <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 0.6rem 0.75rem; color: var(--text-muted);">{{ loop.index }}</td>
-            <td style="padding: 0.6rem 0.75rem; font-weight: 500;">{{ item.item_name }}</td>
-            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--primary);">{{ item.quantity }}</td>
-            <td style="padding: 0.6rem 0.75rem;">
-              <select name="mapping[]" class="form-select" style="font-size: 0.85rem;">
-                <option value="">-- Skip this item --</option>
+          <tr>
+            <td class="td-num">{{ loop.index }}</td>
+            <td class="td-name">{{ item.item_name }}</td>
+            <td class="td-qty">{{ item.quantity }}</td>
+            <td class="td-select">
+              <select name="mapping[]" class="form-select">
+                <option value="">-- Skip --</option>
                 {% for pname in product_names %}
                   <option value="{{ pname }}" {% if pname|lower == item.item_name|lower %}selected{% endif %}>
                     {{ pname }}
@@ -175,18 +229,47 @@
       </table>
     </div>
 
-    <div class="form-group" style="margin-top: 1.5rem;">
-      <label for="reason" class="form-label"><i class="fa-solid fa-clipboard-list" style="color: var(--primary); margin-right: 0.3rem;"></i> Reason / Reference Notes</label>
+    <div style="margin-top: 1.25rem;">
+      <label for="reason" class="form-label" style="font-weight: 600;">
+        <i class="fa-solid fa-clipboard-list" style="color: var(--primary); margin-right: 0.3rem;"></i>
+        Reason / Reference
+      </label>
       <input type="text" id="reason" name="reason" class="form-control" value="Bulk import from supplier bill" placeholder="e.g., PO #45091">
     </div>
 
-    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+    <div class="btn-row" style="margin-top: 1.5rem;">
       <button type="submit" class="btn btn-primary" onclick="return confirm('Stock in {{ items|length }} items?')">
-        <i class="fa-solid fa-check"></i> Confirm & Stock In
+        <i class="fa-solid fa-check"></i> Confirm &amp; Stock In
       </button>
-      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Upload Different File</a>
+      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Upload Different File
+      </a>
     </div>
   </form>
 </div>
+
+<style>
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .map-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 500px; }
+  .map-table th {
+    background: #f1f5f9; padding: 0.7rem 0.75rem; text-align: left;
+    font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .map-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #e2e8f0; }
+  .td-num { color: #94a3b8; width: 40px; }
+  .td-name { font-weight: 500; }
+  .td-qty { font-weight: 600; color: #3b82f6; white-space: nowrap; }
+  .td-select { min-width: 180px; }
+  .td-select .form-select { font-size: 0.85rem; width: 100%; }
+  .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+  @media (max-width: 640px) {
+    .map-table { min-width: 420px; font-size: 0.82rem; }
+    .map-table th, .map-table td { padding: 0.5rem; }
+    .btn-row { flex-direction: column; }
+    .btn-row .btn { width: 100%; justify-content: center; }
+  }
+</style>
 {% endif %}
 {% endblock %}
