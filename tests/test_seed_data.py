@@ -12,14 +12,17 @@ from scripts.seed_dummy_data import run_seeder, TEST_PASSWORD
 def test_seed_and_clean_workflow(monkeypatch, mock_mongo, app):
     # 1. Setup mock database and force MongoClient to return our shared mock_mongo client
     import inventory_app.database
-    monkeypatch.setattr(inventory_app.database, "current_db", None)
-    monkeypatch.setattr(inventory_app.database, "db_client", None)
-    monkeypatch.setattr(inventory_app.database, "MongoClient", lambda *args, **kwargs: mock_mongo)
+    orig_init_db = inventory_app.database.init_db
+    monkeypatch.setattr(inventory_app.database, "current_db", mock_mongo['inventory_db'])
+    monkeypatch.setattr(inventory_app.database, "db_client", mock_mongo)
+    monkeypatch.setattr(inventory_app.database, "init_db", lambda app, custom_client=None: orig_init_db(app, custom_client=mock_mongo))
+    monkeypatch.setattr("inventory_app.init_db", lambda app, custom_client=None: orig_init_db(app, custom_client=mock_mongo))
     
-    db = mock_mongo['inventory_db']
+    db = inventory_app.database.get_db()
     
     # Ensure safety guard matches development environment
     monkeypatch.setenv("FLASK_ENV", "development")
+    monkeypatch.setenv("MOCK_MONGO", "1")
 
     # 2. Run clean run of seeding (100 products, 100 users)
     monkeypatch.setattr(sys, "argv", [
@@ -29,6 +32,7 @@ def test_seed_and_clean_workflow(monkeypatch, mock_mongo, app):
     ])
     
     run_seeder()
+    db = inventory_app.database.get_db()
 
     # Assert correct counts are inserted
     seeded_products = list(db.products.find({"product_name": {"$regex": "^TEST-SKU-"}}))
@@ -120,9 +124,11 @@ def test_seed_and_clean_workflow(monkeypatch, mock_mongo, app):
 
 def test_safety_guard(monkeypatch, mock_mongo):
     import inventory_app.database
-    monkeypatch.setattr(inventory_app.database, "current_db", None)
-    monkeypatch.setattr(inventory_app.database, "db_client", None)
-    monkeypatch.setattr(inventory_app.database, "MongoClient", lambda *args, **kwargs: mock_mongo)
+    orig_init_db = inventory_app.database.init_db
+    monkeypatch.setattr(inventory_app.database, "current_db", mock_mongo['inventory_db'])
+    monkeypatch.setattr(inventory_app.database, "db_client", mock_mongo)
+    monkeypatch.setattr(inventory_app.database, "init_db", lambda app, custom_client=None: orig_init_db(app, custom_client=mock_mongo))
+    monkeypatch.setattr("inventory_app.init_db", lambda app, custom_client=None: orig_init_db(app, custom_client=mock_mongo))
     
     # Set environment variables to simulate production
     monkeypatch.setenv("FLASK_ENV", "production")

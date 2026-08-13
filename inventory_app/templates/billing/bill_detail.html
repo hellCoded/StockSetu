@@ -272,12 +272,18 @@
     
     {% if format_type == 'thermal' %}
       <a href="{{ url_for('billing.view_bill', bill_id=bill['_id'] or bill.id, format='standard') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-file-invoice"></i> Standard A5 View</a>
-      
       <button onclick="window.print()" class="btn btn-primary btn-sm"><i class="fa-solid fa-print"></i> Print Receipt</button>
     {% else %}
       <a href="{{ url_for('billing.view_bill', bill_id=bill['_id'] or bill.id, format='thermal') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-receipt"></i> Thermal Receipt View</a>
-      
       <button onclick="window.print()" class="btn btn-primary btn-sm"><i class="fa-solid fa-print"></i> Print A5 Invoice</button>
+    {% endif %}
+
+    {% if current_user.role in ['admin', 'inventory_manager'] %}
+      {% if bill.payment_status == 'REFUNDED' %}
+        <span class="badge" style="background: #ef4444; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;">REFUNDED / CANCELLED</span>
+      {% else %}
+        <button onclick="document.getElementById('refundModal').style.display='flex'" class="btn btn-danger btn-sm"><i class="fa-solid fa-rotate-left"></i> Refund / Cancel Bill</button>
+      {% endif %}
     {% endif %}
   </div>
 </div>
@@ -587,5 +593,30 @@
   </div>
   </div>
 
+{% endif %}
+
+{% if current_user.role in ['admin', 'inventory_manager'] and bill.payment_status != 'REFUNDED' %}
+<div id="refundModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+  <div class="modal-card" style="background: var(--bg-card); width: 100%; max-width: 460px; border-radius: 12px; padding: 1.5rem; border: 1px solid var(--bg-card-border);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #ef4444;">Refund & Cancel Invoice</h3>
+      <button style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" onclick="document.getElementById('refundModal').style.display='none'">&times;</button>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      This action will mark bill <strong>{{ bill.bill_number }}</strong> as REFUNDED and automatically restore all items back into active inventory stock.
+    </p>
+    <form action="{{ url_for('billing.refund', bill_id=bill._id or bill.id) }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="margin-bottom: 1.25rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem;">Reason for Refund *</label>
+        <input type="text" name="reason" class="form-control" required placeholder="e.g. Customer return, billing error" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--bg-card-border); background: var(--bg-body); color: var(--text-main);">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('refundModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-danger">Confirm Refund</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endif %}
 {% endblock %}

@@ -34,6 +34,14 @@ def create_app(config_class=Config, custom_mongo_client=None):
             except Exception:
                 pass
 
+        unread_notifications_count = 0
+        if user_id:
+            from inventory_app.services.notification_service import get_unread_notifications_count
+            try:
+                unread_notifications_count = get_unread_notifications_count()
+            except Exception:
+                pass
+
         return {
             'csrf_token': generate_csrf_token,
             'calculate_stock_status': calculate_stock_status,
@@ -46,7 +54,8 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 'username': username,
                 'role': user_role
             },
-            'pending_requests_count': pending_requests_count
+            'pending_requests_count': pending_requests_count,
+            'unread_notifications_count': unread_notifications_count
         }
 
     # Register Blueprints
@@ -56,6 +65,9 @@ def create_app(config_class=Config, custom_mongo_client=None):
     from inventory_app.routes.inventory_routes import inventory_bp
     from inventory_app.routes.user_routes import user_bp
     from inventory_app.routes.billing_routes import billing_bp
+    from inventory_app.routes.category_routes import category_bp
+    from inventory_app.routes.supplier_routes import supplier_bp
+    from inventory_app.routes.notification_routes import notification_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -63,6 +75,9 @@ def create_app(config_class=Config, custom_mongo_client=None):
     app.register_blueprint(inventory_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(billing_bp)
+    app.register_blueprint(category_bp)
+    app.register_blueprint(supplier_bp)
+    app.register_blueprint(notification_bp)
 
     # Error Handlers
     @app.errorhandler(404)

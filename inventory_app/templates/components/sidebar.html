@@ -67,6 +67,27 @@
         <span>Bill History</span>
       </a>
     </li>
+    <li>
+      <a href="{{ url_for('categories.list_categories') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('categories.') %}active{% endif %}">
+        <i class="fa-solid fa-tags"></i>
+        <span>Categories</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('suppliers.list_suppliers') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('suppliers.') %}active{% endif %}">
+        <i class="fa-solid fa-truck-field"></i>
+        <span>Suppliers</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('notifications.list_notifications') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('notifications.') %}active{% endif %}">
+        <i class="fa-solid fa-bell"></i>
+        <span>Notifications</span>
+        {% if unread_notifications_count > 0 %}
+          <span style="margin-left: auto; background: var(--jklc-red, #ef4444); color: white; padding: 0.15rem 0.45rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; line-height: 1;">{{ unread_notifications_count }}</span>
+        {% endif %}
+      </a>
+    </li>
 
     {% if current_user.role == 'admin' %}
     <li style="margin-top: 1rem; border-top: 1px solid var(--bg-card-border); padding-top: 1rem;">

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from inventory_app.services.billing_service import create_bill, get_bill_by_id, get_bills
+from inventory_app.services.billing_service import create_bill, get_bill_by_id, get_bills, refund_bill
 from inventory_app.services.product_service import search_products, get_distinct_categories
 from inventory_app.utils.decorators import login_required, roles_required, csrf_protected
 
@@ -32,7 +32,8 @@ def create():
         'customer_name': request.form.get('customer_name', ''),
         'customer_phone': request.form.get('customer_phone', ''),
         'customer_gstin': request.form.get('customer_gstin', ''),
-        'payment_method': request.form.get('payment_method', 'CASH')
+        'payment_method': request.form.get('payment_method', 'CASH'),
+        'discount_percent': request.form.get('discount_percent', '0')
     }
 
     items = []
@@ -69,3 +70,17 @@ def view_bill(bill_id):
         return redirect(url_for('billing.list_bills'))
     format_type = request.args.get('format', 'standard')
     return render_template('billing/bill_detail.html', bill=bill, format_type=format_type)
+
+@billing_bp.route('/billing/bills/<bill_id>/refund', methods=['POST'])
+@login_required
+@roles_required('admin', 'inventory_manager')
+@csrf_protected
+def refund(bill_id):
+    reason = request.form.get('reason', 'Customer Refund')
+    username = session.get('username', 'Unknown')
+    success, msg = refund_bill(bill_id, reason, username)
+    if success:
+        flash(msg, "success")
+    else:
+        flash(msg, "danger")
+    return redirect(url_for('billing.view_bill', bill_id=bill_id))

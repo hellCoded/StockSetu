@@ -134,6 +134,15 @@ def init_db_indexes(db):
         db.invoices.create_index([("bill_number", ASCENDING)], unique=True)
         db.invoices.create_index([("created_at", DESCENDING)])
         db.invoices.create_index([("customer_name", ASCENDING)])
+
+        # Categories & Suppliers indexes
+        db.categories.create_index([("name", ASCENDING)], unique=True)
+        db.suppliers.create_index([("code", ASCENDING)], unique=True)
+        db.suppliers.create_index([("name", ASCENDING)])
+
+        # Notifications indexes
+        db.notifications.create_index([("created_at", DESCENDING)])
+        db.notifications.create_index([("is_read", ASCENDING)])
     except Exception as e:
         logger.error(f"Error initializing indexes: {e}")
 

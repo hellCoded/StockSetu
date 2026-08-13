@@ -146,7 +146,14 @@ def create_bill(customer_data: dict, items: list, performed_by: str) -> tuple[bo
         sgst_total = _round2(sgst_total + sgst)
         gst_total = _round2(gst_total + gst_amount)
 
-    grand_total = _round2(subtotal + gst_total)
+    try:
+        discount_percent = float(customer_data.get('discount_percent', 0) or 0)
+    except (ValueError, TypeError):
+        discount_percent = 0.0
+    discount_percent = max(0.0, min(100.0, discount_percent))
+    discount_amount = _round2(subtotal * discount_percent / 100)
+
+    grand_total = _round2((subtotal - discount_amount) + gst_total)
     bill_number = _generate_bill_number(db, now)
 
     # Deduct stock atomically; refund everything and delete transaction logs if any line fails
@@ -177,6 +184,8 @@ def create_bill(customer_data: dict, items: list, performed_by: str) -> tuple[bo
         "payment_status": "PAID",
         "line_items": bill_items,
         "subtotal": subtotal,
+        "discount_percent": discount_percent,
+        "discount_amount": discount_amount,
         "cgst_total": cgst_total,
         "sgst_total": sgst_total,
         "gst_total": gst_total,
@@ -263,3 +272,46 @@ def get_billing_summary() -> dict:
         "today_sales": today_sales,
         "total_sales": total_sales
     }
+
+def refund_bill(bill_id: str, reason: str, performed_by: str) -> tuple[bool, str]:
+    """Cancels/refunds an invoice, restores stock for all items, and records transaction/audit logs."""
+    db = get_db()
+    bill = get_bill_by_id(bill_id)
+    if not bill:
+        return False, "Bill not found."
+
+    if bill.get("payment_status") == "REFUNDED":
+        return False, "Bill has already been refunded."
+
+    now = datetime.now(timezone.utc)
+    reason_clean = (reason or "Customer refund").strip()
+
+    # Restore stock for each item in the bill
+    for item in bill.get("line_items", []):
+        prod_name = item.get("product_name")
+        qty = float(item.get("quantity", 0))
+        if prod_name and qty > 0:
+            db.products.update_one(
+                {"product_name": prod_name},
+                {"$inc": {"quantity": qty}, "$set": {"updated_at": now}}
+            )
+            db.inventory_transactions.insert_one({
+                "product_name": prod_name,
+                "transaction_type": "BILL_REFUND",
+                "quantity": qty,
+                "reason": f"Refund for bill {bill.get('bill_number')}: {reason_clean}",
+                "performed_by": performed_by,
+                "created_at": now
+            })
+
+    db.invoices.update_one(
+        {"_id": ObjectId(bill_id)},
+        {"$set": {
+            "payment_status": "REFUNDED",
+            "refunded_at": now,
+            "refunded_by": performed_by,
+            "refund_reason": reason_clean
+        }}
+    )
+    log_audit("BILL_REFUND", performed_by, bill.get("bill_number"), {"reason": reason_clean})
+    return True, f"Bill {bill.get('bill_number')} refunded successfully and inventory stock restored."
