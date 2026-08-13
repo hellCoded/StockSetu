@@ -145,24 +145,32 @@
     sb.disabled = true;
   }
 
-  // Window-level dragover allow-drop (needed so Chrome accepts the drop)
+  // Prevent browser from navigating to / opening the dropped file
   window.addEventListener('dragover', function(e) { e.preventDefault(); });
-
-  // Window-level drop: only preventDefault when NOT dropping on the input,
-  // otherwise let the native file input acceptance run.
-  window.addEventListener('drop', function(e) {
-    if (e.target !== fi && !fi.contains(e.target)) {
-      e.preventDefault();
-    }
-  });
+  window.addEventListener('drop', function(e) { e.preventDefault(); });
 
   // Visual drag-over state on the zone
   dz.addEventListener('dragenter', function(e) { e.preventDefault(); e.stopPropagation(); dc++; dz.classList.add('dragover'); });
   dz.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); });
   dz.addEventListener('dragleave', function(e) { e.preventDefault(); e.stopPropagation(); dc--; if(dc<=0){dc=0; dz.classList.remove('dragover');} });
-  dz.addEventListener('drop', function(e) { dc=0; dz.classList.remove('dragover'); });
 
-  // Native change event fires for both Browse AND dropped files
+  // Drop handler: capture file via DataTransfer, set on input, show info
+  dz.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dc = 0;
+    dz.classList.remove('dragover');
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length > 0) {
+      try {
+        var dt = new DataTransfer();
+        dt.items.add(files[0]);
+        fi.files = dt.files;
+      } catch(ex) {}
+      show(files[0]);
+    }
+  });
+
+  // Browse: native change event
   fi.addEventListener('change', function() {
     if (fi.files.length > 0) show(fi.files[0]);
   });
