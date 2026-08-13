@@ -125,14 +125,12 @@ def create_app(config_class=Config, custom_mongo_client=None):
 
         now = time.time()
         pending_requests_count = 0
-        unread_notifications_count = 0
 
         if user_id:
             # 30-second cached badges to eliminate DB lag on page transitions
             cached_entry = _cache.get(user_id)
             if cached_entry and (now - cached_entry['ts']) < 30:
                 pending_requests_count = cached_entry.get('pending', 0)
-                unread_notifications_count = cached_entry.get('unread', 0)
             else:
                 if user_role == 'admin':
                     from inventory_app.services.auth_service import get_all_pending_role_requests
@@ -140,16 +138,9 @@ def create_app(config_class=Config, custom_mongo_client=None):
                         pending_requests_count = len(get_all_pending_role_requests())
                     except Exception:
                         pass
-                
-                from inventory_app.services.notification_service import get_unread_notifications_count
-                try:
-                    unread_notifications_count = get_unread_notifications_count()
-                except Exception:
-                    pass
 
                 _cache[user_id] = {
                     'pending': pending_requests_count,
-                    'unread': unread_notifications_count,
                     'ts': now
                 }
 
@@ -165,8 +156,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 'username': username,
                 'role': user_role
             },
-            'pending_requests_count': pending_requests_count,
-            'unread_notifications_count': unread_notifications_count
+            'pending_requests_count': pending_requests_count
         }
 
     # Register Blueprints
@@ -176,7 +166,6 @@ def create_app(config_class=Config, custom_mongo_client=None):
     from inventory_app.routes.inventory_routes import inventory_bp
     from inventory_app.routes.user_routes import user_bp
     from inventory_app.routes.billing_routes import billing_bp
-    from inventory_app.routes.notification_routes import notification_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -184,7 +173,6 @@ def create_app(config_class=Config, custom_mongo_client=None):
     app.register_blueprint(inventory_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(billing_bp)
-    app.register_blueprint(notification_bp)
 
     # Error Handlers
     @app.errorhandler(404)

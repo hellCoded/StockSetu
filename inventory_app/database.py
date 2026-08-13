@@ -164,11 +164,6 @@ def init_db_indexes(db):
         # Audit logs — compound indexes for bill lookups
         db.audit_logs.create_index([("target_resource", ASCENDING), ("created_at", DESCENDING)])
 
-
-
-        # Notifications indexes
-        db.notifications.create_index([("created_at", DESCENDING)])
-        db.notifications.create_index([("is_read", ASCENDING)])
     except Exception as e:
         logger.error(f"Error initializing indexes: {e}")
 

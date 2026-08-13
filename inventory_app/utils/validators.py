@@ -73,8 +73,8 @@ def validate_product_data(data: dict) -> tuple[bool, str]:
 
 def generate_username_from_name(name: str) -> str:
     """
-    Generates a unique username combining name slug + random 6-digit number.
-    Example: 'John Doe' -> 'johndoe749102'
+    Generates a unique username from name slug + random 2-digit number.
+    Example: 'John' -> 'john42'
     """
     if not name:
         base = "user"
@@ -82,19 +82,20 @@ def generate_username_from_name(name: str) -> str:
         base = re.sub(r'[^a-zA-Z0-9]', '', name).lower()
         if not base:
             base = "user"
-    digits = f"{secrets.randbelow(900000) + 100000}"
+    digits = f"{secrets.randbelow(90) + 10}"
     return f"{base}{digits}"
 
 def validate_user_registration(data: dict) -> tuple[bool, str]:
-    """Validates user registration input and ensures full name is provided."""
+    """Validates user registration input and ensures name is provided."""
     name = (data.get('name') or '').strip()
+    surname = (data.get('surname') or '').strip()
     username = (data.get('username') or '').strip()
     email = (data.get('email') or '').strip().lower()
     password = data.get('password') or ''
     confirm_password = data.get('confirm_password') or ''
     
     if not name:
-        return False, "Full Name is required."
+        return False, "Name is required."
         
     if not username:
         data['username'] = generate_username_from_name(name)

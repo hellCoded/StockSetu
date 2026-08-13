@@ -50,6 +50,7 @@ def register():
     if request.method == 'POST':
         data = {
             'name': request.form.get('name', ''),
+            'surname': request.form.get('surname', ''),
             'username': request.form.get('username', ''),
             'email': request.form.get('email', ''),
             'password': request.form.get('password', ''),
@@ -66,12 +67,13 @@ def register():
             email=data['email'],
             password=data['password'],
             role='staff',
-            name=data['name']
+            name=data['name'],
+            surname=data['surname']
         )
         
         if success:
             session['registered_user'] = {
-                'name': data['name'],
+                'name': f"{data['name']} {data['surname']}".strip(),
                 'username': user['username'],
                 'email': user['email'],
                 'password': data['password']

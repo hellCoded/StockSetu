@@ -35,7 +35,7 @@ def create_product(product_data: dict, performed_by: str) -> tuple[bool, str, di
     if existing:
         return False, f"A product with the name '{product_name}' already exists.", {}
         
-    quantity = float(product_data.get('quantity', 0))
+    quantity = 5
     minimum_stock = float(product_data.get('minimum_stock', 0))
     price = float(product_data.get('price', 0))
     gst_rate = float(product_data.get('gst_rate', 0))

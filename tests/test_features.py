@@ -1,37 +1,22 @@
-from inventory_app.services.notification_service import sync_low_stock_notifications, get_notifications, get_unread_notifications_count
 from inventory_app.services.billing_service import create_bill, refund_bill
 from inventory_app.services.product_service import create_product, get_product_by_name
-
-def test_notification_service(app, mock_mongo):
-    with app.app_context():
-        # Create product with low stock
-        create_product({
-            "product_name": "Low Stock Bricks",
-            "category": "Building",
-            "unit": "pcs",
-            "quantity": 2.0,
-            "minimum_stock": 10.0,
-            "price": 5.0
-        }, "admin")
-
-        sync_low_stock_notifications()
-        notes = get_notifications()
-        assert len(notes) >= 1
-        assert get_unread_notifications_count() >= 1
-        assert any(n["product_name"] == "Low Stock Bricks" for n in notes)
+from inventory_app.services.inventory_service import stock_in
 
 def test_billing_discount_and_refund(app, mock_mongo):
     with app.app_context():
-        # Create product for billing test
+        # Create product (qty=5 hardcoded), then stock in to get enough for billing
         create_product({
             "product_name": "Steel Rod 10mm",
             "category": "Hardware",
             "unit": "pcs",
-            "quantity": 50.0,
             "minimum_stock": 5.0,
             "price": 100.0,
             "gst_rate": 18.0
         }, "admin")
+
+        stock_in("Steel Rod 10mm", 45.0, "Test restock", performed_by="admin")
+        prod = get_product_by_name("Steel Rod 10mm")
+        assert float(prod["quantity"]) == 50.0
 
         customer_data = {
             "customer_name": "Test Customer",
@@ -60,10 +45,4 @@ def test_billing_discount_and_refund(app, mock_mongo):
         prod_after = get_product_by_name("Steel Rod 10mm")
         assert float(prod_after["quantity"]) == 50.0
 
-def test_routes_endpoints(admin_client):
-    # Test notifications routes
-    res = admin_client.get('/notifications')
-    assert res.status_code == 200
 
-    res = admin_client.post('/notifications/read-all', follow_redirects=True)
-    assert res.status_code == 200

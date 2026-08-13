@@ -24,12 +24,17 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="form-group">
-      <label for="name" class="form-label"><i class="fa-solid fa-id-card" style="color: var(--primary); margin-right: 0.3rem;"></i> Full Name <span style="color: #dc2626;">*</span></label>
-      <input type="text" id="name" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}" placeholder="e.g. John Doe" required oninput="autoGenerateUsername('name', 'username')">
+      <label for="name" class="form-label"><i class="fa-solid fa-id-card" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
+      <input type="text" id="name" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}" placeholder="e.g. John" required oninput="autoGenerateUsername()">
     </div>
 
     <div class="form-group">
-      <label for="username" class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated with random 6 digits)</span></label>
+      <label for="surname" class="form-label"><i class="fa-solid fa-id-card" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
+      <input type="text" id="surname" name="surname" class="form-control" value="{{ form_data.surname if form_data else '' }}" placeholder="e.g. Doe" oninput="autoGenerateUsername()">
+    </div>
+
+    <div class="form-group">
+      <label for="username" class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated with name + 2 random digits)</span></label>
       <input type="text" id="username" name="username" class="form-control" value="{{ form_data.username if form_data else '' }}" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
     </div>
 
@@ -69,17 +74,16 @@
 </div>
 
 <script>
-function autoGenerateUsername(nameId, usernameId) {
-  const nameEl = document.getElementById(nameId);
-  const usernameEl = document.getElementById(usernameId);
+function autoGenerateUsername() {
+  const nameEl = document.getElementById('name');
+  const usernameEl = document.getElementById('username');
   if (!nameEl || !usernameEl) return;
 
-  const rawName = nameEl.value.trim();
-  const cleanBase = rawName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const cleanBase = nameEl.value.trim().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
   if (cleanBase.length > 0) {
     if (!usernameEl.dataset.digits) {
-      usernameEl.dataset.digits = Math.floor(100000 + Math.random() * 900000).toString();
+      usernameEl.dataset.digits = Math.floor(10 + Math.random() * 90).toString();
     }
     usernameEl.value = cleanBase + usernameEl.dataset.digits;
   } else {

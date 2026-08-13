@@ -386,12 +386,11 @@ function autoGenModalUsername() {
   const usernameEl = document.getElementById('new_username');
   if (!nameEl || !usernameEl) return;
 
-  const rawName = nameEl.value.trim();
-  const cleanBase = rawName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const cleanBase = nameEl.value.trim().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
   if (cleanBase.length > 0) {
     if (!usernameEl.dataset.digits) {
-      usernameEl.dataset.digits = Math.floor(100000 + Math.random() * 900000).toString();
+      usernameEl.dataset.digits = Math.floor(10 + Math.random() * 90).toString();
     }
     usernameEl.value = cleanBase + usernameEl.dataset.digits;
   } else {
@@ -405,7 +404,7 @@ function validateAddUserForm(form) {
   const usernameEl = form.querySelector('#new_username');
   if (usernameEl && !usernameEl.value.trim() && nameEl && nameEl.value.trim()) {
     const cleanBase = nameEl.value.trim().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    usernameEl.value = cleanBase + Math.floor(100000 + Math.random() * 900000).toString();
+    usernameEl.value = cleanBase + Math.floor(10 + Math.random() * 90).toString();
   }
 
   const p1 = form.querySelector('#new_password')?.value || '';
@@ -541,8 +540,13 @@ window.addEventListener("keydown", function(e) {
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
       <div class="form-group">
-        <label for="new_name" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Full Name <span style="color: #dc2626;">*</span></label>
-        <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex Smith" required oninput="autoGenModalUsername()">
+        <label for="new_name" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
+        <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex" required oninput="autoGenModalUsername()">
+      </div>
+
+      <div class="form-group">
+        <label for="new_surname" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
+        <input type="text" id="new_surname" name="surname" class="form-control" placeholder="e.g. Smith" oninput="autoGenModalUsername()">
       </div>
 
       <div class="form-group">

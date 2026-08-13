@@ -25,7 +25,7 @@
       <input type="hidden" name="action_type" value="update_profile">
 
       <div class="form-group">
-        <label for="profile_name" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Full Name <span style="color: #dc2626;">*</span></label>
+        <label for="profile_name" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
         <input type="text" id="profile_name" name="name" class="form-control" value="{{ user.name if user.name else user.username }}" required>
       </div>
 

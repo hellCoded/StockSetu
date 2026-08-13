@@ -3,13 +3,15 @@ from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from inventory_app.database import get_db
 
-def register_user(username: str, email: str, password: str, role: str = "staff", name: str = "") -> tuple[bool, str, dict]:
+def register_user(username: str, email: str, password: str, role: str = "staff", name: str = "", surname: str = "") -> tuple[bool, str, dict]:
     """Registers a new user in MongoDB."""
     db = get_db()
     
     clean_username = username.strip()
     clean_email = email.strip().lower()
-    clean_name = name.strip() if name else clean_username
+    clean_name = name.strip()
+    clean_surname = surname.strip() if surname else ""
+    full_name = f"{clean_name} {clean_surname}".strip() if clean_surname else clean_name
     
     # Check duplicate username
     if db.users.find_one({"username": {"$regex": f"^{re_escape(clean_username)}$", "$options": "i"}}):
@@ -25,7 +27,7 @@ def register_user(username: str, email: str, password: str, role: str = "staff",
     now = datetime.now(timezone.utc)
     user_doc = {
         "username": clean_username,
-        "name": clean_name,
+        "name": full_name,
         "email": clean_email,
         "password_hash": generate_password_hash(password),
         "role": assigned_role,

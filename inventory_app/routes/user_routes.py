@@ -23,6 +23,7 @@ def list_users():
 @csrf_protected
 def add_user():
     name = request.form.get('name', '').strip()
+    surname = request.form.get('surname', '').strip()
     username = request.form.get('username', '').strip()
     email = request.form.get('email', '').strip()
     password = request.form.get('password', '')
@@ -32,10 +33,11 @@ def add_user():
     if not username and name:
         import random
         clean_base = ''.join(e for e in name if e.isalnum()).lower()
-        username = f"{clean_base}{random.randint(100000, 999999)}"
+        username = f"{clean_base}{random.randint(10, 99)}"
 
     data = {
         'name': name,
+        'surname': surname,
         'username': username,
         'email': email,
         'password': password,
@@ -53,12 +55,13 @@ def add_user():
         email=data['email'],
         password=data['password'],
         role=data['role'],
-        name=data['name']
+        name=data['name'],
+        surname=data['surname']
     )
     
     if success:
         session['registered_user'] = {
-            'name': data['name'],
+            'name': f"{data['name']} {data['surname']}".strip(),
             'username': user['username'],
             'email': user['email'],
             'password': data['password']
