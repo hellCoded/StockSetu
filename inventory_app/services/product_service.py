@@ -102,7 +102,7 @@ def get_product_by_name(product_name: str) -> dict:
         )
     return product
 
-def search_products(query: str = "", category: str = "", location: str = "", stock_status: str = "", is_active: bool = True, sort_by: str = "product_name", sort_dir: int = 1) -> list:
+def search_products(query: str = "", category: str = "", location: str = "", stock_status: str = "", is_active: bool = True, sort_by: str = "product_name", sort_dir: int = 1, limit: int = 50) -> list:
     """
     Searches and filters products using server-side MongoDB query.
     """
@@ -136,7 +136,7 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         "is_active": 1,
         "description": 1
     }
-    products = list(db.products.find(filter_query, projection).sort(sort_by, sort_dir))
+    products = list(db.products.find(filter_query, projection).sort(sort_by, sort_dir).limit(limit))
     
     result = []
     for p in products:

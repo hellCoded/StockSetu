@@ -58,7 +58,7 @@ def create():
 @login_required
 def list_bills():
     search = request.args.get('q', '').strip()
-    bills = get_bills(search=search, limit=100)
+    bills = get_bills(search=search, limit=50)
     return render_template('billing/bills.html', bills=bills, current_search=search)
 
 @billing_bp.route('/billing/bills/<bill_id>')

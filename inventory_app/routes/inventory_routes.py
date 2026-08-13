@@ -97,7 +97,7 @@ def view_transactions():
     p_name = request.args.get('product_name', '').strip()
     tx_type = request.args.get('type', '').strip()
     
-    transactions = get_all_transactions(product_name=p_name, transaction_type=tx_type, limit=100)
+    transactions = get_all_transactions(product_name=p_name, transaction_type=tx_type, limit=50)
     return render_template(
         'inventory/transactions.html',
         transactions=transactions,

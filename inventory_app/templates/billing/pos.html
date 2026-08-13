@@ -806,7 +806,11 @@
     resultCountEl.textContent = visible + ' of ' + totalCount;
   }
 
-  searchInput.addEventListener('input', applyFilters);
+  let searchDebounceTimer = null;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(applyFilters, 250);
+  });
 
   document.querySelectorAll('#q-pos-chips .q-pos-chip').forEach(chip => {
     chip.addEventListener('click', () => {
