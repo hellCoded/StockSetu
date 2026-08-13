@@ -135,10 +135,7 @@ def init_db_indexes(db):
         db.invoices.create_index([("created_at", DESCENDING)])
         db.invoices.create_index([("customer_name", ASCENDING)])
 
-        # Categories & Suppliers indexes
-        db.categories.create_index([("name", ASCENDING)], unique=True)
-        db.suppliers.create_index([("code", ASCENDING)], unique=True)
-        db.suppliers.create_index([("name", ASCENDING)])
+
 
         # Notifications indexes
         db.notifications.create_index([("created_at", DESCENDING)])

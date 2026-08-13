@@ -75,8 +75,6 @@ def create_app(config_class=Config, custom_mongo_client=None):
     from inventory_app.routes.inventory_routes import inventory_bp
     from inventory_app.routes.user_routes import user_bp
     from inventory_app.routes.billing_routes import billing_bp
-    from inventory_app.routes.category_routes import category_bp
-    from inventory_app.routes.supplier_routes import supplier_bp
     from inventory_app.routes.notification_routes import notification_bp
 
     app.register_blueprint(auth_bp)
@@ -85,8 +83,6 @@ def create_app(config_class=Config, custom_mongo_client=None):
     app.register_blueprint(inventory_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(billing_bp)
-    app.register_blueprint(category_bp)
-    app.register_blueprint(supplier_bp)
     app.register_blueprint(notification_bp)
 
     # Error Handlers
