@@ -145,8 +145,18 @@
     sb.disabled = true;
   }
 
-  // Visual drag-over state only. Do NOT call preventDefault on 'drop' —
-  // that would cancel the file input's native file acceptance.
+  // Window-level dragover allow-drop (needed so Chrome accepts the drop)
+  window.addEventListener('dragover', function(e) { e.preventDefault(); });
+
+  // Window-level drop: only preventDefault when NOT dropping on the input,
+  // otherwise let the native file input acceptance run.
+  window.addEventListener('drop', function(e) {
+    if (e.target !== fi && !fi.contains(e.target)) {
+      e.preventDefault();
+    }
+  });
+
+  // Visual drag-over state on the zone
   dz.addEventListener('dragenter', function(e) { e.preventDefault(); e.stopPropagation(); dc++; dz.classList.add('dragover'); });
   dz.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); });
   dz.addEventListener('dragleave', function(e) { e.preventDefault(); e.stopPropagation(); dc--; if(dc<=0){dc=0; dz.classList.remove('dragover');} });
