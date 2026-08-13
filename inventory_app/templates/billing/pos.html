@@ -1032,6 +1032,27 @@
   renderCart();
   applyFilters();
   updatePaymentUI();
+
+  /* ── Keyboard Shortcuts ── */
+  document.addEventListener('keydown', function(e) {
+    // Ctrl+K or / to focus search
+    if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+    // Escape to clear search
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.value = '';
+      applyFilters();
+      searchInput.blur();
+    }
+    // Ctrl+Enter to submit bill
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      submitBtn.click();
+    }
+  });
 })();
 </script>
 {% endblock %}
