@@ -93,31 +93,18 @@ def create_app(config_class=Config, custom_mongo_client=None):
     app.config.from_object(config_class)
 
     # ── Flask-Limiter (rate limiting) ──
+    # Upstash uses REST API, not TCP — Flask-Limiter's redis:// won't work.
+    # Use in-memory per-instance rate limiting (sufficient for serverless).
     try:
         from flask_limiter import Limiter
         from flask_limiter.util import get_remote_address
-
-        upstash_url = app.config.get('UPSTASH_REDIS_REST_URL', '')
-        upstash_token = app.config.get('UPSTASH_REDIS_REST_TOKEN', '')
-
-        if upstash_url and upstash_token:
-            storage_uri = f"redis://:{upstash_token}@{upstash_url.replace('https://', '').replace('http://', '')}"
-            limiter = Limiter(
-                get_remote_address,
-                app=app,
-                default_limits=["200 per minute", "50 per second"],
-                storage_uri=storage_uri,
-            )
-            logger.info("Flask-Limiter: Redis-backed global rate limiting enabled.")
-        else:
-            limiter = Limiter(
-                get_remote_address,
-                app=app,
-                default_limits=["200 per minute", "50 per second"],
-                storage_uri="memory://",
-            )
-            logger.info("Flask-Limiter: in-memory rate limiting (local mode).")
-
+        limiter = Limiter(
+            get_remote_address,
+            app=app,
+            default_limits=["200 per minute", "50 per second"],
+            storage_uri="memory://",
+        )
+        logger.info("Flask-Limiter: in-memory rate limiting enabled.")
         app.extensions['limiter'] = limiter
     except Exception as e:
         logger.warning(f"Flask-Limiter not available: {e}")
