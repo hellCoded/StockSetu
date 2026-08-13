@@ -238,11 +238,22 @@ def get_bills(search: str = "", limit: int = 100) -> list:
     query = {}
     search = search.strip()
     if search:
+        escaped = re.escape(search)
         query["$or"] = [
-            {"bill_number": {"$regex": search, "$options": "i"}},
-            {"customer_name": {"$regex": search, "$options": "i"}}
+            {"bill_number": {"$regex": escaped, "$options": "i"}},
+            {"customer_name": {"$regex": escaped, "$options": "i"}}
         ]
-    bills = list(db.invoices.find(query).sort("created_at", -1).limit(limit))
+    projection = {
+        "bill_number": 1,
+        "customer_name": 1,
+        "customer_phone": 1,
+        "payment_method": 1,
+        "payment_status": 1,
+        "grand_total": 1,
+        "created_at": 1,
+        "line_items": 1
+    }
+    bills = list(db.invoices.find(query, projection).sort("created_at", -1).limit(limit))
     for b in bills:
         b["_id"] = str(b["_id"])
     return bills
@@ -258,7 +269,7 @@ def get_billing_summary() -> dict:
     now = datetime.now(timezone.utc)
     start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    today_bills = list(db.invoices.find({"created_at": {"$gte": start_of_today}}))
+    today_bills = list(db.invoices.find({"created_at": {"$gte": start_of_today}}, {"grand_total": 1}))
     total_bills = db.invoices.count_documents({})
 
     today_sales = sum(float(b.get("grand_total", 0) or 0) for b in today_bills)

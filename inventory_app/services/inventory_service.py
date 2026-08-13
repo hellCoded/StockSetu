@@ -201,7 +201,8 @@ def get_all_transactions(product_name: str = "", transaction_type: str = "", lim
     query = {}
     
     if product_name:
-        query["product_name"] = {"$regex": product_name.strip(), "$options": "i"}
+        import re
+        query["product_name"] = {"$regex": re.escape(product_name.strip()), "$options": "i"}
     if transaction_type:
         query["transaction_type"] = transaction_type
         
@@ -221,7 +222,7 @@ def get_dashboard_metrics() -> dict:
     """
     db = get_db()
     
-    active_products = list(db.products.find({"is_active": True}))
+    active_products = list(db.products.find({"is_active": True}, {"quantity": 1, "minimum_stock": 1, "price": 1}))
     
     total_products = len(active_products)
     total_quantity = sum(float(p.get("quantity", 0)) for p in active_products)

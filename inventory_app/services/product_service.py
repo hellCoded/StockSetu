@@ -123,7 +123,20 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
     if location:
         filter_query["location"] = location
         
-    products = list(db.products.find(filter_query).sort(sort_by, sort_dir))
+    projection = {
+        "product_name": 1,
+        "category": 1,
+        "quantity": 1,
+        "minimum_stock": 1,
+        "price": 1,
+        "gst_rate": 1,
+        "unit": 1,
+        "hsn_code": 1,
+        "location": 1,
+        "is_active": 1,
+        "description": 1
+    }
+    products = list(db.products.find(filter_query, projection).sort(sort_by, sort_dir))
     
     result = []
     for p in products:
@@ -314,7 +327,7 @@ def get_stock_by_category() -> list:
 def get_low_stock_by_category() -> list:
     """Aggregates count of low stock / out of stock active products by category."""
     db = get_db()
-    active_products = list(db.products.find({"is_active": True}))
+    active_products = list(db.products.find({"is_active": True}, {"category": 1, "quantity": 1, "minimum_stock": 1}))
     counts = {}
     for p in active_products:
         qty = float(p.get("quantity", 0))
@@ -328,5 +341,5 @@ def get_low_stock_by_category() -> list:
 def get_top_products_stock(limit: int = 10) -> list:
     """Retrieves top products by quantity for rendering in the bar chart."""
     db = get_db()
-    products = list(db.products.find({"is_active": True}).sort("quantity", -1).limit(limit))
+    products = list(db.products.find({"is_active": True}, {"product_name": 1, "quantity": 1}).sort("quantity", -1).limit(limit))
     return [{"product_name": p["product_name"], "quantity": p["quantity"]} for p in products]
