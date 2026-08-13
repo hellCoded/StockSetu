@@ -1,0 +1,115 @@
+/* ============================================================
+   Dark Mode — CSS custom properties override
+   ============================================================ */
+[data-theme="dark"] {
+  --bg-app: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-border: #334155;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --shadow-xs: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+
+  --success-bg: #064e3b;
+  --success-text: #6ee7b7;
+  --warning-bg: #78350f;
+  --warning-text: #fcd34d;
+  --danger-bg: #7f1d1d;
+  --danger-text: #fca5a5;
+  --info-bg: #3b0764;
+  --info-text: #c4b5fd;
+}
+
+[data-theme="dark"] body {
+  background: var(--bg-app);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .sidebar {
+  background: #020617;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .kpi-card,
+[data-theme="dark"] .skeleton-card {
+  background: var(--bg-card);
+  border-color: var(--bg-card-border);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] table {
+  color: var(--text-main);
+}
+
+[data-theme="dark"] th {
+  background: #1e293b;
+  color: var(--text-sub);
+}
+
+[data-theme="dark"] td {
+  border-color: #334155;
+}
+
+[data-theme="dark"] tr:hover td {
+  background: #1e293b;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: #1e293b;
+  border-color: #475569;
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .modal-content {
+  background: #1e293b;
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .modal-header {
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .modal-footer {
+  border-top-color: #334155;
+}
+
+[data-theme="dark"] .alert {
+  border-color: #475569;
+}
+
+[data-theme="dark"] .toast {
+  background: #1e293b;
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .dropdown-menu {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background: #334155;
+}
+
+[data-theme="dark"] .navbar,
+[data-theme="dark"] .topbar {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200% 100%;
+}

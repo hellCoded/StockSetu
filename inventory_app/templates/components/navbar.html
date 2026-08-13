@@ -31,17 +31,22 @@
     </div>
   </div>
 
-  <a href="{{ url_for('users.profile') }}" style="text-decoration: none;" title="View Profile & Account Settings">
-    <div class="user-profile-badge">
-      <div class="user-avatar">
-        {{ current_user.username[0] | upper if current_user.username else 'U' }}
+  <div style="display: flex; align-items: center; gap: 0.75rem;">
+    <button id="theme-toggle" class="btn btn-secondary btn-sm" title="Toggle Dark Mode" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+    <a href="{{ url_for('users.profile') }}" style="text-decoration: none;" title="View Profile & Account Settings">
+      <div class="user-profile-badge">
+        <div class="user-avatar">
+          {{ current_user.username[0] | upper if current_user.username else 'U' }}
+        </div>
+        <div style="display: flex; flex-direction: column; line-height: 1.3;">
+          <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">{{ current_user.username }}</span>
+          <span class="role-pill role-{{ current_user.role }}">
+            {{ current_user.role | replace('_', ' ') | title }}
+          </span>
+        </div>
       </div>
-      <div style="display: flex; flex-direction: column; line-height: 1.3;">
-        <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">{{ current_user.username }}</span>
-        <span class="role-pill role-{{ current_user.role }}">
-          {{ current_user.role | replace('_', ' ') | title }}
-        </span>
-      </div>
-    </div>
-  </a>
+    </a>
+  </div>
 </header>
