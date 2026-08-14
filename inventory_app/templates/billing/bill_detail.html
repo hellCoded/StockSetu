@@ -585,7 +585,7 @@
               {% set action = entry.action_type | upper %}
               {% set d = entry.details %}
               {% if action == 'BILL_CREATE' %}
-                <span style="color: var(--text-main); font-weight: 600;">{{ d.customer or 'Walk-in' }}</span> · {{ format_currency(d.grand_total or 0) }} · {{ d.items or 0 }} items
+                <span style="color: var(--text-main); font-weight: 600;">{{ d.customer or 'Walk-in' }}</span> · {{ format_currency(d.grand_total or 0) }} · {{ d.get('items', 0) or 0 }} items
               {% elif action == 'BILL_EDIT' %}
                 {% if d.items_added %}<span style="color:#16a34a;">+{{ d.items_added }} added</span>{% endif %}
                 {% if d.items_removed %} <span style="color:#dc2626;">-{{ d.items_removed }} removed</span>{% endif %}
@@ -924,7 +924,7 @@
               {% set action = entry.action_type | upper %}
               {% set d = entry.details %}
               {% if action == 'BILL_CREATE' %}
-                <span style="color: var(--text-main); font-weight: 600;">{{ d.customer or 'Walk-in' }}</span> · {{ format_currency(d.grand_total or 0) }} · {{ d.items or 0 }} items
+                <span style="color: var(--text-main); font-weight: 600;">{{ d.customer or 'Walk-in' }}</span> · {{ format_currency(d.grand_total or 0) }} · {{ d.get('items', 0) or 0 }} items
               {% elif action == 'BILL_EDIT' %}
                 {% if d.items_added %}<span style="color:#16a34a;">+{{ d.items_added }} added</span>{% endif %}
                 {% if d.items_removed %} <span style="color:#dc2626;">-{{ d.items_removed }} removed</span>{% endif %}
