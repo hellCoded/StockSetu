@@ -66,48 +66,53 @@
         {% set paid = bill.amount_paid or bill.grand_total or 0 %}
         {% set due = bill.amount_due or 0 %}
         {% set paid_pct = ((paid / bill.grand_total) * 100) if bill.grand_total > 0 else 100 %}
-        <tr>
+        {# ── Calculate original total before refunds ── #}
+        {% set ns_orig = namespace(orig_total=0, refunded_amt=0) %}
+        {% for item in bill.line_items %}
+          {% if item.is_refunded %}
+            {% set ns_orig.refunded_amt = ns_orig.refunded_amt + (item.line_total or 0) %}
+          {% endif %}
+        {% endfor %}
+        {% set orig_total = bill.grand_total + ns_orig.refunded_amt %}
+        <tr style="vertical-align: top;">
           {# ── Bill Number ── #}
-          <td><strong style="font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.02em;">{{ bill.bill_number }}</strong></td>
+          <td style="padding-top: 0.65rem;">
+            <strong style="font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.02em;">{{ bill.bill_number }}</strong>
+          </td>
           
           {# ── Date & Time ── #}
-          <td style="color: var(--text-muted); font-size: 0.82rem; white-space: nowrap;">{{ format_datetime(bill.created_at) }}</td>
+          <td style="color: var(--text-muted); font-size: 0.82rem; white-space: nowrap; padding-top: 0.65rem;">{{ format_datetime(bill.created_at) }}</td>
           
           {# ── Customer ── #}
-          <td>
+          <td style="padding-top: 0.65rem;">
             <span style="font-weight: 600; color: var(--text-main);">{{ bill.customer_name }}</span>
             {% if bill.customer_phone %}<br><small style="color: var(--text-muted); font-size: 0.75rem;">{{ bill.customer_phone }}</small>{% endif %}
           </td>
           
           {# ── Items Breakdown ── #}
-          <td>
-            <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-              <div style="display: flex; align-items: center; gap: 0.3rem;">
-                <span style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">{{ active_items }}</span>
-                <span style="font-size: 0.72rem; color: var(--text-muted);">of {{ total_items }}</span>
-                <span style="font-size: 0.72rem; color: var(--text-muted);">item{{ 's' if total_items != 1 }}</span>
-              </div>
+          <td style="padding-top: 0.65rem;">
+            <div style="display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap;">
+              <span style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">{{ active_items }}</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">of {{ total_items }}</span>
               {% if refund_count > 0 %}
-              <div style="display: flex; align-items: center; gap: 0.3rem;">
                 <span style="background:#fef2f2; color:#dc2626; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700;">
                   <i class="fa-solid fa-rotate-left" style="font-size: 0.6rem;"></i> {{ refund_count }} returned
                 </span>
-              </div>
               {% endif %}
-              {# ── Mini item list ── #}
-              <div style="font-size: 0.7rem; color: var(--text-muted); max-width: 180px; line-height: 1.3;">
-                {% for item in bill.line_items[:3] %}
-                  <span{% if item.is_refunded %} style="text-decoration: line-through; color: #dc2626;"{% endif %}>{{ item.product_name }}</span>{% if not loop.last %}, {% endif %}
-                {% endfor %}
-                {% if total_items > 3 %}
-                  <span style="font-weight: 600;">+{{ total_items - 3 }} more</span>
-                {% endif %}
-              </div>
+            </div>
+            {# ── Mini item list ── #}
+            <div style="font-size: 0.7rem; color: var(--text-muted); max-width: 160px; line-height: 1.35; margin-top: 0.25rem;">
+              {% for item in bill.line_items[:3] %}
+                <span{% if item.is_refunded %} style="text-decoration: line-through; color: #dc2626;"{% endif %}>{{ item.product_name }}</span>{% if not loop.last %}, {% endif %}
+              {% endfor %}
+              {% if total_items > 3 %}
+                <span style="font-weight: 600;">+{{ total_items - 3 }} more</span>
+              {% endif %}
             </div>
           </td>
           
           {# ── Payment Method ── #}
-          <td>
+          <td style="padding-top: 0.65rem;">
             {% set pm = bill.payment_method | upper %}
             {% if pm == 'CASH' %}
               <span style="background:#dcfce7; color:#166534; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-money-bill-wave" style="font-size:0.65rem;"></i> Cash</span>
@@ -123,7 +128,7 @@
           </td>
           
           {# ── Status ── #}
-          <td>
+          <td style="padding-top: 0.65rem;">
             {% set ps = bill.payment_status or 'PAID' %}
             {% if ps == 'PAID' %}
               <span style="background:#dcfce7; color:#166534; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-circle-check" style="font-size:0.65rem;"></i> PAID</span>
@@ -139,38 +144,51 @@
           </td>
           
           {# ── Bill Total ── #}
-          <td style="text-align: right;">
-            <div style="font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 0.92rem;">
-              {{ format_currency(bill.grand_total) }}
-            </div>
+          <td style="text-align: right; padding-top: 0.65rem;">
+            {% if refund_count > 0 %}
+              {# ── Show original with strikethrough + new total ── #}
+              <div style="font-size: 0.78rem; color: var(--text-muted); text-decoration: line-through;">
+                {{ format_currency(orig_total) }}
+              </div>
+              <div style="font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 0.92rem;">
+                {{ format_currency(bill.grand_total) }}
+              </div>
+              <div style="font-size: 0.65rem; color: #dc2626; font-weight: 600;">
+                -{{ format_currency(ns_orig.refunded_amt) }} returned
+              </div>
+            {% else %}
+              <div style="font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 0.92rem;">
+                {{ format_currency(bill.grand_total) }}
+              </div>
+            {% endif %}
           </td>
           
           {# ── Amount Paid ── #}
-          <td style="text-align: right;">
+          <td style="text-align: right; padding-top: 0.65rem;">
             <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
               {{ format_currency(paid) }}
             </div>
             {# ── Payment progress bar ── #}
-            <div style="background: #e2e8f0; border-radius: 9999px; height: 4px; overflow: hidden; margin-top: 0.2rem; width: 80px; margin-left: auto;">
+            <div style="background: #e2e8f0; border-radius: 9999px; height: 4px; overflow: hidden; margin-top: 0.25rem; width: 70px; margin-left: auto;">
               <div style="background: {% if paid_pct >= 100 %}#16a34a;{% elif paid_pct > 0 %}#f59e0b;{% else %}#dc2626;{% endif %}; height: 100%; width: {{ [paid_pct, 100] | min }}%; border-radius: 9999px;"></div>
             </div>
           </td>
           
           {# ── Balance Due ── #}
-          <td style="text-align: right;">
-            {% if due > 0 %}
+          <td style="text-align: right; padding-top: 0.65rem;">
+            {% if bill.payment_status == 'REFUNDED' %}
+              <div style="font-weight: 700; color: #5b21b6; font-size: 0.85rem;">
+                {{ format_currency(paid) }}
+              </div>
+              <div style="font-size: 0.65rem; color: #5b21b6; font-weight: 600; margin-top: 0.1rem;">
+                refunded
+              </div>
+            {% elif due > 0 %}
               <div style="font-weight: 800; color: #dc2626; font-size: 0.88rem; font-family: var(--font-mono);">
                 {{ format_currency(due) }}
               </div>
               <div style="font-size: 0.65rem; color: #dc2626; font-weight: 600; margin-top: 0.1rem;">
                 pending
-              </div>
-            {% elif bill.payment_status == 'REFUNDED' %}
-              <div style="font-weight: 700; color: #5b21b6; font-size: 0.85rem;">
-                {{ format_currency(bill.grand_total) }}
-              </div>
-              <div style="font-size: 0.65rem; color: #5b21b6; font-weight: 600; margin-top: 0.1rem;">
-                refunded
               </div>
             {% else %}
               <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
@@ -183,12 +201,12 @@
           </td>
           
           {# ── Created By ── #}
-          <td style="font-size: 0.8rem; color: var(--text-muted);">
+          <td style="font-size: 0.8rem; color: var(--text-muted); padding-top: 0.65rem;">
             <i class="fa-solid fa-user" style="font-size: 0.7rem;"></i> {{ bill.created_by }}
           </td>
           
           {# ── Action ── #}
-          <td style="text-align: center;">
+          <td style="text-align: center; padding-top: 0.65rem;">
             <a href="{{ url_for('billing.view_bill', bill_id=bill._id) }}" class="btn btn-secondary btn-sm" title="View / Print Invoice" style="font-size: 0.78rem;">
               <i class="fa-solid fa-receipt"></i> View
             </a>
