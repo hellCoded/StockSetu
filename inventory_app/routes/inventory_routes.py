@@ -194,14 +194,17 @@ def bulk_stock_in_confirm():
         if not product_name:
             continue
 
-        qty = float(item.get('quantity', 0))
+        try:
+            qty = float(item.get('quantity', 0))
+        except (ValueError, TypeError):
+            qty = 0
         if qty <= 0:
             continue
 
         if product_name == '__new__':
             category = new_categories[new_i] if new_i < len(new_categories) else ''
-            price = float(new_prices[new_i]) if new_i < len(new_prices) else 0
-            gst = float(new_gsts[new_i]) if new_i < len(new_gsts) else 0
+            price = float(new_prices[new_i] or 0) if new_i < len(new_prices) else 0
+            gst = float(new_gsts[new_i] or 0) if new_i < len(new_gsts) else 0
             desc = new_descs[new_i] if new_i < len(new_descs) else ''
             unit_from_form = new_units[new_i] if new_i < len(new_units) else ''
             hsn_from_form = new_hsns[new_i] if new_i < len(new_hsns) else ''
