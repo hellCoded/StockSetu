@@ -1,7 +1,7 @@
 {
   "name": "StockSetu - Smart Inventory Management",
   "short_name": "StockSetu",
-  "description": "Track products, stock levels, supplier bills, and billing in real time.",
+  "description": "Track products, stock levels, supplier bills and billing in real time.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
