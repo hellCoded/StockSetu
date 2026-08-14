@@ -35,15 +35,36 @@ const Toast = (() => {
     const el = document.createElement('div');
     el.className = `toast toast-${type}`;
     el.setAttribute('role', 'alert');
-    el.innerHTML = `
-      <i class="fa-solid ${getIcon(type)} toast-icon"></i>
-      <div class="toast-body">
-        ${title ? `<div class="toast-title">${title}</div>` : ''}
-        <div class="toast-message">${message}</div>
-      </div>
-      <button class="toast-close" aria-label="Close">&times;</button>
-      <div class="toast-progress" style="animation-duration: ${duration}ms"></div>
-    `;
+
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'toast-title';
+    titleDiv.textContent = title;
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'toast-message';
+    msgDiv.textContent = message;
+
+    const icon = document.createElement('i');
+    icon.className = `fa-solid ${getIcon(type)} toast-icon`;
+
+    const body = document.createElement('div');
+    body.className = 'toast-body';
+    if (title) body.appendChild(titleDiv);
+    body.appendChild(msgDiv);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.textContent = '\u00d7';
+
+    const progress = document.createElement('div');
+    progress.className = 'toast-progress';
+    progress.style.animationDuration = `${duration}ms`;
+
+    el.appendChild(icon);
+    el.appendChild(body);
+    el.appendChild(closeBtn);
+    el.appendChild(progress);
 
     const close = () => {
       el.classList.add('toast-exit');

@@ -13,6 +13,7 @@ billing_bp = Blueprint('billing', __name__)
 _rate_limit_state = {}
 RATE_LIMIT_WINDOW = 60  # seconds
 RATE_LIMIT_MAX = 60     # max requests per window
+_RATE_LIMIT_MAX_IPS = 500  # max tracked IPs to prevent OOM
 
 
 def _check_rate_limit():
@@ -24,6 +25,14 @@ def _check_rate_limit():
     ip = req.remote_addr or 'unknown'
     now = time.time()
     window_start = now - RATE_LIMIT_WINDOW
+
+    # Evict stale entries and cap dict size to prevent OOM
+    if len(_rate_limit_state) > _RATE_LIMIT_MAX_IPS:
+        stale_keys = [k for k, v in _rate_limit_state.items()
+                      if not v or v[-1] < window_start]
+        for k in stale_keys[:len(stale_keys) // 2]:
+            _rate_limit_state.pop(k, None)
+
     hits = _rate_limit_state.get(ip, [])
     hits = [t for t in hits if t > window_start]
     if len(hits) >= RATE_LIMIT_MAX:

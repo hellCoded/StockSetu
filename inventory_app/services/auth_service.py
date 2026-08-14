@@ -1,7 +1,10 @@
+import logging
 from datetime import datetime, timezone
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from inventory_app.database import get_db
+
+logger = logging.getLogger(__name__)
 
 def register_user(username: str, email: str, password: str, role: str = "staff", name: str = "", surname: str = "") -> tuple[bool, str, dict]:
     """Registers a new user in MongoDB."""

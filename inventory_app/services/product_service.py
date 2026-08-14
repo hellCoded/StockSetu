@@ -1,9 +1,12 @@
 import re
 import time
 import json
+import logging
 from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError
 from inventory_app.database import get_db
+
+logger = logging.getLogger(__name__)
 from inventory_app.utils.validators import normalize_product_name, validate_product_data
 from inventory_app.utils.helpers import calculate_stock_status
 from inventory_app.services.audit_service import log_audit

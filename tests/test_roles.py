@@ -39,7 +39,7 @@ def test_admin_add_user_shows_modal_credentials(admin_client):
     assert res.status_code == 200
     assert b"createdstaff" in res.data
     assert b"user-credentials-modal" in res.data
-    assert b"modal-password" in res.data
+    assert b"password you entered" in res.data
 
 def test_staff_role_promotion_request_flow(staff_client, admin_client):
     # 1. Staff requests promotion to Manager

@@ -91,6 +91,7 @@ def cache_flush():
 def create_app(config_class=Config, custom_mongo_client=None):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
 
     # ── Flask-Limiter (rate limiting) ──
     # Upstash uses REST API, not TCP — Flask-Limiter's redis:// won't work.
@@ -191,6 +192,12 @@ def create_app(config_class=Config, custom_mongo_client=None):
 
     @app.errorhandler(500)
     def internal_error(error):
+        logger.exception("Unhandled 500 error")
+        return render_template('errors/500.html'), 500
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        logger.exception(f"Unhandled exception: {e}")
         return render_template('errors/500.html'), 500
 
     return app

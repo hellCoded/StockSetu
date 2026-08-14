@@ -30,7 +30,7 @@ def login():
             flash(f"Welcome back, {user['username']}!", "success")
             
             next_url = request.args.get('next')
-            if next_url and next_url.startswith('/'):
+            if next_url and next_url.startswith('/') and not next_url.startswith('//'):
                 return redirect(next_url)
             return redirect(url_for('dashboard.index'))
         else:
@@ -76,7 +76,6 @@ def register():
                 'name': f"{data['name']} {data['surname']}".strip(),
                 'username': user['username'],
                 'email': user['email'],
-                'password': data['password']
             }
             flash("Registration successful! Account credentials generated below.", "success")
             return redirect(url_for('auth.login'))

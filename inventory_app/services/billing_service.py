@@ -567,23 +567,30 @@ def record_bill_payment(bill_id: str, amount: float, method: str,
         return False, "Payment method must be CASH, UPI, CARD or CREDIT."
 
     now = datetime.now(timezone.utc)
-    new_amount_paid = _round2(float(bill.get("amount_paid", 0)) + amount)
-    new_amount_due = _round2(float(bill.get("grand_total", 0)) - new_amount_paid)
 
-    if new_amount_due <= 0:
-        new_status = 'PAID'
-        new_amount_due = 0.0
-    else:
-        new_status = 'PARTIAL'
-
-    db.invoices.update_one(
-        {"_id": ObjectId(bill_id)},
-        {"$set": {
-            "amount_paid": new_amount_paid,
-            "amount_due": new_amount_due,
-            "payment_status": new_status,
-        }}
+    # Use atomic $inc to prevent double-credit on concurrent payments
+    result = db.invoices.update_one(
+        {"_id": ObjectId(bill_id), "payment_status": {"$nin": ["PAID", "REFUNDED"]}},
+        [{"$set": {
+            "amount_paid": {"$add": ["$amount_paid", amount]},
+            "amount_due": {"$max": [0, {"$subtract": ["$grand_total", {"$add": ["$amount_paid", amount]}]}]},
+            "payment_status": {"$cond": [
+                {"$lte": [{"$subtract": ["$grand_total", {"$add": ["$amount_paid", amount]}]}, 0]},
+                "PAID",
+                "PARTIAL"
+            ]},
+        }}]
     )
+
+    if result.matched_count == 0:
+        return False, "Bill not found or already paid/refunded."
+
+    # Read updated bill for audit
+    updated_bill = db.invoices.find_one({"_id": ObjectId(bill_id)})
+    new_amount_paid = _round2(updated_bill.get("amount_paid", 0))
+    new_amount_due = _round2(updated_bill.get("amount_due", 0))
+    new_status = updated_bill.get("payment_status", "PARTIAL")
+
     db.bill_payments.insert_one({
         "bill_id": ObjectId(bill_id),
         "bill_number": bill.get("bill_number"),
