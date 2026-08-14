@@ -12,7 +12,7 @@
 .skeleton-title { height: 24px; width: 40%; margin-bottom: 12px; }
 .skeleton-icon { width: 40px; height: 40px; border-radius: var(--r-md, 12px); }
 .skeleton-card {
-  background: var(--bg-card, #fff);
+  background: var(--color-surface, #fff);
   border-radius: var(--r-md, 12px);
   padding: 20px;
   box-shadow: var(--shadow-xs, 0 1px 3px rgba(0,0,0,0.06));
@@ -20,13 +20,13 @@
 .skeleton-row {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid var(--jklc-grey-200, #E5E7EB);
+  border-bottom: 1px solid var(--color-outline-variant, #E5E7EB);
 }
 .skeleton-row:last-child { border-bottom: none; }
 .skeleton-kpi {
   display: flex; align-items: center; gap: 14px;
   padding: 18px;
-  background: var(--bg-card, #fff);
+  background: var(--color-surface, #fff);
   border-radius: var(--r-md, 12px);
   box-shadow: var(--shadow-xs, 0 1px 3px rgba(0,0,0,0.06));
 }

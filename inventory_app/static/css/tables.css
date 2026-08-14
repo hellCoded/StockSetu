@@ -20,15 +20,15 @@ th.sortable::after {
   color: var(--text-faint, #9ca3af);
   font-size: 0.7rem;
 }
-th.sort-asc::after { content: '\f0de'; color: var(--primary, #0B3D6E); }
-th.sort-desc::after { content: '\f0dd'; color: var(--primary, #0B3D6E); }
+th.sort-asc::after { content: '\f0de'; color: var(--color-primary, #0B3D6E); }
+th.sort-desc::after { content: '\f0dd'; color: var(--color-primary, #0B3D6E); }
 
 /* Hover row highlight */
 .table-hover tbody tr {
   transition: background 0.15s;
 }
 .table-hover tbody tr:hover {
-  background: var(--primary-light, rgba(11,61,110,0.05));
+  background: var(--color-surface-container, rgba(229,238,255,0.5));
 }
 
 /* Bulk select checkboxes */
@@ -37,7 +37,7 @@ th.sort-desc::after { content: '\f0dd'; color: var(--primary, #0B3D6E); }
   height: 18px;
   border-radius: 4px;
   cursor: pointer;
-  accent-color: var(--primary, #0B3D6E);
+  accent-color: var(--color-primary, #0B3D6E);
 }
 
 /* Bulk action bar */
@@ -46,13 +46,13 @@ th.sort-desc::after { content: '\f0dd'; color: var(--primary, #0B3D6E); }
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--primary-light, rgba(11,61,110,0.1));
+  background: var(--color-primary-light, rgba(11,61,110,0.1));
   border-radius: var(--r-md, 12px);
   margin-bottom: 1rem;
   font-size: 0.85rem;
 }
 .bulk-actions.show { display: flex; }
-.bulk-count { font-weight: 600; color: var(--primary, #0B3D6E); }
+.bulk-count { font-weight: 600; color: var(--color-primary, #0B3D6E); }
 
 /* Empty state */
 .empty-table {

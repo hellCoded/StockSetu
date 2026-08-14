@@ -4,7 +4,7 @@
 
 /* Focus visible */
 *:focus-visible {
-  outline: 2px solid var(--primary, #0B3D6E);
+  outline: 2px solid var(--color-primary, #0B3D6E);
   outline-offset: 2px;
 }
 
@@ -13,7 +13,7 @@
   position: absolute;
   top: -100px;
   left: 0;
-  background: var(--primary, #0B3D6E);
+  background: var(--color-primary, #0B3D6E);
   color: #fff;
   padding: 0.5rem 1rem;
   z-index: 10000;
@@ -50,9 +50,9 @@
 /* High contrast */
 @media (prefers-contrast: high) {
   :root {
-    --text-main: #000;
-    --text-sub: #333;
-    --bg-card-border: #000;
+    --color-on-surface: #000;
+    --color-on-surface-variant: #333;
+    --color-outline-variant: #000;
   }
   .btn { border: 2px solid currentColor; }
 }

@@ -12,7 +12,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--primary, #0B3D6E);
+  background: var(--color-primary, #0B3D6E);
   color: #fff;
   border: none;
   box-shadow: var(--shadow-lg);
