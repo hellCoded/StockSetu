@@ -127,18 +127,16 @@ def create_app(config_class=Config, custom_mongo_client=None):
         now = time.time()
         pending_requests_count = 0
 
-        if user_id:
-            # 30-second cached badges to eliminate DB lag on page transitions
+        if user_id and user_role == 'admin':
             cached_entry = _cache.get(user_id)
             if cached_entry and (now - cached_entry['ts']) < 30:
                 pending_requests_count = cached_entry.get('pending', 0)
             else:
-                if user_role == 'admin':
+                try:
                     from inventory_app.services.auth_service import get_all_pending_role_requests
-                    try:
-                        pending_requests_count = len(get_all_pending_role_requests())
-                    except Exception:
-                        pass
+                    pending_requests_count = len(get_all_pending_role_requests())
+                except Exception:
+                    pass
 
                 _cache[user_id] = {
                     'pending': pending_requests_count,

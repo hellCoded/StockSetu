@@ -1,12 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from inventory_app.services.product_service import search_products, get_product_by_name, create_product, normalize_product_name, validate_product_data, calculate_stock_status, invalidate_product_cache
-from inventory_app.services.inventory_service import (
-    stock_in, stock_out, stock_adjust, get_all_transactions
-)
 from inventory_app.utils.decorators import login_required, roles_required, csrf_protected
 from inventory_app.utils.validators import generate_csrf_token
 from inventory_app.database import get_db
-from inventory_app.services.audit_service import log_audit
 from datetime import datetime, timezone
 import re
 
@@ -18,6 +13,8 @@ inventory_bp = Blueprint('inventory', __name__)
 @roles_required('admin', 'inventory_manager', 'staff')
 @csrf_protected
 def handle_stock_in(product_name=None):
+    from inventory_app.services.product_service import search_products, get_product_by_name, create_product, validate_product_data, calculate_stock_status
+    from inventory_app.services.inventory_service import stock_in
     if request.method == 'POST':
         p_name = request.form.get('product_name') or product_name
         try:
@@ -46,6 +43,8 @@ def handle_stock_in(product_name=None):
 @roles_required('admin', 'inventory_manager', 'staff')
 @csrf_protected
 def handle_stock_out(product_name=None):
+    from inventory_app.services.inventory_service import stock_out
+    from inventory_app.services.product_service import search_products, get_product_by_name
     if request.method == 'POST':
         p_name = request.form.get('product_name') or product_name
         try:
@@ -74,6 +73,8 @@ def handle_stock_out(product_name=None):
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
 def handle_adjust(product_name=None):
+    from inventory_app.services.inventory_service import stock_adjust
+    from inventory_app.services.product_service import search_products, get_product_by_name
     if request.method == 'POST':
         p_name = request.form.get('product_name') or product_name
         try:
@@ -102,6 +103,7 @@ def handle_adjust(product_name=None):
 @csrf_protected
 def bulk_stock_in():
     from inventory_app.services.import_service import parse_supplier_bill
+    from inventory_app.services.product_service import search_products
 
     if request.method == 'POST':
         file = request.files.get('bill_file')
@@ -146,6 +148,7 @@ def bulk_stock_in():
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
 def bulk_stock_in_confirm():
+    from inventory_app.services.product_service import normalize_product_name, invalidate_product_cache
     mapping = request.form.getlist('mapping[]')
     item_names = request.form.getlist('item_name[]')
     item_qtys = request.form.getlist('item_qty[]')
@@ -334,6 +337,7 @@ def bulk_stock_in_confirm():
 @inventory_bp.route('/transactions')
 @login_required
 def view_transactions():
+    from inventory_app.services.inventory_service import get_all_transactions
     p_name = request.args.get('product_name', '').strip()
     tx_type = request.args.get('type', '').strip()
     
@@ -351,6 +355,7 @@ def export_transactions_excel():
     from datetime import datetime, timezone
     from flask import send_file
     from openpyxl.styles import Font, PatternFill
+    from inventory_app.services.inventory_service import get_all_transactions
     from inventory_app.services.export_service import generate_excel_export, get_transaction_export_filters, build_export_subtitle
     
     filters = get_transaction_export_filters(request)
@@ -421,6 +426,7 @@ def export_transactions_pdf():
     from flask import send_file
     from reportlab.platypus import Paragraph
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from inventory_app.services.inventory_service import get_all_transactions
     from inventory_app.services.export_service import generate_pdf_export, get_transaction_export_filters, build_export_subtitle
     
     filters = get_transaction_export_filters(request)

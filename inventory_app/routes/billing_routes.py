@@ -1,10 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
-from inventory_app.services.billing_service import (
-    create_bill, get_bill_by_id, get_bills, refund_bill, refund_bill_lines,
-    record_bill_payment, edit_bill, get_bill_payments, get_bill_audit_history,
-    get_reconciliation_report,
-)
-from inventory_app.services.product_service import search_products, get_distinct_categories
 from inventory_app.utils.decorators import login_required, roles_required, csrf_protected
 
 billing_bp = Blueprint('billing', __name__)
@@ -56,6 +50,7 @@ def _limiter():
 @roles_required('admin', 'inventory_manager', 'staff')
 def pos():
     """POS quick-billing screen: search products, build cart, create GST invoice."""
+    from inventory_app.services.product_service import search_products, get_distinct_categories
     query = request.args.get('q', '').strip()
     category = request.args.get('category', '').strip()
     products = search_products(query=query, category=category, is_active=True, sort_by="product_name", sort_dir=1)
@@ -75,6 +70,7 @@ def pos():
 @csrf_protected
 def create():
     """Handles POS bill submission. Rate limited to 30 creates/min per user."""
+    from inventory_app.services.billing_service import create_bill
     customer_data = {
         'customer_name': request.form.get('customer_name', ''),
         'customer_phone': request.form.get('customer_phone', ''),
@@ -138,6 +134,7 @@ def create():
 @billing_bp.route('/billing/bills')
 @login_required
 def list_bills():
+    from inventory_app.services.billing_service import get_bills
     search = request.args.get('q', '').strip()
     status = request.args.get('status', '').strip()
     bills = get_bills(search=search, limit=50, payment_status=status)
@@ -147,6 +144,7 @@ def list_bills():
 @billing_bp.route('/billing/bills/<bill_id>')
 @login_required
 def view_bill(bill_id):
+    from inventory_app.services.billing_service import get_bill_by_id, get_bill_payments, get_bill_audit_history
     bill = get_bill_by_id(bill_id)
     if not bill:
         flash("Bill not found.", "warning")
@@ -168,6 +166,7 @@ def view_bill(bill_id):
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
 def refund(bill_id):
+    from inventory_app.services.billing_service import refund_bill
     reason = request.form.get('reason', 'Customer Refund')
     username = session.get('username', 'Unknown')
     success, msg = refund_bill(bill_id, reason, username)
@@ -184,6 +183,7 @@ def refund(bill_id):
 @csrf_protected
 def refund_lines(bill_id):
     """Refund specific line(s) of a bill."""
+    from inventory_app.services.billing_service import refund_bill_lines
     line_indices = request.form.getlist('line_index[]')
     reason = request.form.get('reason', 'Line refund')
     username = session.get('username', 'Unknown')
@@ -198,6 +198,7 @@ def refund_lines(bill_id):
 @csrf_protected
 def pay(bill_id):
     """Record a payment against a bill."""
+    from inventory_app.services.billing_service import record_bill_payment
     try:
         amount = float(request.form.get('amount', 0))
     except (ValueError, TypeError):
@@ -216,6 +217,7 @@ def pay(bill_id):
 @csrf_protected
 def edit(bill_id):
     """Edit a bill's line items and charges."""
+    from inventory_app.services.billing_service import edit_bill
     customer_data = {
         'customer_name': request.form.get('customer_name', ''),
         'customer_phone': request.form.get('customer_phone', ''),
@@ -259,5 +261,6 @@ def edit(bill_id):
 @roles_required('admin')
 def reconciliation():
     """Admin reconciliation report: flags anomalies across bills, stock, and audit."""
+    from inventory_app.services.billing_service import get_reconciliation_report
     anomalies = get_reconciliation_report()
     return render_template('billing/reconciliation.html', anomalies=anomalies)

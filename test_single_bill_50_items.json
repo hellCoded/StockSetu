@@ -1,0 +1,468 @@
+{
+  "bill_number": "INV/2025-26/0001",
+  "customer_name": "Customer With Very Long Name That Tests The Maximum Length Validation Boundary Condition In The System And Pushes Limits",
+  "customer_phone": "+91-98765-43210",
+  "customer_gstin": "27AAAAA0000A1Z5",
+  "payment_method": "CREDIT",
+  "payment_status": "PARTIAL",
+  "discount_percent": 15,
+  "shipping_charge": 500,
+  "packing_charge": 250,
+  "due_date": "2026-12-31",
+  "payment_splits": [
+    {"method": "CASH", "amount": 50000, "reference": "Cash payment 1"},
+    {"method": "UPI", "amount": 25000, "reference": "UPI ref 12345"}
+  ],
+  "line_items": [
+    {
+      "product_name": "Item01-ZeroPrice",
+      "quantity": 1,
+      "price": 0,
+      "gst_rate": 0,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN001",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item02-MinimalPrice",
+      "quantity": 1,
+      "price": 0.01,
+      "gst_rate": 0,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN002",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item03-FractionalQty",
+      "quantity": 0.001,
+      "price": 999999.99,
+      "gst_rate": 28,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN003",
+      "unit": "KG"
+    },
+    {
+      "product_name": "Item04-MaxQuantity",
+      "quantity": 999999,
+      "price": 0.01,
+      "gst_rate": 28,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN004",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item05-MaxPrice",
+      "quantity": 1,
+      "price": 999999.99,
+      "gst_rate": 28,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN005",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item06-FreeItem100Discount",
+      "quantity": 5,
+      "price": 500,
+      "gst_rate": 18,
+      "line_discount_percent": 100,
+      "hsn_code": "HSN006",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item07-Precision3Decimals",
+      "quantity": 0.333,
+      "price": 33.333,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN007",
+      "unit": "KG"
+    },
+    {
+      "product_name": "Item08-RoundingEdge",
+      "quantity": 3,
+      "price": 33.33,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN008",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item09-GST0Percent",
+      "quantity": 10,
+      "price": 100,
+      "gst_rate": 0,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN009",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item10-GST5Percent",
+      "quantity": 10,
+      "price": 200,
+      "gst_rate": 5,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN010",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item11-GST12Percent",
+      "quantity": 10,
+      "price": 300,
+      "gst_rate": 12,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN011",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item12-GST18Percent",
+      "quantity": 10,
+      "price": 400,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN012",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item13-GST28Percent",
+      "quantity": 10,
+      "price": 500,
+      "gst_rate": 28,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN013",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item14-Discount25Percent",
+      "quantity": 4,
+      "price": 1000,
+      "gst_rate": 18,
+      "line_discount_percent": 25,
+      "hsn_code": "HSN014",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item15-Discount50Percent",
+      "quantity": 2,
+      "price": 2000,
+      "gst_rate": 18,
+      "line_discount_percent": 50,
+      "hsn_code": "HSN015",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item16-Discount75Percent",
+      "quantity": 4,
+      "price": 1000,
+      "gst_rate": 18,
+      "line_discount_percent": 75,
+      "hsn_code": "HSN016",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item17-Discount99Percent",
+      "quantity": 1,
+      "price": 10000,
+      "gst_rate": 18,
+      "line_discount_percent": 99,
+      "hsn_code": "HSN017",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item18-UnicodeName_Δημήτρης",
+      "quantity": 1,
+      "price": 150,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN018",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item19-SpecialChars@#$%^&*",
+      "quantity": 1,
+      "price": 250,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN019",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item20-Quotes\"And'Apostrophe",
+      "quantity": 1,
+      "price": 350,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN020",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item21-HTML&Script<Tags>",
+      "quantity": 1,
+      "price": 450,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN021",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item22-Backslash\\Escape",
+      "quantity": 1,
+      "price": 550,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN022",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item23-Brackets[And]Curl{Braces}",
+      "quantity": 1,
+      "price": 650,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN023",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item24-Pipe|And~Tilde",
+      "quantity": 1,
+      "price": 750,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN024",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item25-Semicolon;Colon:Question?",
+      "quantity": 1,
+      "price": 850,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN025",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item26-Exclamation!At@Hash#Dollar$",
+      "quantity": 1,
+      "price": 950,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN026",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item27-Ampersand&Percent%Caret^",
+      "quantity": 1,
+      "price": 1050,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN027",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item28-Asterisk*Plus+Equals=",
+      "quantity": 1,
+      "price": 1150,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN028",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item29-LessThan<GreaterThan>",
+      "quantity": 1,
+      "price": 1250,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN029",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item30-Slash/Backslash\\Mixed",
+      "quantity": 1,
+      "price": 1350,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN030",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item31-Whitespace   Tabs\tNewlines\n",
+      "quantity": 1,
+      "price": 1450,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN031",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item32-NullByte\\0Character",
+      "quantity": 1,
+      "price": 1550,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN032",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item33-Emoji😀🎉🔥💯",
+      "quantity": 1,
+      "price": 1650,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN033",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item34-CJK统一汉字测试",
+      "quantity": 1,
+      "price": 1750,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN034",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item35-Arabicمرحبا",
+      "quantity": 1,
+      "price": 1850,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN035",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item36-Hindiनमस्ते",
+      "quantity": 1,
+      "price": 1950,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN036",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item37-RussianТест",
+      "quantity": 1,
+      "price": 2050,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN037",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item38-Japaneseテスト",
+      "quantity": 1,
+      "price": 2150,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN038",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item39-Korean테스트",
+      "quantity": 1,
+      "price": 2250,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN039",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item40-Thaiการทดสอบ",
+      "quantity": 1,
+      "price": 2350,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN040",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item41-VeryLongProductNameThatExceedsNormalLengthAndShouldTestSystemLimitsForStringHandlingAndDatabaseStorageCapacityInRealWorldScenarios",
+      "quantity": 1,
+      "price": 2450,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN041",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item42-SingleCharX",
+      "quantity": 1,
+      "price": 2550,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN042",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item43-Number12345",
+      "quantity": 1,
+      "price": 2650,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN043",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item44-FloatQty0.000001",
+      "quantity": 0.000001,
+      "price": 999999.99,
+      "gst_rate": 28,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN044",
+      "unit": "KG"
+    },
+    {
+      "product_name": "Item45-MaxDiscount99.99",
+      "quantity": 1,
+      "price": 10000,
+      "gst_rate": 18,
+      "line_discount_percent": 99.99,
+      "hsn_code": "HSN045",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item46-AllGSTRates0-28",
+      "quantity": 1,
+      "price": 1000,
+      "gst_rate": 28,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN046",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item47-FractionalPrice99.999",
+      "quantity": 1,
+      "price": 99.999,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN047",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item48-ScientificNotation1e10",
+      "quantity": 1,
+      "price": 10000000000,
+      "gst_rate": 28,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN048",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item49-NegativeTest-Price",
+      "quantity": 1,
+      "price": 100,
+      "gst_rate": 18,
+      "line_discount_percent": 0,
+      "hsn_code": "HSN049",
+      "unit": "NOS"
+    },
+    {
+      "product_name": "Item50-ExtremeAllCombined-Δημήτρης@#$%^&*\"'<>\\[]{}|~!@#$%^&*()_+",
+      "quantity": 0.000001,
+      "price": 999999.999,
+      "gst_rate": 28,
+      "line_discount_percent": 99.99,
+      "hsn_code": "HSN050",
+      "unit": "KG"
+    }
+  ]
+}

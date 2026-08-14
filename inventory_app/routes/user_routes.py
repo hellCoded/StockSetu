@@ -1,9 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from inventory_app.services.auth_service import (
-    get_all_users, update_user_role, toggle_user_active, change_password, get_user_by_id, register_user,
-    create_role_request, get_user_pending_role_request, get_all_pending_role_requests, process_role_request,
-    update_user_profile_info, cancel_role_request, get_all_role_requests, get_user_role_requests
-)
 from inventory_app.utils.validators import validate_user_registration
 from inventory_app.utils.decorators import login_required, roles_required, csrf_protected
 
@@ -13,6 +8,7 @@ user_bp = Blueprint('users', __name__)
 @login_required
 @roles_required('admin')
 def list_users():
+    from inventory_app.services.auth_service import get_all_users, get_all_role_requests
     users = get_all_users()
     role_requests = get_all_role_requests()
     return render_template('users/list.html', users=users, role_requests=role_requests)
@@ -22,6 +18,7 @@ def list_users():
 @roles_required('admin')
 @csrf_protected
 def add_user():
+    from inventory_app.services.auth_service import register_user
     name = request.form.get('name', '').strip()
     surname = request.form.get('surname', '').strip()
     username = request.form.get('username', '').strip()
@@ -77,6 +74,7 @@ def add_user():
 @roles_required('admin')
 @csrf_protected
 def change_role(user_id):
+    from inventory_app.services.auth_service import update_user_role
     if user_id == session.get('user_id'):
         flash("You cannot modify your own Administrator role.", "warning")
         return redirect(url_for('users.list_users'))
@@ -96,6 +94,7 @@ def change_role(user_id):
 @roles_required('admin')
 @csrf_protected
 def toggle_active_user(user_id):
+    from inventory_app.services.auth_service import toggle_user_active
     # Prevent self-deactivation of current admin
     if user_id == session.get('user_id'):
         flash("You cannot deactivate your own account.", "warning")
@@ -113,6 +112,7 @@ def toggle_active_user(user_id):
 @login_required
 @csrf_protected
 def request_promotion():
+    from inventory_app.services.auth_service import get_user_by_id, create_role_request
     user_id = session.get('user_id')
     user = get_user_by_id(user_id)
     if not user:
@@ -148,6 +148,7 @@ def reject_promotion_request(request_id):
 
 def _process_role_request_action(request_id: str, action: str, success_category: str):
     """Shared handler for approve/reject role request actions."""
+    from inventory_app.services.auth_service import process_role_request
     admin_username = session.get('username', 'System Admin')
     admin_comment = request.form.get('admin_comment', '')
     success, msg = process_role_request(request_id, action=action, processed_by=admin_username, admin_comment=admin_comment)
@@ -162,6 +163,7 @@ def _process_role_request_action(request_id: str, action: str, success_category:
 @login_required
 @csrf_protected
 def cancel_promotion_request(request_id):
+    from inventory_app.services.auth_service import cancel_role_request
     user_id = session.get('user_id')
     success, msg = cancel_role_request(request_id, user_id)
     if success:
@@ -174,6 +176,7 @@ def cancel_promotion_request(request_id):
 @login_required
 @csrf_protected
 def profile():
+    from inventory_app.services.auth_service import get_user_by_id, get_user_pending_role_request, get_user_role_requests, update_user_profile_info, change_password
     user_id = session.get('user_id')
     user = get_user_by_id(user_id)
     pending_request = get_user_pending_role_request(user_id)

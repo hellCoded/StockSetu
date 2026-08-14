@@ -1,10 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from inventory_app.services.product_service import (
-    create_product, get_product_by_name, search_products, update_product,
-    rename_product, toggle_product_active, get_distinct_categories,
-    get_distinct_locations
-)
-from inventory_app.services.inventory_service import get_product_transactions
 from inventory_app.utils.decorators import login_required, roles_required, csrf_protected
 
 product_bp = Blueprint('products', __name__)
@@ -12,6 +6,7 @@ product_bp = Blueprint('products', __name__)
 @product_bp.route('/products')
 @login_required
 def list_products():
+    from inventory_app.services.product_service import search_products, get_distinct_categories, get_distinct_locations
     query = request.args.get('q', '').strip()
     category = request.args.get('category', '').strip()
     location = request.args.get('location', '').strip()
@@ -49,6 +44,7 @@ def export_excel():
     from datetime import datetime, timezone
     from flask import send_file
     from openpyxl.styles import Font, PatternFill
+    from inventory_app.services.product_service import search_products
     from inventory_app.services.export_service import generate_excel_export, get_product_export_filters, build_export_subtitle
     
     filters = get_product_export_filters(request)
@@ -127,6 +123,7 @@ def export_pdf():
     from flask import send_file
     from reportlab.platypus import Paragraph
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from inventory_app.services.product_service import search_products
     from inventory_app.services.export_service import generate_pdf_export, get_product_export_filters, build_export_subtitle
     
     filters = get_product_export_filters(request)
@@ -228,6 +225,7 @@ def export_pdf():
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
 def add_product():
+    from inventory_app.services.product_service import create_product, get_distinct_categories
     if request.method == 'POST':
         product_data = {
             'product_name': request.form.get('product_name', ''),
@@ -258,6 +256,8 @@ def add_product():
 @product_bp.route('/products/<product_name>')
 @login_required
 def view_product(product_name):
+    from inventory_app.services.product_service import get_product_by_name
+    from inventory_app.services.inventory_service import get_product_transactions
     product = get_product_by_name(product_name)
     if not product:
         flash(f"Product '{product_name}' not found.", "warning")
@@ -271,6 +271,7 @@ def view_product(product_name):
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
 def edit_product(product_name):
+    from inventory_app.services.product_service import get_product_by_name, update_product, get_distinct_categories
     product = get_product_by_name(product_name)
     if not product:
         flash(f"Product '{product_name}' not found.", "warning")
@@ -306,6 +307,7 @@ def edit_product(product_name):
 @roles_required('admin')
 @csrf_protected
 def rename_product_route(product_name):
+    from inventory_app.services.product_service import get_product_by_name, rename_product
     product = get_product_by_name(product_name)
     if not product:
         flash(f"Product '{product_name}' not found.", "warning")
@@ -330,6 +332,7 @@ def rename_product_route(product_name):
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
 def toggle_active(product_name):
+    from inventory_app.services.product_service import toggle_product_active
     username = session.get('username', 'System')
     success, msg, _ = toggle_product_active(product_name, performed_by=username)
     if success:

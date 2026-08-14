@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
-from inventory_app.services.auth_service import register_user, authenticate_user, change_password
 from inventory_app.utils.decorators import login_required, csrf_protected
 from inventory_app.utils.validators import validate_user_registration
 from werkzeug.security import generate_password_hash
@@ -10,6 +9,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 @csrf_protected
 def login():
+    from inventory_app.services.auth_service import authenticate_user
     if 'user_id' in session:
         return redirect(url_for('dashboard.index'))
         
@@ -44,6 +44,7 @@ def login():
 @auth_bp.route('/register', methods=['GET', 'POST'])
 @csrf_protected
 def register():
+    from inventory_app.services.auth_service import register_user
     if 'user_id' in session:
         return redirect(url_for('dashboard.index'))
         
