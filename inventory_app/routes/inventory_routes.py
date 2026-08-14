@@ -147,7 +147,6 @@ def bulk_stock_in_confirm():
     new_categories = request.form.getlist('new_category[]')
     new_prices = request.form.getlist('new_price[]')
     new_gsts = request.form.getlist('new_gst[]')
-    new_locations = request.form.getlist('new_location[]')
     new_descs = request.form.getlist('new_desc[]')
     new_units = request.form.getlist('new_unit[]')
     new_hsns = request.form.getlist('new_hsn[]')
@@ -188,7 +187,6 @@ def bulk_stock_in_confirm():
             category = new_categories[new_i] if new_i < len(new_categories) else ''
             price = new_prices[new_i] if new_i < len(new_prices) else 0
             gst = new_gsts[new_i] if new_i < len(new_gsts) else 0
-            location = new_locations[new_i] if new_i < len(new_locations) else ''
             desc = new_descs[new_i] if new_i < len(new_descs) else ''
             unit_from_form = new_units[new_i] if new_i < len(new_units) else ''
             hsn_from_form = new_hsns[new_i] if new_i < len(new_hsns) else ''
@@ -201,7 +199,6 @@ def bulk_stock_in_confirm():
                 "price": price,
                 "gst_rate": gst,
                 "hsn_code": hsn_from_form or item.get('hsn_code', ''),
-                "location": location,
                 "description": desc,
             }
 

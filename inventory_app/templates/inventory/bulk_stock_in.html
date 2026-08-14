@@ -252,10 +252,6 @@
                 <label class="npf-label">GST Rate (%)</label>
                 <input type="number" name="new_gst[]" class="form-control" step="0.1" min="0" max="28" placeholder="0" value="{{ item.gst_rate|default('', true) }}">
               </div>
-              <div class="npf-field">
-                <label class="npf-label">Location</label>
-                <input type="text" name="new_location[]" class="form-control" placeholder="e.g., Rack A3">
-              </div>
               <div class="npf-field npf-full">
                 <label class="npf-label">Description</label>
                 <input type="text" name="new_desc[]" class="form-control" placeholder="Optional notes" value="{{ item.description|default('', true) }}">
