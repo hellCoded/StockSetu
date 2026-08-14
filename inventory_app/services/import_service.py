@@ -1,7 +1,5 @@
 import io
 import re
-import openpyxl
-import pdfplumber
 
 
 def parse_supplier_bill(file_storage) -> tuple[bool, str, list[dict]]:
@@ -24,6 +22,7 @@ def parse_supplier_bill(file_storage) -> tuple[bool, str, list[dict]]:
 
 def _parse_pdf(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
     """Extracts item name + quantity from a PDF using pdfplumber table detection."""
+    import pdfplumber
     items = []
     try:
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
@@ -68,6 +67,7 @@ def _parse_pdf(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
 
 def _parse_excel(file_bytes: bytes) -> tuple[bool, str, list[dict]]:
     """Extracts item name + quantity from an Excel workbook."""
+    import openpyxl
     items = []
     try:
         wb = openpyxl.load_workbook(io.BytesIO(file_bytes), read_only=True, data_only=True)
