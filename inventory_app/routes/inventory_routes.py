@@ -1,10 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from inventory_app.services.product_service import search_products, get_product_by_name, create_product
+from inventory_app.services.product_service import search_products, get_product_by_name, create_product, normalize_product_name, validate_product_data, calculate_stock_status, invalidate_product_cache
 from inventory_app.services.inventory_service import (
     stock_in, stock_out, stock_adjust, get_all_transactions
 )
 from inventory_app.utils.decorators import login_required, roles_required, csrf_protected
 from inventory_app.utils.validators import generate_csrf_token
+from inventory_app.database import get_db
+from inventory_app.services.audit_service import log_audit
+from datetime import datetime, timezone
+import re
 
 inventory_bp = Blueprint('inventory', __name__)
 
@@ -176,6 +180,11 @@ def bulk_stock_in_confirm():
     created_count = 0
     errors = []
     new_i = 0
+    now = datetime.now(timezone.utc)
+
+    new_products = []
+    new_transactions = []
+    existing_stock_ops = []
 
     for i, item in enumerate(items):
         product_name = mapping[i] if i < len(mapping) else ""
@@ -183,39 +192,83 @@ def bulk_stock_in_confirm():
             continue
 
         if product_name == '__new__':
-            # New product: build data from bill fields + user-entered missing params
             category = new_categories[new_i] if new_i < len(new_categories) else ''
-            price = new_prices[new_i] if new_i < len(new_prices) else 0
-            gst = new_gsts[new_i] if new_i < len(new_gsts) else 0
+            price = float(new_prices[new_i]) if new_i < len(new_prices) else 0
+            gst = float(new_gsts[new_i]) if new_i < len(new_gsts) else 0
             desc = new_descs[new_i] if new_i < len(new_descs) else ''
             unit_from_form = new_units[new_i] if new_i < len(new_units) else ''
             hsn_from_form = new_hsns[new_i] if new_i < len(new_hsns) else ''
             new_i += 1
 
-            product_data = {
-                "product_name": item['item_name'],
-                "category": category,
-                "unit": unit_from_form or item.get('unit', ''),
+            canonical = normalize_product_name(item['item_name'])
+            quantity = float(item.get('quantity', 0))
+            minimum_stock = 5
+
+            product_doc = {
+                "product_name": canonical,
+                "category": (category or '').strip(),
+                "description": (desc or '').strip(),
+                "quantity": quantity,
+                "unit": (unit_from_form or item.get('unit', '') or '').strip(),
                 "price": price,
                 "gst_rate": gst,
-                "hsn_code": hsn_from_form or item.get('hsn_code', ''),
-                "description": desc,
+                "hsn_code": (hsn_from_form or item.get('hsn_code', '') or '').strip().upper(),
+                "minimum_stock": minimum_stock,
+                "location": "",
+                "is_active": True,
+                "created_at": now,
+                "updated_at": now,
             }
+            new_products.append(product_doc)
 
-            ok, msg, _ = create_product(product_data, performed_by=username,
-                                        initial_quantity=item['quantity'])
-            if not ok:
-                errors.append(f"'{item['item_name']}' — {msg}")
+            if quantity > 0:
+                new_transactions.append({
+                    "product_name": canonical,
+                    "transaction_type": "INITIAL_STOCK",
+                    "quantity": quantity,
+                    "previous_quantity": 0,
+                    "new_quantity": quantity,
+                    "reason": "Initial product registration",
+                    "performed_by": username,
+                    "created_at": now,
+                })
+        else:
+            existing_stock_ops.append((product_name, float(item.get('quantity', 0))))
+
+    db = get_db()
+
+    if new_products:
+        valid_products = []
+        for p in new_products:
+            cat = p.get("category", "").strip()
+            if not cat:
+                errors.append(f"'{p['product_name']}' — Category is required")
                 continue
-            created_count += 1
+            valid_products.append(p)
+
+        if valid_products:
+            try:
+                db.products.insert_many(valid_products, ordered=False)
+                created_count = len(valid_products)
+                success_count += created_count
+                for p in valid_products:
+                    invalidate_product_cache(p["product_name"])
+                    log_audit("PRODUCT_CREATE", username, p["product_name"], {"initial_stock": p["quantity"]})
+            except Exception as e:
+                errors.append(f"Bulk product creation failed: {str(e)}")
+
+    if new_transactions:
+        try:
+            db.inventory_transactions.insert_many(new_transactions, ordered=False)
+        except Exception:
+            pass
+
+    for prod_name, qty in existing_stock_ops:
+        ok, msg, _ = stock_in(prod_name, qty, reason, performed_by=username)
+        if ok:
             success_count += 1
         else:
-            # Existing product: stock in
-            ok, msg, _ = stock_in(product_name, item['quantity'], reason, performed_by=username)
-            if ok:
-                success_count += 1
-            else:
-                errors.append(f"'{product_name}' — {msg}")
+            errors.append(f"'{prod_name}' — {msg}")
 
     if created_count > 0:
         flash(f"Created {created_count} new product(s).", "success")
