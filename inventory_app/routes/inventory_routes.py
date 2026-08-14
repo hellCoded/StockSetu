@@ -253,7 +253,14 @@ def bulk_stock_in_confirm():
             success_count += created_count
             for p in new_products:
                 invalidate_product_cache(p["product_name"])
-                log_audit("PRODUCT_CREATE", username, p["product_name"], {"initial_stock": p["quantity"]})
+            audit_docs = [{
+                "action_type": "PRODUCT_CREATE",
+                "performed_by": username,
+                "target_resource": p["product_name"],
+                "details": {"initial_stock": p["quantity"]},
+                "created_at": now,
+            } for p in new_products]
+            db.audit_logs.insert_many(audit_docs, ordered=False)
         except Exception as e:
             errors.append(f"Bulk product creation failed: {str(e)}")
 
@@ -300,8 +307,15 @@ def bulk_stock_in_confirm():
                         {"$inc": {"quantity": tx["quantity"]}, "$set": {"updated_at": now}}
                     )
                     invalidate_product_cache(tx["product_name"])
-                    log_audit("STOCK_IN", tx["performed_by"], tx["product_name"],
-                              {"qty_added": tx["quantity"], "new_qty": tx["new_quantity"]})
+
+                audit_docs = [{
+                    "action_type": "STOCK_IN",
+                    "performed_by": tx["performed_by"],
+                    "target_resource": tx["product_name"],
+                    "details": {"qty_added": tx["quantity"], "new_qty": tx["new_quantity"]},
+                    "created_at": tx["created_at"],
+                } for tx in bulk_tx]
+                db.audit_logs.insert_many(audit_docs, ordered=False)
             except Exception as e:
                 errors.append(f"Bulk stock-in failed: {str(e)}")
 
