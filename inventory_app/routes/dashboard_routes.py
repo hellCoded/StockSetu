@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, session
 from inventory_app.utils.decorators import login_required
 from inventory_app import cache_get, cache_set
 import json
