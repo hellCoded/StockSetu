@@ -127,7 +127,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
         now = time.time()
         pending_requests_count = 0
 
-        if user_id and user_role == 'admin':
+        if user_id and user_role in ('admin', 'inventory_manager'):
             cached_entry = _cache.get(user_id)
             if cached_entry and (now - cached_entry['ts']) < 30:
                 pending_requests_count = cached_entry.get('pending', 0)
