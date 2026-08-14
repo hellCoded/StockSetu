@@ -29,18 +29,6 @@
         <span>Products</span>
       </a>
     </li>
-    <li>
-      <a href="{{ url_for('inventory.handle_stock_in') }}" class="sidebar-link {% if request.endpoint == 'inventory.handle_stock_in' %}active{% endif %}">
-        <i class="fa-solid fa-arrow-down-left"></i>
-        <span>Stock In</span>
-      </a>
-    </li>
-    <li>
-      <a href="{{ url_for('inventory.handle_stock_out') }}" class="sidebar-link {% if request.endpoint == 'inventory.handle_stock_out' %}active{% endif %}">
-        <i class="fa-solid fa-arrow-up-right"></i>
-        <span>Stock Out</span>
-      </a>
-    </li>
     {% if current_user.role in ['admin', 'inventory_manager'] %}
     <li>
       <a href="{{ url_for('inventory.bulk_stock_in') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('inventory.bulk_stock_in') %}active{% endif %}">
