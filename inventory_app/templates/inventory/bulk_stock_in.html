@@ -261,11 +261,24 @@
                 <input type="text" name="new_desc[]" class="form-control" placeholder="Optional notes">
               </div>
             </div>
-            <p class="npf-note">
-              Unit: <strong>{{ item.unit|default('Not specified', true) }}</strong> &middot;
-              HSN: <strong>{{ item.hsn_code|default('Not specified', true) }}</strong>
-              — pre-filled from the bill.
-            </p>
+            <div class="npf-grid">
+              <div class="npf-field npf-required">
+                <label class="npf-label">Unit <span>*</span></label>
+                {% if item.unit %}
+                  <input type="text" name="new_unit[]" class="form-control" value="{{ item.unit }}" placeholder="e.g., PCS, KG, MTR" required>
+                {% else %}
+                  <input type="text" name="new_unit[]" class="form-control" placeholder="e.g., PCS, KG, MTR" required>
+                {% endif %}
+              </div>
+              <div class="npf-field">
+                <label class="npf-label">HSN Code</label>
+                {% if item.hsn_code %}
+                  <input type="text" name="new_hsn[]" class="form-control" value="{{ item.hsn_code }}" placeholder="e.g., 7318">
+                {% else %}
+                  <input type="text" name="new_hsn[]" class="form-control" placeholder="e.g., 7318">
+                {% endif %}
+              </div>
+            </div>
           </div>
         {% else %}
           <div class="match-row">

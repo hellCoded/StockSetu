@@ -149,6 +149,8 @@ def bulk_stock_in_confirm():
     new_gsts = request.form.getlist('new_gst[]')
     new_locations = request.form.getlist('new_location[]')
     new_descs = request.form.getlist('new_desc[]')
+    new_units = request.form.getlist('new_unit[]')
+    new_hsns = request.form.getlist('new_hsn[]')
     reason = request.form.get('reason', 'Bulk import from supplier bill')
     username = session.get('username', 'System')
 
@@ -188,15 +190,17 @@ def bulk_stock_in_confirm():
             gst = new_gsts[new_i] if new_i < len(new_gsts) else 0
             location = new_locations[new_i] if new_i < len(new_locations) else ''
             desc = new_descs[new_i] if new_i < len(new_descs) else ''
+            unit_from_form = new_units[new_i] if new_i < len(new_units) else ''
+            hsn_from_form = new_hsns[new_i] if new_i < len(new_hsns) else ''
             new_i += 1
 
             product_data = {
                 "product_name": item['item_name'],
                 "category": category,
-                "unit": item.get('unit', ''),
+                "unit": unit_from_form or item.get('unit', ''),
                 "price": price,
                 "gst_rate": gst,
-                "hsn_code": item.get('hsn_code', ''),
+                "hsn_code": hsn_from_form or item.get('hsn_code', ''),
                 "location": location,
                 "description": desc,
             }
