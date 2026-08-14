@@ -336,14 +336,30 @@ def toggle_product_active(product_name: str, performed_by: str) -> tuple[bool, s
     return True, f"Product '{norm_name}' has been {action_str}.", new_status
 
 def get_distinct_categories() -> list:
-    """Returns distinct product categories."""
+    """Returns distinct product categories (globally cached, 30s TTL)."""
+    cached = cache_get("products:categories")
+    if cached:
+        try:
+            return json.loads(cached)
+        except Exception:
+            pass
     db = get_db()
-    return sorted([c for c in db.products.distinct("category") if c])
+    result = sorted([c for c in db.products.distinct("category") if c])
+    cache_set("products:categories", json.dumps(result), ttl=_PRODUCT_CACHE_TTL)
+    return result
 
 def get_distinct_locations() -> list:
-    """Returns distinct product locations."""
+    """Returns distinct product locations (globally cached, 30s TTL)."""
+    cached = cache_get("products:locations")
+    if cached:
+        try:
+            return json.loads(cached)
+        except Exception:
+            pass
     db = get_db()
-    return sorted([l for l in db.products.distinct("location") if l])
+    result = sorted([l for l in db.products.distinct("location") if l])
+    cache_set("products:locations", json.dumps(result), ttl=_PRODUCT_CACHE_TTL)
+    return result
 
 def get_stock_by_category() -> list:
     """Aggregates active product stock quantity by category."""

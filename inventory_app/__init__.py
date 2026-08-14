@@ -1,4 +1,3 @@
-import time
 import os
 import logging
 from flask import Flask, render_template, session
@@ -115,8 +114,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
     init_db(app, custom_client=custom_mongo_client)
 
     # Context Processor for Templates
-    # Lightweight in-memory TTL cache to prevent DB reads on every HTTP request
-    _cache = {}
+    # Lightweight global TTL cache to prevent DB reads on every HTTP request.
 
     @app.context_processor
     def inject_utilities():
@@ -124,24 +122,22 @@ def create_app(config_class=Config, custom_mongo_client=None):
         user_role = session.get('role', 'staff')
         username = session.get('username', '')
 
-        now = time.time()
         pending_requests_count = 0
 
         if user_id and user_role in ('admin', 'inventory_manager'):
-            cached_entry = _cache.get(user_id)
-            if cached_entry and (now - cached_entry['ts']) < 30:
-                pending_requests_count = cached_entry.get('pending', 0)
+            cached_entry = cache_get("pending:count")
+            if cached_entry:
+                try:
+                    pending_requests_count = int(cached_entry)
+                except (TypeError, ValueError):
+                    pending_requests_count = 0
             else:
                 try:
-                    from inventory_app.services.auth_service import get_all_pending_role_requests
-                    pending_requests_count = len(get_all_pending_role_requests())
+                    from inventory_app.database import get_db
+                    pending_requests_count = get_db().role_requests.count_documents({"status": "PENDING"})
+                    cache_set("pending:count", str(pending_requests_count), ttl=30)
                 except Exception:
                     pass
-
-                _cache[user_id] = {
-                    'pending': pending_requests_count,
-                    'ts': now
-                }
 
         return {
             'csrf_token': generate_csrf_token,

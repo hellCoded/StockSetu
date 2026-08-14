@@ -22,7 +22,13 @@ def roles_required(*roles):
             if 'user_id' not in session:
                 flash("Please log in to access this page.", "warning")
                 return redirect(url_for('auth.login', next=request.url))
-            
+
+            # Fast path: the role already stored in the session grants access,
+            # so avoid a DB round-trip on every privileged request. The DB is
+            # still consulted when the session role is absent or insufficient.
+            if session.get('role') in roles:
+                return f(*args, **kwargs)
+
             from inventory_app.services.auth_service import get_user_by_id
             user = get_user_by_id(session['user_id'])
             if not user:
