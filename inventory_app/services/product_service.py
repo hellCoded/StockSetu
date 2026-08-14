@@ -400,3 +400,23 @@ def get_top_products_stock(limit: int = 10) -> list:
     db = get_db()
     products = list(db.products.find({"is_active": True}, {"product_name": 1, "quantity": 1}).sort("quantity", -1).limit(limit))
     return [{"product_name": p["product_name"], "quantity": p["quantity"]} for p in products]
+
+def get_stock_alerts(limit: int = 6) -> list:
+    """Retrieves active products at or below their minimum stock (LOW/OUT),
+    worst first, for the navbar notification bell. Lightweight projection."""
+    db = get_db()
+    products = list(db.products.find(
+        {"is_active": True, "$expr": {"$lte": ["$quantity", {"$ifNull": ["$minimum_stock", 5]}]}},
+        {"product_name": 1, "quantity": 1, "unit": 1, "minimum_stock": 1}
+    ).sort("quantity", 1).limit(limit))
+    alerts = []
+    for p in products:
+        min_stock = p.get("minimum_stock", 5) or 5
+        alerts.append({
+            "product_name": p["product_name"],
+            "quantity": float(p.get("quantity", 0) or 0),
+            "unit": p.get("unit", ""),
+            "minimum_stock": min_stock,
+            "status": calculate_stock_status(p.get("quantity", 0), min_stock)
+        })
+    return alerts

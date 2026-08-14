@@ -35,6 +35,44 @@
     <button id="theme-toggle" class="btn btn-secondary btn-sm" title="Toggle Dark Mode" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;">
       <i class="fa-solid fa-moon"></i>
     </button>
+    <div class="alert-bell-wrap">
+      <button id="alert-bell" class="btn btn-secondary btn-sm alert-bell-btn" title="Low stock alerts" aria-haspopup="true" aria-expanded="false" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;">
+        <i class="fa-solid fa-bell"></i>
+        {% if low_stock_count > 0 %}
+          <span class="alert-bell-count" data-count="{{ low_stock_count }}">{{ low_stock_count if low_stock_count <= 9 else '9+' }}</span>
+        {% endif %}
+      </button>
+      <div class="alert-bell-panel" id="alert-bell-panel" role="menu">
+        <div class="alert-bell-head">
+          <span><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</span>
+          <a href="{{ url_for('products.list_products', status='LOW STOCK') }}">View all</a>
+        </div>
+        {% if low_stock_alerts %}
+          <ul class="alert-bell-list">
+            {% for a in low_stock_alerts %}
+              <li>
+                <a href="{{ url_for('products.view_product', product_name=a.product_name) }}">
+                  <i class="fa-solid fa-triangle-exclamation" style="color: {% if a.status == 'OUT OF STOCK' %}var(--danger, #dc2626){% else %}var(--warning, #f59e0b){% endif %};"></i>
+                  <div style="min-width: 0;">
+                    <div class="alert-bell-name">{{ a.product_name }}</div>
+                    <div class="alert-bell-sub">{{ a.quantity }} {{ a.unit }} left · min {{ a.minimum_stock }} {{ a.unit }}</div>
+                  </div>
+                  <span class="badge {{ get_status_badge_class(a.status) }}">{{ a.status | replace('_', ' ') }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+          <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" class="alert-bell-footer">
+            View all {{ low_stock_count }} low stock items
+          </a>
+        {% else %}
+          <div class="alert-bell-empty">
+            <i class="fa-solid fa-circle-check" style="color: var(--success, #10b981);"></i>
+            All good — no low stock alerts.
+          </div>
+        {% endif %}
+      </div>
+    </div>
     <a href="{{ url_for('users.profile') }}" style="text-decoration: none;" title="View Profile & Account Settings">
       <div class="user-profile-badge">
         <div class="user-avatar">

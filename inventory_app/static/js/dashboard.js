@@ -144,6 +144,78 @@
     }
   }
 
+  // ── 3. Top Products by Stock (Horizontal Bar, non-admin) ──
+  function renderTopProductsChart() {
+    const el = document.getElementById('topProductsChart');
+    if (!el) return;
+    const container = el.parentElement;
+    const rows = chartData.top_products_stock || [];
+
+    if (!rows.length) { setChartEmpty(container, 'No product data available.'); return; }
+    if (typeof Chart === 'undefined') { setChartError(container, 'Chart library failed to load.'); return; }
+
+    try {
+      new Chart(el.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: rows.map(x => x.product_name),
+          datasets: [{
+            label: 'Stock Quantity',
+            data: rows.map(x => x.quantity),
+            backgroundColor: jklcBlue,
+            hoverBackgroundColor: jklcRed,
+            borderRadius: 6,
+            borderWidth: 0,
+            barThickness: 12
+          }]
+        },
+        options: {
+          ...commonOptions,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: { color: '#f1f5f9' },
+              ticks: { font: { family: 'Inter', size: 10 } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { family: 'Inter', size: 9 }, autoSkip: false }
+            }
+          }
+        }
+      });
+    } catch (err) {
+      console.error('Dashboard: top products chart failed.', err);
+      setChartError(container, 'Unable to render top products chart.');
+    }
+  }
+
+  // ── 4. Recent Activity Filter Chips ──
+  function initActivityFilters() {
+    const table = document.getElementById('recent-activity-table');
+    if (!table) return;
+    const chips = document.querySelectorAll('.activity-chip');
+    const rows = [...table.querySelectorAll('tbody tr[data-tx-type]')];
+    const emptyRow = table.querySelector('.dash-table-empty');
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('is-active'));
+        chip.classList.add('is-active');
+        const filter = chip.dataset.filter;
+        let visible = 0;
+        rows.forEach(row => {
+          const match = filter === 'all' || row.dataset.txType === filter;
+          row.style.display = match ? '' : 'none';
+          if (match) visible++;
+        });
+        if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+      });
+    });
+  }
+
   // ── Boot: reveal skeleton, render, then fade in content ──
   async function init() {
     // Ensure the skeleton/spinner paints first, then give the page a beat
@@ -152,7 +224,9 @@
     await delay(350);
 
     renderBarChart();
-    renderDonutChart();
+    if (document.getElementById('roleRequestsChart')) renderDonutChart();
+    renderTopProductsChart();
+    initActivityFilters();
 
     // Fade content in (skeleton/spinner out)
     root.classList.remove('dash-loading');

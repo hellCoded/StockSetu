@@ -24,9 +24,11 @@ def index():
     if cached:
         try:
             data = json.loads(cached)
-            return render_template('dashboard/index.html', **data)
         except Exception:
-            pass
+            data = None
+        if data:
+            data['show_role_requests'] = session.get('role', 'staff') == 'admin'
+            return render_template('dashboard/index.html', **data)
 
     metrics = get_dashboard_metrics()
     chart_data = {
@@ -36,7 +38,12 @@ def index():
         "role_requests_by_status": get_role_requests_by_status_count()
     }
     billing = _cached_billing_summary()
-    data = {"metrics": metrics, "chart_data": chart_data, "billing": billing}
+    data = {
+        "metrics": metrics,
+        "chart_data": chart_data,
+        "billing": billing,
+        "show_role_requests": session.get('role', 'staff') == 'admin'
+    }
 
     cache_set("dashboard:main", json.dumps(data, default=str), ttl=_DASHBOARD_CACHE_TTL)
 

@@ -120,9 +120,11 @@
     <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-secondary" style="justify-content:center;">
       <i class="fa-solid fa-arrow-up"></i> Stock Out
     </a>
-    <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" class="btn btn-secondary" style="justify-content:center;">
-      <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> Low Stock ({{ metrics.low_stock_count }})
-    </a>
+    {% if current_user.role in ['admin', 'inventory_manager'] %}
+      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary" style="justify-content:center;">
+        <i class="fa-solid fa-file-import"></i> Bulk Stock In
+      </a>
+    {% endif %}
     <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary" style="justify-content:center;">
       <i class="fa-solid fa-receipt"></i> Recent Bills
     </a>
@@ -176,7 +178,8 @@
       </div>
     </div>
 
-    <!-- Chart 3: Role requests by status (Donut) -->
+    <!-- Chart 3: Role-based chart (donut for admins, top products otherwise) -->
+    {% if show_role_requests %}
     <div class="card chart-card">
       <div class="card-header">
         <h3 class="card-title"><i class="fa-solid fa-users-gear"></i> Role Requests Status</h3>
@@ -185,6 +188,16 @@
         <canvas id="roleRequestsChart"></canvas>
       </div>
     </div>
+    {% else %}
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-ranking-star"></i> Top Products by Stock</h3>
+      </div>
+      <div class="chart-container">
+        <canvas id="topProductsChart"></canvas>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   <!-- Recent Transactions Table -->
@@ -194,8 +207,15 @@
       <a href="{{ url_for('inventory.view_transactions') }}" class="btn btn-secondary btn-sm">View Full History</a>
     </div>
 
+    <div class="activity-filter-chips" role="group" aria-label="Filter activity">
+      <button type="button" class="activity-chip is-active" data-filter="all">All</button>
+      <button type="button" class="activity-chip" data-filter="STOCK_IN"><i class="fa-solid fa-plus"></i> Stock In</button>
+      <button type="button" class="activity-chip" data-filter="STOCK_OUT"><i class="fa-solid fa-minus"></i> Stock Out</button>
+      <button type="button" class="activity-chip" data-filter="ADJUSTMENT"><i class="fa-solid fa-sliders"></i> Adjust</button>
+    </div>
+
     <div class="table-responsive">
-      <table class="data-table clickable-rows">
+      <table class="data-table clickable-rows" id="recent-activity-table">
         <thead>
           <tr>
             <th><i class="fa-solid fa-clock"></i> Date & Time</th>
@@ -210,7 +230,7 @@
         <tbody>
           {% if metrics.recent_transactions %}
             {% for tx in metrics.recent_transactions %}
-              <tr>
+              <tr data-tx-type="{{ tx.transaction_type }}">
                 <td>{{ format_datetime(tx.created_at) }}</td>
                 <td>
                   <a href="{{ url_for('products.view_product', product_name=tx.product_name) }}" class="dash-product-link">

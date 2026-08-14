@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from flask import Flask, render_template, session
 from config import Config
@@ -139,6 +140,39 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 except Exception:
                     pass
 
+        low_stock_alerts = []
+        low_stock_count = 0
+        if user_id:
+            cached_alerts = cache_get("alerts:low_stock")
+            if cached_alerts:
+                try:
+                    low_stock_alerts = json.loads(cached_alerts)
+                except (TypeError, ValueError):
+                    low_stock_alerts = []
+            else:
+                try:
+                    from inventory_app.services.product_service import get_stock_alerts
+                    low_stock_alerts = get_stock_alerts(limit=6)
+                    cache_set("alerts:low_stock", json.dumps(low_stock_alerts, default=str), ttl=30)
+                except Exception:
+                    low_stock_alerts = []
+
+            cached_count = cache_get("alerts:low_stock_count")
+            if cached_count is not None:
+                try:
+                    low_stock_count = int(cached_count)
+                except (TypeError, ValueError):
+                    low_stock_count = 0
+            else:
+                try:
+                    from inventory_app.database import get_db
+                    low_stock_count = get_db().products.count_documents(
+                        {"is_active": True, "$expr": {"$lte": ["$quantity", {"$ifNull": ["$minimum_stock", 5]}]}}
+                    )
+                    cache_set("alerts:low_stock_count", str(low_stock_count), ttl=30)
+                except Exception:
+                    low_stock_count = 0
+
         return {
             'csrf_token': generate_csrf_token,
             'calculate_stock_status': calculate_stock_status,
@@ -151,7 +185,9 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 'username': username,
                 'role': user_role
             },
-            'pending_requests_count': pending_requests_count
+            'pending_requests_count': pending_requests_count,
+            'low_stock_alerts': low_stock_alerts,
+            'low_stock_count': low_stock_count
         }
 
     # Lightweight health check (used by keep-warm pings / uptime monitors).

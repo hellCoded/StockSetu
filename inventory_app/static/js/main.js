@@ -114,6 +114,9 @@ function initInstantSearch() {
     if (!table) return;
     const rows = [...table.querySelectorAll('tbody tr:not(.empty-row)')];
     const emptyRow = table.querySelector('.empty-row');
+    const grid = document.querySelector('.product-view-grid');
+    const cards = grid ? [...grid.querySelectorAll('.product-card')] : [];
+    const gridEmpty = grid ? grid.querySelector('.empty-table') : null;
     input.addEventListener('input', () => {
       const q = input.value.trim().toLowerCase();
       let visible = 0;
@@ -123,7 +126,38 @@ function initInstantSearch() {
         if (match) visible++;
       });
       if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+      let gridVisible = 0;
+      cards.forEach(card => {
+        const match = !q || card.textContent.toLowerCase().includes(q);
+        card.style.display = match ? '' : 'none';
+        if (match) gridVisible++;
+      });
+      if (gridEmpty) gridEmpty.style.display = gridVisible === 0 ? '' : 'none';
     });
+  });
+}
+
+// ── 5b. PRODUCT VIEW TOGGLE (List / Card grid) ──────────────
+function initProductViewToggle() {
+  const toggle = document.querySelector('.view-toggle');
+  if (!toggle) return;
+  const listView = document.querySelector('.product-view-list');
+  const gridView = document.querySelector('.product-view-grid');
+  if (!listView || !gridView) return;
+
+  const saved = localStorage.getItem('products-view') || 'list';
+  const apply = (mode) => {
+    listView.hidden = mode !== 'list';
+    gridView.hidden = mode !== 'grid';
+    toggle.querySelectorAll('.view-toggle-btn').forEach(btn => {
+      btn.classList.toggle('is-active', btn.dataset.view === mode);
+    });
+    localStorage.setItem('products-view', mode);
+  };
+  apply(saved);
+
+  toggle.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => apply(btn.dataset.view));
   });
 }
 
@@ -263,6 +297,33 @@ function initRowNavigation() {
   });
 }
 
+// ── 10. NAVBAR ALERT BELL TOGGLE ─────────────────────────────
+function initAlertBell() {
+  const bell = document.getElementById('alert-bell');
+  const wrap = bell ? bell.closest('.alert-bell-wrap') : null;
+  if (!bell || !wrap) return;
+
+  bell.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = wrap.classList.toggle('open');
+    bell.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!wrap.contains(e.target)) {
+      wrap.classList.remove('open');
+      bell.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      wrap.classList.remove('open');
+      bell.setAttribute('aria-expanded', 'false');
+    }
+  });
+}
+
 // ── INIT ALL ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const toggleBtn = document.getElementById('mobile-sidebar-toggle');
@@ -287,10 +348,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initKpiCounters();
   initInstantSearch();
   initSortableTable();
+  initProductViewToggle();
   initStockPreview();
   initFormLoadingState();
   initCustomConfirmTriggers();
   initRowNavigation();
+  initAlertBell();
 });
 
 // ── Global helpers ────────────────────────────────────────────
