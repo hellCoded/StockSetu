@@ -47,76 +47,149 @@
           <th>Bill No.</th>
           <th>Date &amp; Time</th>
           <th>Customer</th>
-          <th style="text-align: center;">Items</th>
+          <th>Items</th>
           <th>Payment</th>
           <th>Status</th>
-          <th style="text-align: right;">Amount</th>
+          <th style="text-align: right;">Bill Total</th>
+          <th style="text-align: right;">Paid</th>
+          <th style="text-align: right;">Balance Due</th>
           <th>By</th>
           <th style="text-align: center;">Action</th>
         </tr>
       </thead>
       <tbody>
         {% for bill in bills %}
+        {% set total_items = bill.line_items | length %}
+        {% set refunded_items = bill.line_items | selectattr('is_refunded') | list %}
+        {% set refund_count = refunded_items | length %}
+        {% set active_items = total_items - refund_count %}
+        {% set paid = bill.amount_paid or bill.grand_total or 0 %}
+        {% set due = bill.amount_due or 0 %}
+        {% set paid_pct = ((paid / bill.grand_total) * 100) if bill.grand_total > 0 else 100 %}
         <tr>
+          {# ── Bill Number ── #}
           <td><strong style="font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.02em;">{{ bill.bill_number }}</strong></td>
+          
+          {# ── Date & Time ── #}
           <td style="color: var(--text-muted); font-size: 0.82rem; white-space: nowrap;">{{ format_datetime(bill.created_at) }}</td>
+          
+          {# ── Customer ── #}
           <td>
             <span style="font-weight: 600; color: var(--text-main);">{{ bill.customer_name }}</span>
             {% if bill.customer_phone %}<br><small style="color: var(--text-muted); font-size: 0.75rem;">{{ bill.customer_phone }}</small>{% endif %}
           </td>
-          <td style="text-align: center;">
-            {% set refund_count = bill.line_items | selectattr('is_refunded') | list | length %}
-            {% set total_items = bill.line_items | length %}
-            {% if refund_count > 0 %}
-              <span class="badge badge-danger">{{ total_items - refund_count }}/{{ total_items }}</span>
-            {% else %}
-              <span class="badge badge-secondary">{{ total_items }}</span>
-            {% endif %}
+          
+          {# ── Items Breakdown ── #}
+          <td>
+            <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">{{ active_items }}</span>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">of {{ total_items }}</span>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">item{{ 's' if total_items != 1 }}</span>
+              </div>
+              {% if refund_count > 0 %}
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span style="background:#fef2f2; color:#dc2626; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700;">
+                  <i class="fa-solid fa-rotate-left" style="font-size: 0.6rem;"></i> {{ refund_count }} returned
+                </span>
+              </div>
+              {% endif %}
+              {# ── Mini item list ── #}
+              <div style="font-size: 0.7rem; color: var(--text-muted); max-width: 180px; line-height: 1.3;">
+                {% for item in bill.line_items[:3] %}
+                  <span{% if item.is_refunded %} style="text-decoration: line-through; color: #dc2626;"{% endif %}>{{ item.product_name }}</span>{% if not loop.last %}, {% endif %}
+                {% endfor %}
+                {% if total_items > 3 %}
+                  <span style="font-weight: 600;">+{{ total_items - 3 }} more</span>
+                {% endif %}
+              </div>
+            </div>
           </td>
+          
+          {# ── Payment Method ── #}
           <td>
             {% set pm = bill.payment_method | upper %}
             {% if pm == 'CASH' %}
-              <span class="badge badge-success"><i class="fa-solid fa-money-bill-wave"></i> Cash</span>
+              <span style="background:#dcfce7; color:#166534; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-money-bill-wave" style="font-size:0.65rem;"></i> Cash</span>
             {% elif pm == 'UPI' %}
-              <span class="badge badge-info"><i class="fa-solid fa-qrcode"></i> UPI</span>
+              <span style="background:#ede9fe; color:#5b21b6; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-qrcode" style="font-size:0.65rem;"></i> UPI</span>
             {% elif pm == 'CARD' %}
-              <span class="badge badge-info"><i class="fa-solid fa-credit-card"></i> Card</span>
+              <span style="background:#dbeafe; color:#1e40af; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-credit-card" style="font-size:0.65rem;"></i> Card</span>
             {% elif pm == 'CREDIT' %}
-              <span class="badge badge-warning"><i class="fa-solid fa-book"></i> Credit</span>
+              <span style="background:#fef3c7; color:#92400e; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-book" style="font-size:0.65rem;"></i> Credit</span>
             {% else %}
-              <span class="badge badge-secondary">{{ bill.payment_method }}</span>
+              <span style="background:#f1f5f9; color:#475569; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;">{{ bill.payment_method }}</span>
             {% endif %}
           </td>
+          
+          {# ── Status ── #}
           <td>
             {% set ps = bill.payment_status or 'PAID' %}
             {% if ps == 'PAID' %}
-              <span class="badge badge-success">PAID</span>
+              <span style="background:#dcfce7; color:#166534; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-circle-check" style="font-size:0.65rem;"></i> PAID</span>
             {% elif ps == 'PARTIAL' %}
-              <span class="badge badge-warning">PARTIAL</span>
+              <span style="background:#fef3c7; color:#92400e; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-clock" style="font-size:0.65rem;"></i> PARTIAL</span>
             {% elif ps == 'DUE' %}
-              <span class="badge badge-danger">DUE</span>
+              <span style="background:#fef2f2; color:#dc2626; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-triangle-exclamation" style="font-size:0.65rem;"></i> DUE</span>
             {% elif ps == 'REFUNDED' %}
-              <span class="badge badge-info">REFUNDED</span>
+              <span style="background:#f5f3ff; color:#5b21b6; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-rotate-left" style="font-size:0.65rem;"></i> REFUNDED</span>
             {% else %}
-              <span class="badge badge-secondary">{{ ps }}</span>
+              <span style="background:#f1f5f9; color:#475569; font-size:0.7rem; padding:0.15rem 0.4rem; border-radius:4px; font-weight:700;">{{ ps }}</span>
             {% endif %}
           </td>
+          
+          {# ── Bill Total ── #}
           <td style="text-align: right;">
             <div style="font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 0.92rem;">
               {{ format_currency(bill.grand_total) }}
             </div>
-            {% set due = bill.amount_due or 0 %}
+          </td>
+          
+          {# ── Amount Paid ── #}
+          <td style="text-align: right;">
+            <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
+              {{ format_currency(paid) }}
+            </div>
+            {# ── Payment progress bar ── #}
+            <div style="background: #e2e8f0; border-radius: 9999px; height: 4px; overflow: hidden; margin-top: 0.2rem; width: 80px; margin-left: auto;">
+              <div style="background: {% if paid_pct >= 100 %}#16a34a;{% elif paid_pct > 0 %}#f59e0b;{% else %}#dc2626;{% endif %}; height: 100%; width: {{ [paid_pct, 100] | min }}%; border-radius: 9999px;"></div>
+            </div>
+          </td>
+          
+          {# ── Balance Due ── #}
+          <td style="text-align: right;">
             {% if due > 0 %}
-              <div style="font-size: 0.72rem; color: var(--color-danger); font-weight: 600; font-family: var(--font-mono);">
-                Due: {{ format_currency(due) }}
+              <div style="font-weight: 800; color: #dc2626; font-size: 0.88rem; font-family: var(--font-mono);">
+                {{ format_currency(due) }}
+              </div>
+              <div style="font-size: 0.65rem; color: #dc2626; font-weight: 600; margin-top: 0.1rem;">
+                pending
+              </div>
+            {% elif bill.payment_status == 'REFUNDED' %}
+              <div style="font-weight: 700; color: #5b21b6; font-size: 0.85rem;">
+                {{ format_currency(bill.grand_total) }}
+              </div>
+              <div style="font-size: 0.65rem; color: #5b21b6; font-weight: 600; margin-top: 0.1rem;">
+                refunded
+              </div>
+            {% else %}
+              <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
+                {{ format_currency(0) }}
+              </div>
+              <div style="font-size: 0.65rem; color: #166534; font-weight: 600; margin-top: 0.1rem;">
+                settled
               </div>
             {% endif %}
           </td>
+          
+          {# ── Created By ── #}
           <td style="font-size: 0.8rem; color: var(--text-muted);">
             <i class="fa-solid fa-user" style="font-size: 0.7rem;"></i> {{ bill.created_by }}
           </td>
+          
+          {# ── Action ── #}
           <td style="text-align: center;">
-            <a href="{{ url_for('billing.view_bill', bill_id=bill._id) }}" class="btn btn-secondary btn-sm" title="View / Print Invoice">
+            <a href="{{ url_for('billing.view_bill', bill_id=bill._id) }}" class="btn btn-secondary btn-sm" title="View / Print Invoice" style="font-size: 0.78rem;">
               <i class="fa-solid fa-receipt"></i> View
             </a>
           </td>
@@ -124,25 +197,46 @@
         {% endfor %}
       </tbody>
       <tfoot>
-        {% set ns = namespace(total=0, paid=0, due=0) %}
+        {% set ns = namespace(total=0, paid=0, due=0, refunded=0) %}
         {% for b in bills %}
           {% set ns.total = ns.total + (b.grand_total or 0) %}
           {% set ns.paid = ns.paid + (b.amount_paid or b.grand_total or 0) %}
           {% set ns.due = ns.due + (b.amount_due or 0) %}
+          {% if b.payment_status == 'REFUNDED' %}
+            {% set ns.refunded = ns.refunded + (b.grand_total or 0) %}
+          {% endif %}
         {% endfor %}
         <tr style="background: var(--color-surface-container);">
-          <td colspan="5" style="text-align: right; font-weight: 700; color: var(--text-muted); font-size: 0.8rem; padding: 0.875rem 1rem;">Total ({{ bills|length }} bills):</td>
-          <td style="text-align: right; font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 1rem; padding: 0.875rem 1rem;">
+          <td colspan="6" style="text-align: right; font-weight: 700; color: var(--text-muted); font-size: 0.8rem; padding: 0.875rem 1rem;">
+            Total ({{ bills|length }} bills):
+          </td>
+          <td style="text-align: right; font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 1rem; padding: 0.875rem 0.5rem;">
             {{ format_currency(ns.total) }}
           </td>
-          <td colspan="3" style="padding: 0.875rem 1rem;">
+          <td style="text-align: right; font-weight: 700; color: #166534; font-size: 0.9rem; padding: 0.875rem 0.5rem;">
+            {{ format_currency(ns.paid) }}
+          </td>
+          <td style="text-align: right; padding: 0.875rem 0.5rem;">
             {% if ns.due > 0 %}
-              <span style="color: var(--color-danger); font-weight: 700; font-family: var(--font-mono); font-size: 0.82rem;">
-                <i class="fa-solid fa-triangle-exclamation"></i> {{ format_currency(ns.due) }} outstanding
+              <span style="color: #dc2626; font-weight: 800; font-family: var(--font-mono); font-size: 0.88rem;">
+                {{ format_currency(ns.due) }}
               </span>
+              <br>
+              <span style="font-size: 0.65rem; color: #dc2626; font-weight: 600;">outstanding</span>
             {% else %}
-              <span style="color: var(--color-success); font-weight: 600; font-size: 0.82rem;">
-                <i class="fa-solid fa-circle-check"></i> All paid
+              <span style="color: #166534; font-weight: 700; font-size: 0.88rem;">
+                {{ format_currency(0) }}
+              </span>
+              <br>
+              <span style="font-size: 0.65rem; color: #166534; font-weight: 600;">
+                <i class="fa-solid fa-circle-check"></i> All settled
+              </span>
+            {% endif %}
+          </td>
+          <td colspan="2" style="padding: 0.875rem 1rem;">
+            {% if ns.refunded > 0 %}
+              <span style="color: #5b21b6; font-weight: 600; font-size: 0.8rem;">
+                <i class="fa-solid fa-rotate-left"></i> {{ format_currency(ns.refunded) }} refunded
               </span>
             {% endif %}
           </td>
