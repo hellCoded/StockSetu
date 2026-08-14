@@ -365,8 +365,8 @@
         </thead>
         <tbody>
           {% for item in bill.line_items %}
-          <tr>
-            <td class="tl">{{ item.product_name }}</td>
+          <tr{% if item.is_refunded %} style="opacity:0.5; text-decoration:line-through;"{% endif %}>
+            <td class="tl">{{ item.product_name }}{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.6rem; padding:0.05rem 0.25rem; border-radius:3px; font-weight:700; text-decoration:none;">REFUNDED</span>{% endif %}</td>
             <td class="tc">{{ item.quantity | int }}</td>
             <td class="tr">{{ "%.2f"|format(item.unit_price) }}</td>
             <td class="tr">{{ "%.2f"|format(item.line_total) }}</td>
@@ -469,10 +469,17 @@
       </thead>
       <tbody>
         {% for p in payments %}
-        <tr>
+        {% set is_refund = p.type == 'REFUND' %}
+        <tr{% if is_refund %} style="background:#fef2f2;"{% endif %}>
           <td style="white-space: nowrap;">{{ format_datetime(p.created_at) }}</td>
-          <td>{{ p.method }}</td>
-          <td style="text-align: right; font-weight: 700;">{{ format_currency(p.amount) }}</td>
+          <td>
+            {% if is_refund %}
+              <span style="background:#fef2f2; color:#dc2626; font-size:0.7rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700;">REFUND</span>
+            {% else %}
+              {{ p.method }}
+            {% endif %}
+          </td>
+          <td style="text-align: right; font-weight: 700; {% if is_refund %}color:#dc2626;{% endif %}">{% if is_refund %}-{% endif %}{{ format_currency(p.amount) }}</td>
           <td style="color: var(--text-muted);">{{ p.reference or '—' }}</td>
           <td style="color: var(--text-muted);">{{ p.performed_by }}</td>
         </tr>
@@ -573,9 +580,9 @@
         {% set ns = namespace(total_qty=0) %}
         {% for item in bill.line_items %}
         {% set ns.total_qty = ns.total_qty + item.quantity %}
-        <tr>
+        <tr{% if item.is_refunded %} style="opacity:0.5; text-decoration:line-through;"{% endif %}>
           <td class="c">{{ loop.index }}</td>
-          <td class="l">{{ item.product_name }}</td>
+          <td class="l">{{ item.product_name }}{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700; text-decoration:none; vertical-align:middle;">REFUNDED</span>{% endif %}</td>
           <td class="c">{{ item.hsn_code or '—' }}</td>
           <td class="c">{{ item.quantity | int }}</td>
           <td class="r">{{ "%.2f"|format(item.unit_price) }}</td>
@@ -680,23 +687,28 @@
       </thead>
       <tbody>
         {% for p in payments %}
-        <tr>
+        {% set is_refund = p.type == 'REFUND' %}
+        <tr{% if is_refund %} style="background:#fef2f2;"{% endif %}>
           <td style="white-space: nowrap;">{{ format_datetime(p.created_at) }}</td>
           <td>
-            {% set pm = p.method | upper %}
-            {% if pm == 'CASH' %}
-              <span class="badge" style="background:#dcfce7; color:#166534;">Cash</span>
-            {% elif pm == 'UPI' %}
-              <span class="badge" style="background:#ede9fe; color:#5b21b6;">UPI</span>
-            {% elif pm == 'CARD' %}
-              <span class="badge" style="background:#dbeafe; color:#1e40af;">Card</span>
-            {% elif pm == 'CREDIT' %}
-              <span class="badge" style="background:#fef3c7; color:#92400e;">Credit</span>
+            {% if is_refund %}
+              <span class="badge" style="background:#fef2f2; color:#dc2626;"><i class="fa-solid fa-rotate-left"></i> Refund</span>
             {% else %}
-              <span class="badge badge-secondary">{{ p.method }}</span>
+              {% set pm = p.method | upper %}
+              {% if pm == 'CASH' %}
+                <span class="badge" style="background:#dcfce7; color:#166534;">Cash</span>
+              {% elif pm == 'UPI' %}
+                <span class="badge" style="background:#ede9fe; color:#5b21b6;">UPI</span>
+              {% elif pm == 'CARD' %}
+                <span class="badge" style="background:#dbeafe; color:#1e40af;">Card</span>
+              {% elif pm == 'CREDIT' %}
+                <span class="badge" style="background:#fef3c7; color:#92400e;">Credit</span>
+              {% else %}
+                <span class="badge badge-secondary">{{ p.method }}</span>
+              {% endif %}
             {% endif %}
           </td>
-          <td style="text-align: right; font-weight: 700;">{{ format_currency(p.amount) }}</td>
+          <td style="text-align: right; font-weight: 700; {% if is_refund %}color:#dc2626;{% endif %}">{% if is_refund %}-{% endif %}{{ format_currency(p.amount) }}</td>
           <td style="color: var(--text-muted);">{{ p.reference or '—' }}</td>
           <td style="color: var(--text-muted);">{{ p.performed_by }}</td>
         </tr>

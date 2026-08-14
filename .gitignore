@@ -11,3 +11,6 @@ htmlcov/
 test_supplier_bill.*
 test_mixed_bill.*
 test_scenarios_bill.*
+
+.vercel
+.env*

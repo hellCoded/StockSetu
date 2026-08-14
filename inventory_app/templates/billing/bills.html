@@ -67,7 +67,13 @@
             {% if bill.customer_phone %}<br><small style="color: var(--text-muted); font-size: 0.75rem;">{{ bill.customer_phone }}</small>{% endif %}
           </td>
           <td style="text-align: center;">
-            <span class="badge badge-secondary">{{ bill.line_items | length }} item{{ 's' if (bill.line_items | length) != 1 }}</span>
+            {% set refund_count = bill.line_items | selectattr('is_refunded') | list | length %}
+            {% set total_items = bill.line_items | length %}
+            {% if refund_count > 0 %}
+              <span class="badge" style="background:#fef2f2; color:#dc2626;">{{ total_items - refund_count }}/{{ total_items }} items</span>
+            {% else %}
+              <span class="badge badge-secondary">{{ total_items }} item{{ 's' if total_items != 1 }}</span>
+            {% endif %}
           </td>
           <td>
             {% set pm = bill.payment_method | upper %}

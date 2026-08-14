@@ -592,6 +592,7 @@ def record_bill_payment(bill_id: str, amount: float, method: str,
         "reference": reference.strip() if reference else "",
         "performed_by": performed_by,
         "created_at": now,
+        "type": "PAYMENT",
     })
 
     log_audit("BILL_PAYMENT", performed_by, bill.get("bill_number"), {
@@ -695,6 +696,17 @@ def refund_bill_lines(bill_id: str, line_indices: list, reason: str, performed_b
             "refund_history": new_refund_history,
         }}
     )
+
+    db.bill_payments.insert_one({
+        "bill_id": ObjectId(bill_id),
+        "bill_number": bill.get("bill_number"),
+        "amount": refund_amount,
+        "method": "REFUND",
+        "reference": reason_clean,
+        "performed_by": performed_by,
+        "created_at": now,
+        "type": "REFUND",
+    })
 
     log_audit("BILL_REFUND_LINE", performed_by, bill.get("bill_number"), {
         "line_indices": line_indices,
@@ -922,6 +934,18 @@ def refund_bill(bill_id: str, reason: str, performed_by: str) -> tuple[bool, str
             "refund_history": new_refund_history,
         }}
     )
+
+    db.bill_payments.insert_one({
+        "bill_id": ObjectId(bill_id),
+        "bill_number": bill.get("bill_number"),
+        "amount": bill.get("grand_total", 0),
+        "method": "REFUND",
+        "reference": reason_clean,
+        "performed_by": performed_by,
+        "created_at": now,
+        "type": "REFUND",
+    })
+
     log_audit("BILL_REFUND", performed_by, bill.get("bill_number"), {"reason": reason_clean})
     return True, f"Bill {bill.get('bill_number')} refunded successfully and inventory stock restored."
 
