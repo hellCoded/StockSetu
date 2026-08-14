@@ -127,7 +127,10 @@ def bulk_stock_in():
             item['is_new'] = matched is None
             item['matched_name'] = matched or ''
 
-        session['bulk_import_items'] = items
+        session['bulk_import_items'] = [
+            {k: v for k, v in item.items() if k in ('item_name', 'quantity', 'unit', 'hsn_code', 'is_new', 'matched_name')}
+            for item in items
+        ]
         return render_template(
             'inventory/bulk_stock_in.html',
             items=items,
