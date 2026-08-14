@@ -242,15 +242,15 @@
             <div class="npf-grid">
               <div class="npf-field npf-required">
                 <label class="npf-label">Category <span>*</span></label>
-                <input type="text" name="new_category[]" class="form-control" placeholder="e.g., Fasteners, Electrical" required>
+                <input type="text" name="new_category[]" class="form-control" placeholder="e.g., Fasteners, Electrical" value="{{ item.category|default('', true) }}" required>
               </div>
               <div class="npf-field">
                 <label class="npf-label">Price (per unit)</label>
-                <input type="number" name="new_price[]" class="form-control" step="0.01" min="0" placeholder="0.00">
+                <input type="number" name="new_price[]" class="form-control" step="0.01" min="0" placeholder="0.00" value="{{ item.price|default('', true) }}">
               </div>
               <div class="npf-field">
                 <label class="npf-label">GST Rate (%)</label>
-                <input type="number" name="new_gst[]" class="form-control" step="0.1" min="0" max="28" placeholder="0">
+                <input type="number" name="new_gst[]" class="form-control" step="0.1" min="0" max="28" placeholder="0" value="{{ item.gst_rate|default('', true) }}">
               </div>
               <div class="npf-field">
                 <label class="npf-label">Location</label>
@@ -258,7 +258,7 @@
               </div>
               <div class="npf-field npf-full">
                 <label class="npf-label">Description</label>
-                <input type="text" name="new_desc[]" class="form-control" placeholder="Optional notes">
+                <input type="text" name="new_desc[]" class="form-control" placeholder="Optional notes" value="{{ item.description|default('', true) }}">
               </div>
             </div>
             <div class="npf-grid">
