@@ -184,11 +184,15 @@ def bulk_stock_in_confirm():
 
     new_products = []
     new_transactions = []
-    existing_stock_ops = []
+    existing_updates = []
 
     for i, item in enumerate(items):
         product_name = mapping[i] if i < len(mapping) else ""
         if not product_name:
+            continue
+
+        qty = float(item.get('quantity', 0))
+        if qty <= 0:
             continue
 
         if product_name == '__new__':
@@ -200,20 +204,22 @@ def bulk_stock_in_confirm():
             hsn_from_form = new_hsns[new_i] if new_i < len(new_hsns) else ''
             new_i += 1
 
+            if not category.strip():
+                errors.append(f"'{item['item_name']}' — Category is required")
+                continue
+
             canonical = normalize_product_name(item['item_name'])
-            quantity = float(item.get('quantity', 0))
-            minimum_stock = 5
 
             product_doc = {
                 "product_name": canonical,
-                "category": (category or '').strip(),
-                "description": (desc or '').strip(),
-                "quantity": quantity,
+                "category": category.strip(),
+                "description": desc.strip(),
+                "quantity": qty,
                 "unit": (unit_from_form or item.get('unit', '') or '').strip(),
                 "price": price,
                 "gst_rate": gst,
                 "hsn_code": (hsn_from_form or item.get('hsn_code', '') or '').strip().upper(),
-                "minimum_stock": minimum_stock,
+                "minimum_stock": 5,
                 "location": "",
                 "is_active": True,
                 "created_at": now,
@@ -221,41 +227,32 @@ def bulk_stock_in_confirm():
             }
             new_products.append(product_doc)
 
-            if quantity > 0:
+            if qty > 0:
                 new_transactions.append({
                     "product_name": canonical,
                     "transaction_type": "INITIAL_STOCK",
-                    "quantity": quantity,
+                    "quantity": qty,
                     "previous_quantity": 0,
-                    "new_quantity": quantity,
+                    "new_quantity": qty,
                     "reason": "Initial product registration",
                     "performed_by": username,
                     "created_at": now,
                 })
         else:
-            existing_stock_ops.append((product_name, float(item.get('quantity', 0))))
+            existing_updates.append((product_name, qty, reason, username, now))
 
     db = get_db()
 
     if new_products:
-        valid_products = []
-        for p in new_products:
-            cat = p.get("category", "").strip()
-            if not cat:
-                errors.append(f"'{p['product_name']}' — Category is required")
-                continue
-            valid_products.append(p)
-
-        if valid_products:
-            try:
-                db.products.insert_many(valid_products, ordered=False)
-                created_count = len(valid_products)
-                success_count += created_count
-                for p in valid_products:
-                    invalidate_product_cache(p["product_name"])
-                    log_audit("PRODUCT_CREATE", username, p["product_name"], {"initial_stock": p["quantity"]})
-            except Exception as e:
-                errors.append(f"Bulk product creation failed: {str(e)}")
+        try:
+            db.products.insert_many(new_products, ordered=False)
+            created_count = len(new_products)
+            success_count += created_count
+            for p in new_products:
+                invalidate_product_cache(p["product_name"])
+                log_audit("PRODUCT_CREATE", username, p["product_name"], {"initial_stock": p["quantity"]})
+        except Exception as e:
+            errors.append(f"Bulk product creation failed: {str(e)}")
 
     if new_transactions:
         try:
@@ -263,12 +260,47 @@ def bulk_stock_in_confirm():
         except Exception:
             pass
 
-    for prod_name, qty in existing_stock_ops:
-        ok, msg, _ = stock_in(prod_name, qty, reason, performed_by=username)
-        if ok:
+    if existing_updates:
+        product_names = [u[0] for u in existing_updates]
+        products_cursor = db.products.find(
+            {"product_name": {"$in": product_names}, "is_active": True},
+            {"product_name": 1, "quantity": 1}
+        )
+        product_map = {p["product_name"]: p for p in products_cursor}
+
+        bulk_tx = []
+        for prod_name, qty, reason, user, ts in existing_updates:
+            prod = product_map.get(prod_name)
+            if not prod:
+                errors.append(f"'{prod_name}' — Product not found or inactive")
+                continue
+            prev_qty = float(prod.get("quantity", 0))
+            bulk_tx.append({
+                "product_name": prod_name,
+                "transaction_type": "STOCK_IN",
+                "quantity": qty,
+                "previous_quantity": prev_qty,
+                "new_quantity": prev_qty + qty,
+                "reason": (reason or "Inventory received").strip(),
+                "performed_by": user,
+                "created_at": ts,
+            })
             success_count += 1
-        else:
-            errors.append(f"'{prod_name}' — {msg}")
+
+        if bulk_tx:
+            try:
+                db.inventory_transactions.insert_many(bulk_tx, ordered=False)
+
+                for tx in bulk_tx:
+                    db.products.update_one(
+                        {"product_name": tx["product_name"]},
+                        {"$inc": {"quantity": tx["quantity"]}, "$set": {"updated_at": now}}
+                    )
+                    invalidate_product_cache(tx["product_name"])
+                    log_audit("STOCK_IN", tx["performed_by"], tx["product_name"],
+                              {"qty_added": tx["quantity"], "new_qty": tx["new_quantity"]})
+            except Exception as e:
+                errors.append(f"Bulk stock-in failed: {str(e)}")
 
     if created_count > 0:
         flash(f"Created {created_count} new product(s).", "success")
