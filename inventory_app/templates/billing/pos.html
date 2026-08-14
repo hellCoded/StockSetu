@@ -509,7 +509,7 @@
   </div>
 </div>
 
-<form method="POST" action="{{ url_for('billing.create') }}" id="bill-form">
+<form method="POST" action="{{ url_for('billing.create_bill') }}" id="bill-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div id="item-fields-holder"></div>
 

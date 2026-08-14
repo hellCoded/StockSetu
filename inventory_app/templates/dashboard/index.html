@@ -103,7 +103,7 @@
         <div class="kpi-icon"><i class="fa-solid fa-circle-xmark"></i></div>
         <div class="kpi-body">
           <div class="kpi-value" data-counter="{{ metrics.out_of_stock_count }}">{{ metrics.out_of_stock_count }}</div>
-          <div class="kpi-label">Out of Stock Items</div>
+          <div class="kpi-label">Out of Stock</div>
         </div>
       </div>
     </a>
@@ -114,10 +114,10 @@
     <a href="{{ url_for('billing.pos') }}" class="btn btn-primary" style="justify-content:center;">
       <i class="fa-solid fa-cart-shopping"></i> New Bill
     </a>
-    <a href="{{ url_for('inventory.handle_stock_in') }}" class="btn btn-secondary" style="justify-content:center;">
+    <a href="{{ url_for('inventory.stock_in') }}" class="btn btn-secondary" style="justify-content:center;">
       <i class="fa-solid fa-arrow-down"></i> Stock In
     </a>
-    <a href="{{ url_for('inventory.handle_stock_out') }}" class="btn btn-secondary" style="justify-content:center;">
+    <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-secondary" style="justify-content:center;">
       <i class="fa-solid fa-arrow-up"></i> Stock Out
     </a>
     <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" class="btn btn-secondary" style="justify-content:center;">

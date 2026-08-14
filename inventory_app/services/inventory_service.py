@@ -36,7 +36,7 @@ def stock_in(product_name: str, quantity: float, reason: str, performed_by: str)
         )
         
         if res.matched_count == 0:
-            return False, "Product document not found during update.", {}
+            return False, "Product could not be updated.", {}
             
         # Record transaction
         tx_doc = {
@@ -57,7 +57,7 @@ def stock_in(product_name: str, quantity: float, reason: str, performed_by: str)
         updated_product = get_product_by_name(canonical_name)
         return True, f"Successfully added {quantity} units to '{canonical_name}'.", updated_product
     except Exception as e:
-        return False, f"Failed to complete stock-in operation: {str(e)}", {}
+        return False, "An unexpected error occurred during stock-in.", {}
 
 def stock_out(product_name: str, quantity: float, reason: str, performed_by: str) -> tuple[bool, str, dict]:
     """
@@ -124,7 +124,7 @@ def stock_out(product_name: str, quantity: float, reason: str, performed_by: str
         updated_product = get_product_by_name(canonical_name)
         return True, f"Successfully removed {quantity} units from '{canonical_name}'.", updated_product
     except Exception as e:
-        return False, f"Failed to complete stock-out operation: {str(e)}", {}
+        return False, "An unexpected error occurred during stock-out.", {}
 
 def stock_adjust(product_name: str, target_quantity: float, reason: str, performed_by: str) -> tuple[bool, str, dict]:
     """
@@ -161,7 +161,7 @@ def stock_adjust(product_name: str, target_quantity: float, reason: str, perform
         )
         
         if res.matched_count == 0:
-            return False, "Product document not found during update.", {}
+            return False, "Product could not be updated.", {}
             
         # Record ADJUSTMENT transaction
         tx_doc = {
@@ -187,7 +187,7 @@ def stock_adjust(product_name: str, target_quantity: float, reason: str, perform
         updated_product = get_product_by_name(canonical_name)
         return True, f"Stock for '{canonical_name}' adjusted to {target_quantity}.", updated_product
     except Exception as e:
-        return False, f"Failed to adjust stock: {str(e)}", {}
+        return False, "An unexpected error occurred while adjusting stock.", {}
 
 def get_product_transactions(product_name: str, limit: int = 50) -> list:
     """Retrieves transaction history for a specific product."""

@@ -27,7 +27,7 @@
 <script>document.body.dataset.stockMode = 'out';</script>
 
 <div class="card" style="max-width: 600px;">
-  <form method="POST" action="{{ url_for('inventory.handle_stock_out') }}">
+  <form method="POST" action="{{ url_for('inventory.stock_out') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="form-group">

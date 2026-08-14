@@ -783,7 +783,7 @@
             Certified that the particulars given above are true and correct.
             <strong>For StockSetu</strong>
           </div>
-          <div class="inv-sig">Authorised Signatory</div>
+          <div class="inv-sig">Authorized Signatory</div>
         </div>
       </div>
     </div>
@@ -962,7 +962,7 @@
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
       This action will mark bill <strong>{{ bill.bill_number }}</strong> as REFUNDED and automatically restore all items back into active inventory stock.
     </p>
-    <form action="{{ url_for('billing.refund', bill_id=bill._id or bill.id) }}" method="POST">
+     <form action="{{ url_for('billing.refund_bill', bill_id=bill._id or bill.id) }}" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="margin-bottom: 1.25rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem;">Reason for Refund <span style="color: #ef4444;">*</span></label>
@@ -987,7 +987,7 @@
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
       Remaining due: <strong style="color: #ef4444;">{{ format_currency(bill.amount_due or bill.grand_total) }}</strong>
     </p>
-    <form action="{{ url_for('billing.pay', bill_id=bill._id or bill.id) }}" method="POST">
+     <form action="{{ url_for('billing.record_payment', bill_id=bill._id or bill.id) }}" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Amount <span style="color: #ef4444;">*</span></label>
@@ -1068,7 +1068,7 @@
     <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
       Edit items and charges. Stock will be adjusted for added/removed items.
     </p>
-    <form action="{{ url_for('billing.edit', bill_id=bill._id or bill.id) }}" method="POST">
+     <form action="{{ url_for('billing.edit_bill', bill_id=bill._id or bill.id) }}" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="customer_name" value="{{ bill.customer_name }}">
       <input type="hidden" name="customer_phone" value="{{ bill.customer_phone or '' }}">

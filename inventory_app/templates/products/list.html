@@ -6,7 +6,7 @@
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
   <div>
     <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Product Inventory</h1>
-    <p style="color: var(--text-muted); font-size: 0.9rem;">Browse, search, and manage products registered in MongoDB</p>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Browse, search, and manage your product catalog</p>
   </div>
   <div style="display: flex; gap: 0.75rem; align-items: center;">
     <a href="{{ url_for('products.export_pdf', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Formatted PDF">

@@ -78,7 +78,7 @@ def register():
                 'username': user['username'],
                 'email': user['email'],
             }
-            flash("Registration successful! Account credentials generated below.", "success")
+            flash("Registration successful! You can now log in.", "success")
             return redirect(url_for('auth.login'))
         else:
             flash(msg, "danger")

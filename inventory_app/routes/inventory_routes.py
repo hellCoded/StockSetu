@@ -12,9 +12,9 @@ inventory_bp = Blueprint('inventory', __name__)
 @login_required
 @roles_required('admin', 'inventory_manager', 'staff')
 @csrf_protected
-def handle_stock_in(product_name=None):
+def stock_in(product_name=None):
     from inventory_app.services.product_service import search_products, get_product_by_name, create_product, validate_product_data, calculate_stock_status
-    from inventory_app.services.inventory_service import stock_in
+    from inventory_app.services.inventory_service import stock_in as stock_in_svc
     if request.method == 'POST':
         p_name = request.form.get('product_name') or product_name
         try:
@@ -26,7 +26,7 @@ def handle_stock_in(product_name=None):
         reason = request.form.get('reason', '')
         username = session.get('username', 'System')
         
-        success, msg, prod = stock_in(p_name, quantity, reason, performed_by=username)
+        success, msg, prod = stock_in_svc(p_name, quantity, reason, performed_by=username)
         if success:
             flash(msg, "success")
             return redirect(url_for('products.view_product', product_name=prod['product_name']))
@@ -42,8 +42,8 @@ def handle_stock_in(product_name=None):
 @login_required
 @roles_required('admin', 'inventory_manager', 'staff')
 @csrf_protected
-def handle_stock_out(product_name=None):
-    from inventory_app.services.inventory_service import stock_out
+def stock_out(product_name=None):
+    from inventory_app.services.inventory_service import stock_out as stock_out_svc
     from inventory_app.services.product_service import search_products, get_product_by_name
     if request.method == 'POST':
         p_name = request.form.get('product_name') or product_name
@@ -56,7 +56,7 @@ def handle_stock_out(product_name=None):
         reason = request.form.get('reason', '')
         username = session.get('username', 'System')
         
-        success, msg, prod = stock_out(p_name, quantity, reason, performed_by=username)
+        success, msg, prod = stock_out_svc(p_name, quantity, reason, performed_by=username)
         if success:
             flash(msg, "success")
             return redirect(url_for('products.view_product', product_name=prod['product_name']))
@@ -72,8 +72,8 @@ def handle_stock_out(product_name=None):
 @login_required
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
-def handle_adjust(product_name=None):
-    from inventory_app.services.inventory_service import stock_adjust
+def adjust_stock(product_name=None):
+    from inventory_app.services.inventory_service import stock_adjust as stock_adjust_svc
     from inventory_app.services.product_service import search_products, get_product_by_name
     if request.method == 'POST':
         p_name = request.form.get('product_name') or product_name
@@ -86,7 +86,7 @@ def handle_adjust(product_name=None):
         reason = request.form.get('reason', '')
         username = session.get('username', 'System')
         
-        success, msg, prod = stock_adjust(p_name, target_quantity, reason, performed_by=username)
+        success, msg, prod = stock_adjust_svc(p_name, target_quantity, reason, performed_by=username)
         if success:
             flash(msg, "success")
             return redirect(url_for('products.view_product', product_name=prod['product_name']))

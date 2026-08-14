@@ -49,7 +49,7 @@ def csrf_protected(f):
                 
             form_token = request.form.get('csrf_token') or request.headers.get('X-CSRFToken')
             if not validate_csrf_token(form_token):
-                flash("Security validation (CSRF) failed. Please try submitting the form again.", "danger")
+                flash("Your session has expired. Please try again.", "danger")
                 return redirect(request.referrer or url_for('dashboard.index'))
         return f(*args, **kwargs)
     return decorated_function

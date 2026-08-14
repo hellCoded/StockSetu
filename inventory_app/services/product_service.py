@@ -91,7 +91,8 @@ def create_product(product_data: dict, performed_by: str, initial_quantity: floa
             logger.error(f"Duplicate key error on index: {err_str}")
             return False, f"Cannot create product due to a duplicate constraint on another field.", {}
     except Exception as e:
-        return False, f"Error creating product: {str(e)}", {}
+        logger.error(f"Error creating product: {e}")
+        return False, "An unexpected error occurred while creating the product.", {}
 
 def get_product_by_name(product_name: str) -> dict:
     """Retrieves product by normalized product_name (cached globally for10s)."""
@@ -239,7 +240,8 @@ def update_product(product_name: str, update_data: dict, performed_by: str) -> t
         updated_prod = get_product_by_name(norm_name)
         return True, f"Product '{norm_name}' updated successfully.", updated_prod
     except Exception as e:
-        return False, f"Failed to update product: {str(e)}", {}
+        logger.error(f"Failed to update product: {e}")
+        return False, "An unexpected error occurred while updating the product.", {}
 
 def rename_product(old_name: str, new_name: str, performed_by: str) -> tuple[bool, str]:
     """
@@ -309,7 +311,8 @@ def rename_product(old_name: str, new_name: str, performed_by: str) -> tuple[boo
     except DuplicateKeyError:
         return False, f"Product name '{canonical_new_name}' already exists."
     except Exception as e:
-        return False, f"Error renaming product: {str(e)}"
+        logger.error(f"Error renaming product: {e}")
+        return False, "An unexpected error occurred while renaming the product."
 
 def toggle_product_active(product_name: str, performed_by: str) -> tuple[bool, str, bool]:
     """Toggles product is_active state without destroying historical transaction data."""

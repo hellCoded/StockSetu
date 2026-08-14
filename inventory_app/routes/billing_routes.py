@@ -68,7 +68,7 @@ def pos():
 @login_required
 @roles_required('admin', 'inventory_manager', 'staff')
 @csrf_protected
-def create():
+def create_bill():
     """Handles POS bill submission. Rate limited to 30 creates/min per user."""
     from inventory_app.services.billing_service import create_bill
     customer_data = {
@@ -165,7 +165,7 @@ def view_bill(bill_id):
 @login_required
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
-def refund(bill_id):
+def refund_bill(bill_id):
     from inventory_app.services.billing_service import refund_bill
     reason = request.form.get('reason', 'Customer Refund')
     username = session.get('username', 'Unknown')
@@ -196,7 +196,7 @@ def refund_lines(bill_id):
 @login_required
 @roles_required('admin', 'inventory_manager', 'staff')
 @csrf_protected
-def pay(bill_id):
+def record_payment(bill_id):
     """Record a payment against a bill."""
     from inventory_app.services.billing_service import record_bill_payment
     try:
@@ -215,7 +215,7 @@ def pay(bill_id):
 @login_required
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
-def edit(bill_id):
+def edit_bill(bill_id):
     """Edit a bill's line items and charges."""
     from inventory_app.services.billing_service import edit_bill
     customer_data = {

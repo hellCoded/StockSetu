@@ -532,7 +532,7 @@ def create_bill(customer_data: dict, items: list, performed_by: str,
             )
         if inserted_tx_ids:
             db.inventory_transactions.delete_many({"_id": {"$in": [ObjectId(t) for t in inserted_tx_ids if ObjectId.is_valid(t)]}})
-        return False, f"Failed to create bill: {str(e)}", {}
+        return False, "An unexpected error occurred while creating the bill.", {}
 
 
 # ──────────────────────────────────────────────────────────────────────

@@ -6,13 +6,13 @@
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
   <div>
     <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Inventory Transaction Log</h1>
-    <p style="color: var(--text-muted); font-size: 0.9rem;">Complete immutable audit trail of all inventory movements</p>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Complete history of all inventory movements</p>
   </div>
   <div style="display: flex; gap: 0.75rem; align-items: center;">
-    <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Audit Log to Formatted PDF">
+    <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to PDF">
       <i class="fa-solid fa-file-pdf" style="color: #dc2626;"></i> Export PDF
     </a>
-    <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Audit Log to Microsoft Excel">
+    <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to Excel">
       <i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Export Excel
     </a>
   </div>

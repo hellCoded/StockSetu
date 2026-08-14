@@ -18,14 +18,14 @@
   </div>
 
   <div style="display: flex; gap: 0.5rem;">
-    <a href="{{ url_for('inventory.handle_stock_in', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #059669;">
+    <a href="{{ url_for('inventory.stock_in', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #059669;">
       <i class="fa-solid fa-plus"></i> Stock In
     </a>
-    <a href="{{ url_for('inventory.handle_stock_out', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #dc2626;">
+    <a href="{{ url_for('inventory.stock_out', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #dc2626;">
       <i class="fa-solid fa-minus"></i> Stock Out
     </a>
     {% if current_user.role in ['admin', 'inventory_manager'] %}
-      <a href="{{ url_for('inventory.handle_adjust', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #d97706;">
+      <a href="{{ url_for('inventory.adjust_stock', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #d97706;">
         <i class="fa-solid fa-sliders"></i> Adjust
       </a>
       <a href="{{ url_for('products.edit_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm">
@@ -34,7 +34,7 @@
     {% endif %}
 
     {% if current_user.role == 'admin' %}
-      <a href="{{ url_for('products.rename_product_route', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #0284c7;">
+      <a href="{{ url_for('products.rename_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="color: #0284c7;">
         <i class="fa-solid fa-i-cursor"></i> Rename
       </a>
     {% endif %}

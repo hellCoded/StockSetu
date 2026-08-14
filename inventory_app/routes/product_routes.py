@@ -306,8 +306,8 @@ def edit_product(product_name):
 @login_required
 @roles_required('admin')
 @csrf_protected
-def rename_product_route(product_name):
-    from inventory_app.services.product_service import get_product_by_name, rename_product
+def rename_product(product_name):
+    from inventory_app.services.product_service import get_product_by_name, rename_product as rename_product_svc
     product = get_product_by_name(product_name)
     if not product:
         flash(f"Product '{product_name}' not found.", "warning")
@@ -317,7 +317,7 @@ def rename_product_route(product_name):
         new_name = request.form.get('new_product_name', '')
         username = session.get('username', 'System')
         
-        success, msg = rename_product(product['product_name'], new_name, performed_by=username)
+        success, msg = rename_product_svc(product['product_name'], new_name, performed_by=username)
         if success:
             flash(msg, "success")
             return redirect(url_for('products.view_product', product_name=new_name))

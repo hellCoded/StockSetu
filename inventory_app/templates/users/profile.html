@@ -30,7 +30,7 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size:0.75rem; color:var(--text-muted);">(System Identifier)</span></label>
+        <label class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size:0.75rem; color:var(--text-muted);">(cannot be changed)</span></label>
         <input type="text" class="form-control" value="{{ user.username }}" readonly disabled style="background: #f8fafc; font-weight: 600;">
       </div>
 
@@ -106,9 +106,9 @@
         <i class="fa-solid fa-user-gear"></i>
       </div>
       <div>
-        <h3 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0;">Request Account Role Update / Elevation</h3>
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0;">Request Role Change</h3>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0 0;">
-          Submit an official role change request to System Administrators for verification and access elevation.
+          Request a role change from an administrator.
         </p>
       </div>
     </div>
@@ -120,7 +120,7 @@
             <i class="fa-solid fa-hourglass-half" style="font-size: 1.4rem; color: #d97706; margin-top: 2px;"></i>
             <div>
               <h4 style="font-size: 0.95rem; font-weight: 700; color: #92400e; margin: 0 0 0.25rem 0;">
-                Role Update Request Pending Administrator Verification
+                Request Pending
               </h4>
               <div style="font-size: 0.85rem; color: #b45309; line-height: 1.5;">
                 Requested Role: <strong><i class="fa-solid fa-shield-halved"></i> {{ pending_request.requested_role | replace('_', ' ') | title }}</strong><br>
@@ -146,7 +146,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
           <div>
             <label for="requested_role" class="form-label">
-              <i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Select Desired Account Role <span style="color: #dc2626;">*</span>
+              <i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Requested Role <span style="color: #dc2626;">*</span>
             </label>
             <select id="requested_role" name="requested_role" class="form-select" required onchange="profileRoleHint(this.value)">
               {% if user.role == 'staff' %}
@@ -158,18 +158,18 @@
 
           <div>
             <label for="reason" class="form-label">
-              <i class="fa-solid fa-pen-to-square" style="color: var(--primary); margin-right: 0.3rem;"></i> Justification / Note for Admin <span style="color: #dc2626;">*</span>
+              <i class="fa-solid fa-pen-to-square" style="color: var(--primary); margin-right: 0.3rem;"></i> Reason for Request <span style="color: #dc2626;">*</span>
             </label>
             <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., Assigned to manage catalog, stock counts & transactions" required>
           </div>
         </div>
 
         <div id="profile-role-hint-box" style="background: #e0f2fe; border-left: 3px solid #0284c7; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; color: #075985; margin-bottom: 1.25rem; line-height: 1.5;">
-          <i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager Privileges</strong>: Grants full access to manage product catalog, post stock inward/outward adjustments, view audit logs, and conduct POS billing.
+          <i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager</strong>: Full access to manage products, post stock adjustments, view audit logs, and create bills.
         </div>
 
         <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.25rem;">
-          <i class="fa-solid fa-paper-plane"></i> Submit Role Request to Admin for Verification
+          <i class="fa-solid fa-paper-plane"></i> Submit Request
         </button>
       </form>
       
@@ -178,12 +178,12 @@
         const hintBox = document.getElementById('profile-role-hint-box');
         if (!hintBox) return;
         if (role === 'admin') {
-          hintBox.innerHTML = '<i class="fa-solid fa-user-shield"></i> <strong>Administrator Privileges</strong>: Grants full system administrative access, user account management, role elevation approvals, audit logs, and store settings.';
+          hintBox.innerHTML = '<i class="fa-solid fa-user-shield"></i> <strong>Administrator</strong>: Full access to manage users, approve role changes, view audit logs, and configure settings.';
           hintBox.style.background = '#f3e8ff';
           hintBox.style.borderColor = '#9333ea';
           hintBox.style.color = '#6b21a8';
         } else {
-          hintBox.innerHTML = '<i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager Privileges</strong>: Grants full access to manage product catalog, post stock inward/outward adjustments, view audit logs, and conduct POS billing.';
+          hintBox.innerHTML = '<i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager</strong>: Full access to manage products, post stock adjustments, view audit logs, and create bills.';
           hintBox.style.background = '#e0f2fe';
           hintBox.style.borderColor = '#0284c7';
           hintBox.style.color = '#075985';
