@@ -1,9 +1,7 @@
 import os
 import json
-import gzip
-import hashlib
 import logging
-from flask import Flask, render_template, session, request, make_response
+from flask import Flask, render_template, session, request
 from config import Config
 from inventory_app.database import init_db
 from inventory_app.utils.validators import generate_csrf_token
@@ -119,7 +117,6 @@ def create_app(config_class=Config, custom_mongo_client=None):
     # ── Cache-Control headers for static assets and pages ──
     STATIC_NO_CACHE = {'/health'}
     STATIC_LONG_CACHE = {'.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot'}
-    GZIP_MIMETYPES = {'text/html', 'text/css', 'text/javascript', 'application/javascript', 'application/json', 'text/xml', 'application/xml'}
 
     @app.after_request
     def optimize_response(response):
@@ -132,7 +129,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
         # Health endpoint: no cache
         elif path in STATIC_NO_CACHE:
             response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
-        # HTML pages: short cache with revalidation (ETag-based)
+        # HTML pages: short cache with revalidation
         elif request.accept_mimetypes.accept_html and not path.startswith('/api/'):
             response.headers['Cache-Control'] = 'private, max-age=0, must-revalidate'
 
@@ -140,39 +137,6 @@ def create_app(config_class=Config, custom_mongo_client=None):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-
-        # Only process compressible responses with status 200
-        if response.status_code != 200:
-            return response
-
-        body = response.get_data(as_text=False)
-
-        # Gzip compression
-        accept_encoding = request.headers.get('Accept-Encoding', '')
-        content_type = response.content_type or ''
-        mime = content_type.split(';')[0].strip()
-
-        if ('gzip' in accept_encoding
-                and mime in GZIP_MIMETYPES
-                and len(body) > 500):
-            compressed = gzip.compress(body, compresslevel=5)
-            if len(compressed) < len(body):
-                response.set_data(compressed)
-                response.headers['Content-Encoding'] = 'gzip'
-                response.headers['Content-Length'] = len(compressed)
-                response.vary = 'Accept-Encoding'
-                body = compressed  # use compressed body for ETag
-
-        # ETag for GET responses (skip for tiny responses where MD5 overhead > savings)
-        if request.method == 'GET' and len(body) > 256:
-            etag = '"' + hashlib.md5(body).hexdigest() + '"'
-            response.headers['ETag'] = etag
-            if request.headers.get('If-None-Match') == etag:
-                preserved_cc = response.headers.get('Cache-Control')
-                response = make_response('', 304)
-                response.headers['ETag'] = etag
-                if preserved_cc:
-                    response.headers['Cache-Control'] = preserved_cc
 
         return response
 
