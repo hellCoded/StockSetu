@@ -132,6 +132,7 @@ def init_db_indexes(db):
         db.products.create_index([("product_name", ASCENDING)], unique=True)
         db.products.create_index([("is_active", ASCENDING), ("category", ASCENDING)])
         db.products.create_index([("is_active", ASCENDING), ("location", ASCENDING)])
+        db.products.create_index([("is_active", ASCENDING), ("quantity", ASCENDING)])
         
         # Inventory transactions indexes
         db.inventory_transactions.create_index([("product_name", ASCENDING)])

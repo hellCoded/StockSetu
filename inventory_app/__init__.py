@@ -136,27 +136,36 @@ def create_app(config_class=Config, custom_mongo_client=None):
         elif request.accept_mimetypes.accept_html and not path.startswith('/api/'):
             response.headers['Cache-Control'] = 'private, max-age=0, must-revalidate'
 
-        # Gzip compression for compressible responses
+        # Security headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+
+        # Only process compressible responses with status 200
+        if response.status_code != 200:
+            return response
+
+        body = response.get_data(as_text=False)
+
+        # Gzip compression
         accept_encoding = request.headers.get('Accept-Encoding', '')
         content_type = response.content_type or ''
         mime = content_type.split(';')[0].strip()
-        body = response.get_data(as_text=False)
 
         if ('gzip' in accept_encoding
                 and mime in GZIP_MIMETYPES
-                and len(body) > 500
-                and response.status_code == 200):
+                and len(body) > 500):
             compressed = gzip.compress(body, compresslevel=5)
             if len(compressed) < len(body):
                 response.set_data(compressed)
                 response.headers['Content-Encoding'] = 'gzip'
                 response.headers['Content-Length'] = len(compressed)
                 response.vary = 'Accept-Encoding'
+                body = compressed  # use compressed body for ETag
 
-        # ETag for GET responses (enables conditional requests)
-        if request.method == 'GET' and response.status_code == 200:
-            etag_source = response.get_data(as_text=False)
-            etag = '"' + hashlib.md5(etag_source).hexdigest() + '"'
+        # ETag for GET responses (skip for tiny responses where MD5 overhead > savings)
+        if request.method == 'GET' and len(body) > 256:
+            etag = '"' + hashlib.md5(body).hexdigest() + '"'
             response.headers['ETag'] = etag
             if request.headers.get('If-None-Match') == etag:
                 response = make_response('', 304)

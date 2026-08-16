@@ -139,6 +139,7 @@ def invalidate_product_cache(product_name: str = None):
 def search_products(query: str = "", category: str = "", location: str = "", stock_status: str = "", is_active: bool = True, sort_by: str = "product_name", sort_dir: int = 1, limit: int = 50) -> list:
     """
     Searches and filters products using server-side MongoDB query.
+    Stock status filtering is pushed to MongoDB via $expr to avoid Python-side iteration.
     """
     db = get_db()
     filter_query = {}
@@ -156,6 +157,21 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         
     if location:
         filter_query["location"] = location
+
+    # Push stock_status filter to MongoDB — avoids fetching then discarding in Python
+    if stock_status:
+        min_stock_expr = {"$ifNull": ["$minimum_stock", 5]}
+        if stock_status == "OUT OF STOCK":
+            filter_query["$expr"] = {"$lte": ["$quantity", 0]}
+        elif stock_status == "LOW STOCK":
+            filter_query["$expr"] = {
+                "$and": [
+                    {"$gt": ["$quantity", 0]},
+                    {"$lte": ["$quantity", min_stock_expr]}
+                ]
+            }
+        elif stock_status == "IN STOCK":
+            filter_query["$expr"] = {"$gt": ["$quantity", min_stock_expr]}
         
     projection = {
         "product_name": 1,
@@ -175,11 +191,6 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
     for p in products:
         p["_id"] = str(p["_id"])
         p["status"] = calculate_stock_status(p.get("quantity", 0))
-        
-        # Filter by calculated stock_status if requested
-        if stock_status and p["status"] != stock_status:
-            continue
-            
         result.append(p)
         
     return result
