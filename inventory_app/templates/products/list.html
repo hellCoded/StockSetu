@@ -3,14 +3,14 @@
 {% block title %}Products - StockSetu{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
   <div>
-    <h1 class="page-header-title">Product Inventory</h1>
-    <p class="page-header-sub">Browse, search, and manage your product catalog</p>
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Product Inventory</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Browse, search, and manage your product catalog</p>
   </div>
-  <div class="page-header-actions">
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
     <a href="{{ url_for('products.export_pdf', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Formatted PDF">
-      <i class="fa-solid fa-file-pdf text-danger"></i> Export PDF
+      <i class="fa-solid fa-file-pdf" style="color: #dc2626;"></i> Export PDF
     </a>
     <a href="{{ url_for('products.export_excel', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Microsoft Excel">
       <i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Export Excel
@@ -25,7 +25,7 @@
 
 <!-- Search and Filter Bar -->
 <form method="GET" action="{{ url_for('products.list_products') }}" class="filter-bar">
-  <div class="filter-item filter-item-wide">
+  <div class="filter-item" style="flex: 2; min-width: 220px;">
     <input type="text" name="q" class="form-control" placeholder="Search by product name..." value="{{ current_query }}">
   </div>
 
@@ -56,7 +56,7 @@
     </select>
   </div>
 
-  <div class="filter-item filter-item-actions">
+  <div class="filter-item" style="flex: 0 0 auto;">
     <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
     <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
   </div>
@@ -64,9 +64,9 @@
 
 <!-- Product List Table -->
 <div class="card">
-  <div class="card-toolbar">
-    <span class="card-toolbar-text"><i class="fa-solid fa-list"></i> Showing all matching products</span>
-    <div class="card-toolbar-group">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <span style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-list"></i> Showing all matching products</span>
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
       <div class="instant-search-wrap">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
         <input type="text" id="instant-search" data-table="product-table" class="form-control instant-search-input" placeholder="Quick filter rows…" autocomplete="off">
@@ -102,13 +102,13 @@
       <tbody>
         {% if products %}
           {% for p in products %}
-            <tr class="{% if not p.is_active %}row-inactive{% endif %}">
+            <tr {% if not p.is_active %}style="opacity: 0.5;"{% endif %}>
               <td>
-                <a href="{{ url_for('products.view_product', product_name=p.product_name) }}" class="font-semibold text-base">
+                <a href="{{ url_for('products.view_product', product_name=p.product_name) }}" style="font-weight: 600; font-size: 0.95rem;">
                   {{ p.product_name }}
                 </a>
                 {% if not p.is_active %}
-                  <span class="badge badge-secondary text-xs" style="margin-left: 0.4rem;">INACTIVE</span>
+                  <span class="badge badge-secondary" style="font-size: 0.65rem; margin-left: 0.4rem;">INACTIVE</span>
                 {% endif %}
               </td>
               <td><span class="badge badge-secondary">{{ p.category }}</span></td>
@@ -128,13 +128,13 @@
                   <div class="silo-gauge">
                     <div class="silo-fill {{ fill_class }}" style="height: {{ pct }}%;"></div>
                   </div>
-                  <span class="font-bold text-md">{{ p.quantity }}</span>
+                  <span style="font-weight: 700; font-size: 1rem;">{{ p.quantity }}</span>
                 </div>
               </td>
-              <td class="text-muted">{{ p.unit }}</td>
+              <td style="color: var(--text-muted);">{{ p.unit }}</td>
               <td>{{ format_currency(p.price) }}</td>
-              <td class="text-success font-bold">{{ format_currency((p.quantity or 0) * (p.price or 0)) }}</td>
-              <td class="text-muted">{{ min_stock }}</td>
+              <td style="font-weight: 700; color: #059669;">{{ format_currency((p.quantity or 0) * (p.price or 0)) }}</td>
+              <td style="color: var(--text-muted);">{{ min_stock }}</td>
               <td>{{ p.location or '-' }}</td>
               <td>
                 <span class="badge {{ get_status_badge_class(p.status) }}">
@@ -145,8 +145,8 @@
           {% endfor %}
         {% else %}
           <tr class="empty-row">
-            <td colspan="9" class="empty-state">
-              <i class="fa-solid fa-box-open"></i>
+            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+              <i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 0.5rem; display: block;"></i>
               No products found matching your search criteria.
             </td>
           </tr>

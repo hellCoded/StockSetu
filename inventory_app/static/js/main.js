@@ -354,62 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCustomConfirmTriggers();
   initRowNavigation();
   initAlertBell();
-  initFilterActiveState();
-  initScrollReveal();
-  initNavbarScroll();
 });
-
-// ── 9. FILTER ACTIVE STATE INDICATOR ──────────────────────────
-function initFilterActiveState() {
-  document.querySelectorAll('.filter-bar').forEach(bar => {
-    const items = bar.querySelectorAll('.filter-item');
-    function checkFilters() {
-      items.forEach(item => {
-        const input = item.querySelector('input, select');
-        if (!input) return;
-        const hasValue = input.value && input.value.trim() !== '' && input.value !== '';
-        item.classList.toggle('has-value', hasValue);
-      });
-    }
-    bar.addEventListener('input', checkFilters);
-    bar.addEventListener('change', checkFilters);
-    checkFilters();
-  });
-}
-
-// ── 10. SCROLL REVEAL ────────────────────────────────────────
-function initScrollReveal() {
-  const els = document.querySelectorAll('.scroll-reveal');
-  if (!els.length) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-  els.forEach(el => observer.observe(el));
-}
-
-// ── 11. NAVBAR SCROLL SHADOW ──────────────────────────────────
-function initNavbarScroll() {
-  const navbar = document.querySelector('.top-navbar');
-  if (!navbar) return;
-
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        navbar.classList.toggle('scrolled', window.scrollY > 10);
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }, { passive: true });
-}
 
 // ── Global helpers ────────────────────────────────────────────
 function togglePasswordVisibility(inputId, btn) {
