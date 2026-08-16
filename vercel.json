@@ -9,11 +9,5 @@
   "routes": [
     { "src": "/health", "dest": "/api/index" },
     { "src": "/(.*)", "dest": "/api/index" }
-  ],
-  "crons": [
-    {
-      "path": "/health",
-      "schedule": "*/5 * * * *"
-    }
   ]
 }
