@@ -32,6 +32,8 @@
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
 
   <title>{% block title %}StockSetu - Smart Inventory Management{% endblock %}</title>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/toasts.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/skeletons.css') }}">
@@ -72,8 +74,8 @@
   {% endif %}
 
   {% include 'components/user_credentials_modal.html' %}
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/toasts.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/toasts.js') }}"></script>
   <script>
   // Dark mode toggle
   (function() {
