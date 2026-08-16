@@ -354,7 +354,26 @@ document.addEventListener('DOMContentLoaded', () => {
   initCustomConfirmTriggers();
   initRowNavigation();
   initAlertBell();
+  initFilterActiveState();
 });
+
+// ── 9. FILTER ACTIVE STATE INDICATOR ──────────────────────────
+function initFilterActiveState() {
+  document.querySelectorAll('.filter-bar').forEach(bar => {
+    const items = bar.querySelectorAll('.filter-item');
+    function checkFilters() {
+      items.forEach(item => {
+        const input = item.querySelector('input, select');
+        if (!input) return;
+        const hasValue = input.value && input.value.trim() !== '' && input.value !== '';
+        item.classList.toggle('has-value', hasValue);
+      });
+    }
+    bar.addEventListener('input', checkFilters);
+    bar.addEventListener('change', checkFilters);
+    checkFilters();
+  });
+}
 
 // ── Global helpers ────────────────────────────────────────────
 function togglePasswordVisibility(inputId, btn) {

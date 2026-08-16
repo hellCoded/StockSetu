@@ -62,7 +62,59 @@
   --font-display: 'Inter', system-ui, sans-serif;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  
+
+  /* Typography Scale */
+  --text-xs: 0.7rem;
+  --text-sm: 0.8rem;
+  --text-base: 0.9rem;
+  --text-md: 1rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.3rem;
+  --text-2xl: 1.6rem;
+  --text-3xl: 2rem;
+
+  /* Component Classes */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+  .page-header h1 { font-size: var(--text-2xl); font-weight: 700; color: var(--color-on-surface); }
+  .page-header-sub { color: var(--color-on-surface-variant); font-size: var(--text-base); }
+  .page-header-actions { display: flex; gap: 0.75rem; align-items: center; }
+  .card-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+  .card-toolbar-text { font-size: var(--text-sm); color: var(--color-on-surface-variant); }
+  .card-toolbar-group { display: flex; align-items: center; gap: 0.75rem; }
+  .text-muted { color: var(--color-on-surface-variant); }
+  .text-success { color: var(--color-success); }
+  .text-danger { color: var(--color-danger); }
+  .text-warning { color: var(--color-warning); }
+  .text-center { text-align: center; }
+  .font-semibold { font-weight: 600; }
+  .font-bold { font-weight: 700; }
+  .empty-state { text-align: center; color: var(--color-on-surface-variant); padding: 3rem; }
+  .empty-state i { font-size: 2.5rem; margin-bottom: 0.5rem; display: block; }
+  .row-inactive { opacity: 0.5; }
+  .text-xs { font-size: var(--text-xs); }
+  .text-base { font-size: var(--text-base); }
+  .text-md { font-size: var(--text-md); }
+  .filter-item-wide { flex: 2; min-width: 220px; }
+  .filter-item-actions { flex: 0 0 auto; }
+
+  /* Dashboard */
+  .kpi-link { text-decoration: none; }
+  .dash-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .btn-block {
+    justify-content: center;
+  }
+
+  /* Auth */
+  .auth-container {
+    width: 100%;
+    max-width: 440px;
+  }
+
   /* Aliases for backward compatibility */
   --bg-app: var(--color-background);
   --bg-card-border: var(--color-outline-variant);
@@ -304,19 +356,15 @@ a:hover { color: var(--primary-hover); }
    KPI CARDS — 3D Floating Effect
    ============================================================ */
 .kpi-grid {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
   width: 100%;
-  overflow-x: auto;
-  padding-bottom: 8px;
   align-items: stretch;
 }
 
 .kpi-grid > * {
-  flex: 1 1 0;
-  min-width: 160px;
   display: flex;
   flex-direction: column;
 }
@@ -2042,5 +2090,25 @@ a:hover { color: var(--primary-hover); }
   padding: 1.25rem 1rem;
   font-size: 0.82rem;
   color: var(--color-on-surface-variant);
+}
+
+/* ─── Filter Active State Indicator ─── */
+.filter-item.has-value .form-select,
+.filter-item.has-value .form-control {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+.filter-item.has-value::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+.filter-item {
+  position: relative;
 }
 

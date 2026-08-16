@@ -58,7 +58,7 @@
 
   <!-- KPI Metrics Grid -->
   <div class="kpi-grid">
-    <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
+    <a href="{{ url_for('products.list_products') }}" class="kpi-link">
       <div class="kpi-card kpi-products">
         <div class="kpi-icon"><i class="fa-solid fa-box"></i></div>
         <div class="kpi-body">
@@ -68,7 +68,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
+    <a href="{{ url_for('products.list_products') }}" class="kpi-link">
       <div class="kpi-card kpi-quantity">
         <div class="kpi-icon"><i class="fa-solid fa-cubes"></i></div>
         <div class="kpi-body">
@@ -78,7 +78,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
+    <a href="{{ url_for('products.list_products') }}" class="kpi-link">
       <div class="kpi-card kpi-value-card">
         <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
         <div class="kpi-body">
@@ -88,7 +88,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" style="text-decoration: none;">
+    <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" class="kpi-link">
       <div class="kpi-card kpi-lowstock">
         <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
         <div class="kpi-body">
@@ -98,7 +98,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('products.list_products', status='OUT OF STOCK') }}" style="text-decoration: none;">
+    <a href="{{ url_for('products.list_products', status='OUT OF STOCK') }}" class="kpi-link">
       <div class="kpi-card kpi-outofstock">
         <div class="kpi-icon"><i class="fa-solid fa-circle-xmark"></i></div>
         <div class="kpi-body">
@@ -110,22 +110,22 @@
   </div>
 
   <!-- Quick Actions -->
-  <div class="dash-quick-actions" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.25rem;">
-    <a href="{{ url_for('billing.pos') }}" class="btn btn-primary" style="justify-content:center;">
+  <div class="dash-quick-actions">
+    <a href="{{ url_for('billing.pos') }}" class="btn btn-primary btn-block">
       <i class="fa-solid fa-cart-shopping"></i> New Bill
     </a>
-    <a href="{{ url_for('inventory.stock_in') }}" class="btn btn-secondary" style="justify-content:center;">
+    <a href="{{ url_for('inventory.stock_in') }}" class="btn btn-secondary btn-block">
       <i class="fa-solid fa-arrow-down"></i> Stock In
     </a>
-    <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-secondary" style="justify-content:center;">
+    <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-secondary btn-block">
       <i class="fa-solid fa-arrow-up"></i> Stock Out
     </a>
     {% if current_user.role in ['admin', 'inventory_manager'] %}
-      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary" style="justify-content:center;">
+      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary btn-block">
         <i class="fa-solid fa-file-import"></i> Bulk Stock In
       </a>
     {% endif %}
-    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary" style="justify-content:center;">
+    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary btn-block">
       <i class="fa-solid fa-receipt"></i> Recent Bills
     </a>
   </div>
@@ -208,10 +208,10 @@
     </div>
 
     <div class="activity-filter-chips" role="group" aria-label="Filter activity">
-      <button type="button" class="activity-chip is-active" data-filter="all">All</button>
-      <button type="button" class="activity-chip" data-filter="STOCK_IN"><i class="fa-solid fa-plus"></i> Stock In</button>
-      <button type="button" class="activity-chip" data-filter="STOCK_OUT"><i class="fa-solid fa-minus"></i> Stock Out</button>
-      <button type="button" class="activity-chip" data-filter="ADJUSTMENT"><i class="fa-solid fa-sliders"></i> Adjust</button>
+      <button type="button" class="activity-chip is-active" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" class="activity-chip" data-filter="STOCK_IN" aria-pressed="false"><i class="fa-solid fa-plus"></i> Stock In</button>
+      <button type="button" class="activity-chip" data-filter="STOCK_OUT" aria-pressed="false"><i class="fa-solid fa-minus"></i> Stock Out</button>
+      <button type="button" class="activity-chip" data-filter="ADJUSTMENT" aria-pressed="false"><i class="fa-solid fa-sliders"></i> Adjust</button>
     </div>
 
     <div class="table-responsive">

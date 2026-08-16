@@ -1,6 +1,6 @@
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div class="flash-container">
+    <div class="flash-container" role="alert" aria-live="polite">
       {% for category, message in messages %}
         <div class="alert alert-{{ category if category != 'message' else 'info' }}">
           <span style="display: flex; align-items: center; gap: 0.6rem;">
@@ -10,7 +10,7 @@
             {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
             {{ message }}
           </span>
-          <button type="button" class="alert-close">&times;</button>
+          <button type="button" class="alert-close" aria-label="Dismiss notification">&times;</button>
         </div>
       {% endfor %}
     </div>
