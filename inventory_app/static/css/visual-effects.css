@@ -1,0 +1,241 @@
+/* ============================================================
+   VISUAL EFFECTS — Micro-interactions & Animations
+   Lightweight CSS-only enhancements (no libraries)
+   ============================================================ */
+
+/* ─── LOGIN PAGE: Animated Gradient + Floating Orbs ─── */
+.auth-wrapper {
+  background: linear-gradient(135deg, #0b3d6e 0%, #1a1a2e 40%, #16213e 70%, #0f3460 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
+  overflow: hidden;
+  position: relative;
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.auth-wrapper::before,
+.auth-wrapper::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+  animation: orbFloat 8s ease-in-out infinite;
+  pointer-events: none;
+}
+.auth-wrapper::before {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, #6366f1, transparent 70%);
+  top: -100px; right: -100px;
+  animation-delay: 0s;
+}
+.auth-wrapper::after {
+  width: 350px; height: 350px;
+  background: radial-gradient(circle, #f97316, transparent 70%);
+  bottom: -80px; left: -80px;
+  animation-delay: -4s;
+  animation-duration: 10s;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%      { transform: translate(30px, -20px) scale(1.05); }
+  50%      { transform: translate(-15px, 25px) scale(0.95); }
+  75%      { transform: translate(20px, 15px) scale(1.02); }
+}
+
+.auth-card {
+  animation: cardEntrance3D 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes cardEntrance3D {
+  from {
+    opacity: 0;
+    transform: perspective(800px) rotateY(-8deg) rotateX(4deg) translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(800px) rotateY(0) rotateX(0) translateY(0) scale(1);
+  }
+}
+
+/* ─── DASHBOARD: Staggered KPI Card Entrance ─── */
+.kpi-card {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: kpiEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.kpi-card:nth-child(1) { animation-delay: 0.1s; }
+.kpi-card:nth-child(2) { animation-delay: 0.18s; }
+.kpi-card:nth-child(3) { animation-delay: 0.26s; }
+.kpi-card:nth-child(4) { animation-delay: 0.34s; }
+.kpi-card:nth-child(5) { animation-delay: 0.42s; }
+
+@keyframes kpiEntrance {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.kpi-card {
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.kpi-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px -8px rgba(0,0,0,0.12);
+}
+
+/* ─── DASHBOARD: Scroll Reveal Sections ─── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── PRODUCT LIST: 3D Card Tilt on Hover ─── */
+.view-toggle-grid .product-grid-card,
+.product-grid-card {
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.product-grid-card:hover {
+  transform: perspective(600px) rotateX(2deg) rotateY(-3deg) translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+}
+
+/* ─── PRODUCT TABLE ROWS: Staggered Entrance ─── */
+.data-table tbody tr {
+  opacity: 0;
+  animation: rowSlideIn 0.35s ease forwards;
+}
+.data-table tbody tr:nth-child(1)  { animation-delay: 0.02s; }
+.data-table tbody tr:nth-child(2)  { animation-delay: 0.04s; }
+.data-table tbody tr:nth-child(3)  { animation-delay: 0.06s; }
+.data-table tbody tr:nth-child(4)  { animation-delay: 0.08s; }
+.data-table tbody tr:nth-child(5)  { animation-delay: 0.10s; }
+.data-table tbody tr:nth-child(6)  { animation-delay: 0.12s; }
+.data-table tbody tr:nth-child(7)  { animation-delay: 0.14s; }
+.data-table tbody tr:nth-child(8)  { animation-delay: 0.16s; }
+.data-table tbody tr:nth-child(9)  { animation-delay: 0.18s; }
+.data-table tbody tr:nth-child(10) { animation-delay: 0.20s; }
+.data-table tbody tr:nth-child(n+11) { animation-delay: 0.22s; }
+
+@keyframes rowSlideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── POS: Cart Bounce on Add ─── */
+@keyframes cartBounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.08); }
+  50%  { transform: scale(0.96); }
+  70%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.q-cart-badge.bump {
+  animation: cartBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── POS: Product Card Tap Feedback ─── */
+.q-prod-card {
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.q-prod-card:active:not(.disabled) {
+  transform: scale(0.95) !important;
+  transition: transform 0.08s ease;
+}
+
+/* ─── POS: Add Button Pulse ─── */
+@keyframes addPulse {
+  0%   { box-shadow: 0 0 0 0 var(--cat-shadow); }
+  70%  { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.q-prod-add:active {
+  animation: addPulse 0.4s ease;
+}
+
+/* ─── GLOBAL: Button Hover Micro-interactions ─── */
+.btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.btn:hover::after {
+  opacity: 1;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* ─── GLOBAL: Link Underline Slide ─── */
+a[href] {
+  position: relative;
+  text-decoration-skip-ink: auto;
+}
+
+/* ─── GLOBAL: Card Hover Lift ─── */
+.card {
+  transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.card:hover {
+  box-shadow: 0 8px 30px -8px rgba(0,0,0,0.1);
+}
+
+/* ─── GLOBAL: Form Focus Glow ─── */
+.form-control:focus,
+.form-select:focus {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* ─── GLOBAL: Badge Pop-in ─── */
+.badge {
+  animation: badgePop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ─── GLOBAL: Navbar Smooth Shadow on Scroll ─── */
+.top-navbar {
+  transition: box-shadow 0.3s ease;
+}
+.top-navbar.scrolled {
+  box-shadow: 0 4px 20px -4px rgba(0,0,0,0.1);
+}
+
+/* ─── GLOBAL: Skeleton Shimmer Enhancement ─── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    rgba(255,255,255,0.4) 37%,
+    var(--bg-card) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
