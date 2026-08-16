@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from flask import Flask, render_template, session
+from flask import Flask, render_template, session, request, make_response
 from config import Config
 from inventory_app.database import init_db
 from inventory_app.utils.validators import generate_csrf_token
@@ -114,6 +114,25 @@ def create_app(config_class=Config, custom_mongo_client=None):
     # Initialize Database Connection
     init_db(app, custom_client=custom_mongo_client)
 
+    # ── Cache-Control headers for static assets and pages ──
+    STATIC_NO_CACHE = {'/health'}
+    STATIC_LONG_CACHE = {'.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot'}
+
+    @app.after_request
+    def set_cache_headers(response):
+        path = request.path
+        # Static assets: long cache (1 year, immutable)
+        ext = os.path.splitext(path)[1].lower()
+        if ext in STATIC_LONG_CACHE:
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        # Health endpoint: no cache
+        elif path in STATIC_NO_CACHE:
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        # HTML pages: short cache with revalidation (ETag-based)
+        elif request.accept_mimetypes.accept_html and not path.startswith('/api/'):
+            response.headers['Cache-Control'] = 'private, max-age=0, must-revalidate'
+        return response
+
     # Context Processor for Templates
     # Lightweight global TTL cache to prevent DB reads on every HTTP request.
 
@@ -124,8 +143,20 @@ def create_app(config_class=Config, custom_mongo_client=None):
         username = session.get('username', '')
 
         pending_requests_count = 0
+        low_stock_alerts = []
+        low_stock_count = 0
 
-        if user_id and user_role in ('admin', 'inventory_manager'):
+        # Skip heavy context queries on routes that don't render sidebar/navbar
+        endpoint = request.endpoint or ''
+        _skip_heavy = (
+            not user_id
+            or request.path in ('/health',)
+            or request.path.startswith('/export')
+            or endpoint.startswith('auth.')
+            or (request.method == 'POST' and not endpoint.endswith('.index'))
+        )
+
+        if not _skip_heavy and user_role in ('admin', 'inventory_manager'):
             cached_entry = cache_get("pending:count")
             if cached_entry:
                 try:
@@ -140,9 +171,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 except Exception:
                     pass
 
-        low_stock_alerts = []
-        low_stock_count = 0
-        if user_id:
+        if not _skip_heavy and user_id:
             cached_alerts = cache_get("alerts:low_stock")
             if cached_alerts:
                 try:
