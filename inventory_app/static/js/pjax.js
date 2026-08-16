@@ -187,6 +187,9 @@
     if (typeof initCustomConfirmTriggers === 'function') initCustomConfirmTriggers();
     if (typeof initRowNavigation === 'function') initRowNavigation();
     if (typeof initAlertBell === 'function') initAlertBell();
+    if (typeof initFilterActiveState === 'function') initFilterActiveState();
+    if (typeof initScrollReveal === 'function') initScrollReveal();
+    if (typeof initNavbarScroll === 'function') initNavbarScroll();
 
     // Re-bind inline scripts that may exist in the new content
     const scripts = document.querySelectorAll(CONTENT_SELECTOR + ' script');
@@ -218,7 +221,7 @@
 
     e.preventDefault();
     navigate(link.href, true);
-  }, { false });
+  }, false);
 
   // Handle browser back/forward
   window.addEventListener('popstate', function(e) {
