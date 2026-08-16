@@ -278,7 +278,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var skel = document.getElementById('dash-skeleton');

@@ -168,8 +168,11 @@ def create_app(config_class=Config, custom_mongo_client=None):
             etag = '"' + hashlib.md5(body).hexdigest() + '"'
             response.headers['ETag'] = etag
             if request.headers.get('If-None-Match') == etag:
+                preserved_cc = response.headers.get('Cache-Control')
                 response = make_response('', 304)
                 response.headers['ETag'] = etag
+                if preserved_cc:
+                    response.headers['Cache-Control'] = preserved_cc
 
         return response
 
