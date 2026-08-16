@@ -1,5 +1,7 @@
 import os
 import json
+import gzip
+import hashlib
 import logging
 from flask import Flask, render_template, session, request, make_response
 from config import Config
@@ -117,12 +119,14 @@ def create_app(config_class=Config, custom_mongo_client=None):
     # ── Cache-Control headers for static assets and pages ──
     STATIC_NO_CACHE = {'/health'}
     STATIC_LONG_CACHE = {'.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot'}
+    GZIP_MIMETYPES = {'text/html', 'text/css', 'text/javascript', 'application/javascript', 'application/json', 'text/xml', 'application/xml'}
 
     @app.after_request
-    def set_cache_headers(response):
+    def optimize_response(response):
         path = request.path
-        # Static assets: long cache (1 year, immutable)
         ext = os.path.splitext(path)[1].lower()
+
+        # Static assets: long cache (1 year, immutable)
         if ext in STATIC_LONG_CACHE:
             response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
         # Health endpoint: no cache
@@ -131,6 +135,33 @@ def create_app(config_class=Config, custom_mongo_client=None):
         # HTML pages: short cache with revalidation (ETag-based)
         elif request.accept_mimetypes.accept_html and not path.startswith('/api/'):
             response.headers['Cache-Control'] = 'private, max-age=0, must-revalidate'
+
+        # Gzip compression for compressible responses
+        accept_encoding = request.headers.get('Accept-Encoding', '')
+        content_type = response.content_type or ''
+        mime = content_type.split(';')[0].strip()
+        body = response.get_data(as_text=False)
+
+        if ('gzip' in accept_encoding
+                and mime in GZIP_MIMETYPES
+                and len(body) > 500
+                and response.status_code == 200):
+            compressed = gzip.compress(body, compresslevel=5)
+            if len(compressed) < len(body):
+                response.set_data(compressed)
+                response.headers['Content-Encoding'] = 'gzip'
+                response.headers['Content-Length'] = len(compressed)
+                response.vary = 'Accept-Encoding'
+
+        # ETag for GET responses (enables conditional requests)
+        if request.method == 'GET' and response.status_code == 200:
+            etag_source = response.get_data(as_text=False)
+            etag = '"' + hashlib.md5(etag_source).hexdigest() + '"'
+            response.headers['ETag'] = etag
+            if request.headers.get('If-None-Match') == etag:
+                response = make_response('', 304)
+                response.headers['ETag'] = etag
+
         return response
 
     # Context Processor for Templates
@@ -148,12 +179,15 @@ def create_app(config_class=Config, custom_mongo_client=None):
 
         # Skip heavy context queries on routes that don't render sidebar/navbar
         endpoint = request.endpoint or ''
+        path = request.path
         _skip_heavy = (
             not user_id
-            or request.path in ('/health',)
-            or request.path.startswith('/export')
+            or path in ('/health',)
+            or path.startswith('/export')
+            or path.startswith('/transactions')
             or endpoint.startswith('auth.')
             or (request.method == 'POST' and not endpoint.endswith('.index'))
+            or request.path.startswith('/billing/bills/')  # detail views
         )
 
         if not _skip_heavy and user_role in ('admin', 'inventory_manager'):

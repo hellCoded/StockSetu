@@ -216,37 +216,58 @@ def get_all_transactions(product_name: str = "", transaction_type: str = "", lim
 
 def get_dashboard_metrics() -> dict:
     """
-    Computes dashboard metrics:
-    - Total active products count
-    - Total physical stock quantity sum
-    - Low stock count
-    - Out of stock count
-    - Recent 10 transactions
+    Computes dashboard metrics via MongoDB aggregation (server-side).
+    Avoids fetching all product documents into Python.
     """
     db = get_db()
-    
-    active_products = list(db.products.find({"is_active": True}, {"quantity": 1, "price": 1}))
-    
-    total_products = len(active_products)
-    total_quantity = sum(float(p.get("quantity", 0)) for p in active_products)
-    total_inventory_value = sum(float(p.get("quantity", 0)) * float(p.get("price", 0)) for p in active_products)
-    
-    low_stock_count = 0
-    out_of_stock_count = 0
-    
-    for p in active_products:
-        qty = float(p.get("quantity", 0))
-        status = calculate_stock_status(qty)
-        
-        if status == "OUT OF STOCK":
-            out_of_stock_count += 1
-        elif status == "LOW STOCK":
-            low_stock_count += 1
-            
-    recent_transactions = list(db.inventory_transactions.find().sort("created_at", -1).limit(10))
+
+    # Single aggregation pipeline computes all scalar metrics at once
+    pipeline = [
+        {"$match": {"is_active": True}},
+        {"$group": {
+            "_id": None,
+            "total_products": {"$sum": 1},
+            "total_quantity": {"$sum": {"$toDouble": {"$ifNull": ["$quantity", 0]}}},
+            "total_inventory_value": {"$sum": {
+                "$multiply": [
+                    {"$toDouble": {"$ifNull": ["$quantity", 0]}},
+                    {"$toDouble": {"$ifNull": ["$price", 0]}}
+                ]
+            }},
+            "out_of_stock_count": {"$sum": {"$cond": [
+                {"$lte": [{"$toDouble": {"$ifNull": ["$quantity", 0]}}, 0]}, 1, 0
+            ]}},
+            "low_stock_count": {"$sum": {"$cond": [
+                {"$and": [
+                    {"$gt": [{"$toDouble": {"$ifNull": ["$quantity", 0]}}, 0]},
+                    {"$lte": [
+                        {"$toDouble": {"$ifNull": ["$quantity", 0]}},
+                        {"$toDouble": {"$ifNull": ["$minimum_stock", 5]}}
+                    ]}
+                ]}, 1, 0
+            ]}}
+        }}
+    ]
+
+    agg = list(db.products.aggregate(pipeline))
+    if agg:
+        m = agg[0]
+        total_products = m["total_products"]
+        total_quantity = m["total_quantity"]
+        total_inventory_value = m["total_inventory_value"]
+        low_stock_count = m["low_stock_count"]
+        out_of_stock_count = m["out_of_stock_count"]
+    else:
+        total_products = total_quantity = total_inventory_value = 0
+        low_stock_count = out_of_stock_count = 0
+
+    recent_transactions = list(db.inventory_transactions.find(
+        {}, {"_id": 1, "product_name": 1, "transaction_type": 1,
+             "quantity": 1, "created_at": 1, "performed_by": 1}
+    ).sort("created_at", -1).limit(10))
     for t in recent_transactions:
         t["_id"] = str(t["_id"])
-        
+
     return {
         "total_products": total_products,
         "total_quantity": total_quantity,
