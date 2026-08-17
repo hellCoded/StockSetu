@@ -3,418 +3,1495 @@
 {% block title %}Bulk Stock In - StockSetu{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 1.5rem;">
-  <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm">
-    <i class="fa-solid fa-arrow-left"></i> Back to Products
-  </a>
-  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem;">
-    <i class="fa-solid fa-file-import" style="color: var(--primary);"></i> Bulk Stock In from Supplier Bill
-  </h1>
-  <p style="color: var(--text-muted); font-size: 0.9rem;">Upload a PDF or Excel file of your supplier's bill to auto-enter stock</p>
-</div>
+<div class="bsi-container">
+  <!-- Stepper Bar -->
+  <div class="bsi-stepper-wrap">
+    <div class="bsi-steps">
+      <div class="bsi-step {% if step == 'upload' %}bsi-step-active{% elif step == 'map' %}bsi-step-done{% endif %}">
+        <div class="bsi-step-dot">
+          {% if step == 'map' %}
+            <i class="fa-solid fa-check"></i>
+          {% else %}
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          {% endif %}
+        </div>
+        <div class="bsi-step-text">
+          <span class="bsi-step-num">Step 1</span>
+          <strong>Upload Bill</strong>
+          <small>PDF or Excel Invoice</small>
+        </div>
+      </div>
+      <div class="bsi-step-line {% if step == 'map' %}bsi-step-line-active{% endif %}"></div>
+      <div class="bsi-step {% if step == 'map' %}bsi-step-active{% endif %}">
+        <div class="bsi-step-dot">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+        <div class="bsi-step-text">
+          <span class="bsi-step-num">Step 2</span>
+          <strong>Review &amp; Stock In</strong>
+          <small>Match items &amp; reconcile</small>
+        </div>
+      </div>
+    </div>
+  </div>
 
 {% if step == 'upload' %}
-<div class="card" style="max-width: 600px; width: 100%;">
-  <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="upload-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <!-- STEP 1: UPLOAD -->
+  <div class="bsi-upload-layout">
+    <!-- Left Column: Dropzone & Upload Action -->
+    <div class="bsi-upload-main">
+      <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="upload-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="upload-header">
-      <i class="fa-solid fa-file-import upload-header-icon"></i>
-      <div>
-        <h2 class="upload-title">Upload Supplier Bill</h2>
-        <p class="upload-sub">PDF or Excel (.xlsx, .xls) — the system will extract items & quantities automatically</p>
+        <div class="bsi-card file-picker" id="file-picker">
+          <input type="file" name="bill_file" id="file-input" accept=".pdf,.xlsx,.xls" aria-label="Upload supplier bill file">
+          
+          <label for="file-input" class="file-picker-idle" id="picker-idle">
+            <div class="fp-glow-circle">
+              <i class="fa-solid fa-file-invoice-dollar fp-icon"></i>
+            </div>
+            <div class="fp-text-group">
+              <h3 class="fp-title">Drop your supplier invoice or bill here</h3>
+              <p class="fp-subtitle">or <span class="fp-browse-link">browse from your computer</span></p>
+            </div>
+            <div class="fp-badges">
+              <span class="fp-badge"><i class="fa-solid fa-file-pdf"></i> PDF</span>
+              <span class="fp-badge"><i class="fa-solid fa-file-excel"></i> Excel (XLSX, XLS)</span>
+              <span class="fp-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto Line-Item Extraction</span>
+            </div>
+          </label>
+
+          <div class="file-picker-selected" id="picker-selected" style="display:none;">
+            <div class="fs-icon-wrap" id="file-icon-box">
+              <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <div class="fs-meta-wrap">
+              <div class="fs-header-row">
+                <span class="fs-badge-ready"><i class="fa-solid fa-circle-check"></i> File Ready</span>
+                <span class="fs-type-tag" id="file-type">Spreadsheet</span>
+              </div>
+              <h4 class="fs-filename" id="file-name">invoice_document.pdf</h4>
+              <p class="fs-size" id="file-size">1.2 MB</p>
+            </div>
+            <button type="button" class="fs-remove-btn" id="remove-file" title="Change file" aria-label="Remove selected file">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="bsi-upload-actions">
+          <div class="bsi-ready-msg" id="ready-indicator" style="display:none;">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Ready! Click continue to extract line items, quantities, and map with inventory.</span>
+          </div>
+          <button type="submit" class="btn btn-primary bsi-submit-btn" id="submit-btn" disabled>
+            <span>Continue to Review</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Guide & Quick Help -->
+    <div class="bsi-upload-sidebar">
+      <div class="bsi-card bsi-guide-card">
+        <h4 class="guide-heading"><i class="fa-solid fa-bolt"></i> How Bulk Stock In Works</h4>
+        
+        <div class="guide-steps-list">
+          <div class="guide-step-item">
+            <div class="guide-step-num">1</div>
+            <div class="guide-step-content">
+              <strong>Upload Bill File</strong>
+              <p>Upload any standard PDF supplier bill, GST tax invoice, or Excel spreadsheet.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-item">
+            <div class="guide-step-num">2</div>
+            <div class="guide-step-content">
+              <strong>Automated Parsing &amp; Fuzzy Matching</strong>
+              <p>Items, quantities, and rates are extracted and matched against existing inventory names.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-item">
+            <div class="guide-step-num">3</div>
+            <div class="guide-step-content">
+              <strong>Review &amp; Stock In With 1-Click</strong>
+              <p>Easily confirm matches, auto-create any new products, and record inventory stock transactions.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-tip-box">
+          <i class="fa-solid fa-lightbulb"></i>
+          <span><strong>Tip:</strong> If an item is brand new, fill its category and unit right on the review screen.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var fi = document.getElementById('file-input');
+    var idle = document.getElementById('picker-idle');
+    var sel = document.getElementById('picker-selected');
+    var fn = document.getElementById('file-name');
+    var fs = document.getElementById('file-size');
+    var iconBox = document.getElementById('file-icon-box');
+    var rb = document.getElementById('remove-file');
+    var sb = document.getElementById('submit-btn');
+    var picker = document.getElementById('file-picker');
+    var ri = document.getElementById('ready-indicator');
+
+    if (!fi) return;
+
+    function fmt(b) { return b < 1024 ? b+' B' : b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB'; }
+
+    function show(f) {
+      fn.textContent = f.name;
+      fs.textContent = fmt(f.size);
+      var ext = f.name.split('.').pop().toLowerCase();
+      var isPdf = (ext === 'pdf');
+      var isExcel = (ext === 'xlsx' || ext === 'xls');
+      document.getElementById('file-type').textContent = isPdf ? 'PDF Invoice' : isExcel ? 'Excel Sheet' : 'Bill Document';
+      iconBox.className = 'fs-icon-wrap' + (isPdf ? ' pdf' : ' excel');
+      iconBox.querySelector('i').className = isPdf ? 'fa-solid fa-file-pdf' : isExcel ? 'fa-solid fa-file-excel' : 'fa-solid fa-file-lines';
+      idle.style.display = 'none';
+      sel.style.display = 'flex';
+      picker.classList.add('selected');
+      sb.disabled = false;
+      if (ri) ri.style.display = 'flex';
+    }
+
+    function clear() {
+      fi.value = '';
+      idle.style.display = 'flex';
+      sel.style.display = 'none';
+      picker.classList.remove('selected');
+      sb.disabled = true;
+      if (ri) ri.style.display = 'none';
+    }
+
+    fi.addEventListener('change', function() {
+      if (fi.files.length > 0) show(fi.files[0]);
+    });
+
+    rb.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      clear();
+    });
+
+    ['dragenter', 'dragover'].forEach(function(evt) {
+      picker.addEventListener(evt, function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        picker.classList.add('drag-over');
+      });
+    });
+    ['dragleave', 'drop'].forEach(function(evt) {
+      picker.addEventListener(evt, function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        picker.classList.remove('drag-over');
+      });
+    });
+    picker.addEventListener('drop', function(e) {
+      if (e.dataTransfer && e.dataTransfer.files.length) {
+        fi.files = e.dataTransfer.files;
+        show(e.dataTransfer.files[0]);
+      }
+    });
+
+    document.getElementById('upload-form').addEventListener('submit', function(e) {
+      if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); }
+    });
+  })();
+  </script>
+
+{% elif step == 'map' %}
+  <!-- STEP 2: REVIEW & MAP -->
+  <form method="POST" action="{{ url_for('inventory.bulk_stock_in_confirm') }}" id="map-form" class="bsi-map-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_value or csrf_token() }}">
+
+    <!-- Top Floating Toolbar / Summary Card -->
+    <div class="bsi-review-toolbar">
+      <div class="toolbar-left">
+        <div class="toolbar-title-wrap">
+          <h2 class="toolbar-title"><i class="fa-solid fa-table-list"></i> Parsed Bill Items</h2>
+          <span class="toolbar-count-badge" id="total-count-badge">{{ items|length }} found</span>
+        </div>
+        
+        <!-- Filter Tabs -->
+        <div class="bsi-filter-tabs">
+          <button type="button" class="filter-tab active" data-filter="all">All (<span id="cnt-all">{{ items|length }}</span>)</button>
+          <button type="button" class="filter-tab" data-filter="matched"><i class="dot dot-match"></i> Matched (<span id="cnt-matched">0</span>)</button>
+          <button type="button" class="filter-tab" data-filter="new"><i class="dot dot-new"></i> New (<span id="cnt-new">0</span>)</button>
+          <button type="button" class="filter-tab" data-filter="skipped"><i class="dot dot-skipped"></i> Skipped (<span id="cnt-skipped">0</span>)</button>
+        </div>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- Live Search Bar -->
+        <div class="review-search-wrap">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="review-item-search" class="form-control review-search-input" placeholder="Filter items...">
+        </div>
+
+        <!-- Reference & Action -->
+        <div class="toolbar-action-group">
+          <div class="reason-input-wrap">
+            <input type="text" id="reason" name="reason" class="form-control reason-input" value="Bulk import from supplier bill" placeholder="Reference / PO #">
+          </div>
+          <button type="submit" class="btn btn-primary btn-confirm-stock" id="confirm-btn">
+            <i class="fa-solid fa-check"></i> Confirm &amp; Stock In
+          </button>
+          <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary btn-back-upload" title="Upload a different bill">
+            <i class="fa-solid fa-arrow-rotate-left"></i> Re-upload
+          </a>
+        </div>
       </div>
     </div>
 
-    <div class="file-picker" id="file-picker">
-      <input type="file" name="bill_file" id="file-input" accept=".pdf,.xlsx,.xls">
-      <div class="file-picker-idle" id="picker-idle">
-        <div class="file-picker-icon">
-          <i class="fa-solid fa-cloud-arrow-up"></i>
+    <!-- Items Grid (2 Columns on wide screen, 1 Column on tablet/mobile) -->
+    <div class="bsi-items-grid" id="items-container">
+      {% for item in items %}
+      <div class="map-item-card" data-idx="{{ loop.index0 }}" data-new="{{ '1' if item.is_new else '0' }}" data-name="{{ item.item_name|lower }}">
+        <input type="hidden" name="item_name[]" value="{{ item.item_name }}">
+        <input type="hidden" name="item_qty[]" value="{{ item.quantity }}">
+        <input type="hidden" name="item_unit[]" value="{{ item.unit|default('', true) }}">
+        <input type="hidden" name="item_hsn[]" value="{{ item.hsn_code|default('', true) }}">
+
+        <!-- Card Header -->
+        <div class="mic-header">
+          <div class="mic-index">{{ loop.index }}</div>
+          <div class="mic-title-box">
+            <h4 class="mic-name" title="{{ item.item_name }}">{{ item.item_name }}</h4>
+            <div class="mic-pills">
+              <span class="mic-pill qty-pill"><i class="fa-solid fa-boxes-stacked"></i> Qty: <strong>{{ item.quantity }}</strong></span>
+              {% if item.unit %}<span class="mic-pill"><i class="fa-solid fa-scale-balanced"></i> {{ item.unit }}</span>{% endif %}
+              {% if item.hsn_code %}<span class="mic-pill"><i class="fa-solid fa-barcode"></i> HSN: {{ item.hsn_code }}</span>{% endif %}
+            </div>
+          </div>
+          <div class="mic-status-badge">
+            {% if item.is_new %}
+              <span class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</span>
+            {% else %}
+              <span class="badge badge-match" title="Matched to: {{ item.matched_name }}"><i class="fa-solid fa-check"></i> MATCHED</span>
+            {% endif %}
+          </div>
         </div>
-        <p class="file-picker-label">Choose a file</p>
-        <p class="file-picker-hint">or drag it here</p>
+
+        <!-- Card Body -->
+        <div class="mic-body">
+          {% if item.is_new %}
+            <input type="hidden" name="mapping[]" value="__new__" class="mapping-val">
+            
+            <div class="new-product-section" style="display:block;">
+              <div class="npf-helper-text">
+                <i class="fa-solid fa-sparkles"></i>
+                <span>Item not in inventory — fill details to auto-create:</span>
+              </div>
+              <div class="npf-row">
+                <div class="npf-col">
+                  <label class="npf-label">Category <span class="req">*</span></label>
+                  <input type="text" name="new_category[]" class="form-control npf-input" placeholder="e.g., Fasteners" value="{{ item.category|default('', true) }}" required>
+                </div>
+                <div class="npf-col">
+                  <label class="npf-label">Unit <span class="req">*</span></label>
+                  <input type="text" name="new_unit[]" class="form-control npf-input" value="{{ item.unit|default('PCS', true) }}" placeholder="e.g., PCS" required>
+                </div>
+                <div class="npf-col">
+                  <label class="npf-label">Price (&#8377;)</label>
+                  <input type="number" name="new_price[]" class="form-control npf-input" step="0.01" min="0" placeholder="0.00" value="{{ item.price|default('', true) }}">
+                </div>
+                <div class="npf-col">
+                  <label class="npf-label">GST Rate (%)</label>
+                  <input type="number" name="new_gst[]" class="form-control npf-input" step="0.1" min="0" max="28" placeholder="18" value="{{ item.gst_rate|default('', true) }}">
+                </div>
+              </div>
+              <div class="npf-row" style="margin-top: 0.35rem;">
+                <div class="npf-col" style="flex: 1;">
+                  <label class="npf-label">Description (Optional)</label>
+                  <input type="text" name="new_desc[]" class="form-control npf-input" placeholder="Supplier notes or specs" value="{{ item.description|default('', true) }}">
+                </div>
+                <div class="npf-col" style="max-width: 120px;">
+                  <label class="npf-label">HSN Code</label>
+                  <input type="text" name="new_hsn[]" class="form-control npf-input" value="{{ item.hsn_code|default('', true) }}" placeholder="e.g., 7318">
+                </div>
+              </div>
+            </div>
+
+            <!-- Toggle to remap if existing -->
+            <div class="remap-container">
+              <label class="remap-toggle-label">
+                <input type="checkbox" class="remap-check" data-idx="{{ loop.index0 }}">
+                <span>Exists under different name? Remap to existing product</span>
+              </label>
+              <div class="remap-search-wrap" style="display:none;" data-idx="{{ loop.index0 }}">
+                <div class="ac-wrap">
+                  <i class="fa-solid fa-magnifying-glass ac-icon"></i>
+                  <input type="text" class="ac-input form-control" placeholder="Search inventory products..." data-idx="{{ loop.index0 }}" autocomplete="off">
+                  <div class="ac-list" data-idx="{{ loop.index0 }}"></div>
+                </div>
+              </div>
+            </div>
+
+          {% else %}
+            <!-- Auto Matched Row -->
+            <div class="matched-box">
+              <div class="matched-info">
+                <span class="matched-icon"><i class="fa-solid fa-link"></i></span>
+                <div class="matched-text-wrap">
+                  <span class="matched-sub">Stock Into Existing Product</span>
+                  <strong class="matched-name">{{ item.matched_name }}</strong>
+                </div>
+              </div>
+
+              <div class="matched-action-wrap">
+                <div class="ac-wrap">
+                  <i class="fa-solid fa-magnifying-glass ac-icon"></i>
+                  <input type="text" class="ac-input form-control" placeholder="Change product..." value="{{ item.matched_name }}" data-idx="{{ loop.index0 }}" autocomplete="off">
+                  <input type="hidden" name="mapping[]" value="{{ item.matched_name }}" class="mapping-val">
+                  <div class="ac-list" data-idx="{{ loop.index0 }}"></div>
+                </div>
+                <button type="button" class="btn-toggle-skip" title="Skip this item from stock in" data-idx="{{ loop.index0 }}">
+                  <i class="fa-solid fa-ban"></i> Skip
+                </button>
+              </div>
+            </div>
+          {% endif %}
+        </div>
       </div>
-      <div class="file-picker-selected" id="picker-selected" style="display:none;">
-        <div class="file-icon" id="file-icon-box">
-          <i class="fa-solid fa-file-lines"></i>
-        </div>
-        <div class="file-meta">
-          <p class="file-name" id="file-name"></p>
-          <p class="file-size" id="file-size"></p>
-        </div>
-        <button type="button" class="file-remove" id="remove-file" title="Remove file">
-          <i class="fa-solid fa-xmark"></i>
+      {% endfor %}
+    </div>
+
+    <!-- Floating Bottom Action Bar -->
+    <div class="bsi-bottom-floating-bar">
+      <div class="bf-info">
+        <span id="floating-summary-text">Items ready to stock in</span>
+      </div>
+      <div class="bf-actions">
+        <button type="submit" class="btn btn-primary" id="floating-confirm-btn">
+          <i class="fa-solid fa-check"></i> Confirm &amp; Stock In
         </button>
       </div>
     </div>
-
-    <div class="info-box">
-      <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
-      <div>
-        <strong>How it works:</strong>
-        <ol class="info-steps">
-          <li>Upload your supplier's bill</li>
-          <li>System extracts item names &amp; quantities</li>
-          <li>Map each item to a product in your inventory</li>
-          <li>Confirm to stock in</li>
-        </ol>
-      </div>
-    </div>
-
-    <div class="btn-row">
-      <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
-        <i class="fa-solid fa-arrow-right"></i> Continue
-      </button>
-      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
-        <i class="fa-solid fa-xmark"></i> Cancel
-      </a>
-    </div>
   </form>
+
+  <script>
+  (function() {
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.map-item-card'));
+    var productNames = {{ product_names|tojson }};
+    var cntAll = document.getElementById('cnt-all');
+    var cntMatched = document.getElementById('cnt-matched');
+    var cntNew = document.getElementById('cnt-new');
+    var cntSkipped = document.getElementById('cnt-skipped');
+    var confirmBtn = document.getElementById('confirm-btn');
+    var floatConfirmBtn = document.getElementById('floating-confirm-btn');
+    var floatSummary = document.getElementById('floating-summary-text');
+    var searchInput = document.getElementById('review-item-search');
+    var filterTabs = document.querySelectorAll('.filter-tab');
+    var activeFilter = 'all';
+
+    function updateSummary() {
+      var mapped = 0, newItems = 0, skipped = 0;
+      cards.forEach(function(card) {
+        var mappingVal = card.querySelector('.mapping-val');
+        if (!mappingVal) return;
+        if (mappingVal.value === '__new__') { newItems++; return; }
+        if (mappingVal.value === '') { skipped++; return; }
+        mapped++;
+      });
+
+      if (cntAll) cntAll.textContent = cards.length;
+      if (cntMatched) cntMatched.textContent = mapped;
+      if (cntNew) cntNew.textContent = newItems;
+      if (cntSkipped) cntSkipped.textContent = skipped;
+
+      var totalActive = mapped + newItems;
+      var summaryMsg = totalActive + ' ready (' + mapped + ' matched, ' + newItems + ' new, ' + skipped + ' skipped)';
+      if (floatSummary) floatSummary.textContent = summaryMsg;
+
+      var disabled = (totalActive === 0);
+      if (confirmBtn) confirmBtn.disabled = disabled;
+      if (floatConfirmBtn) floatConfirmBtn.disabled = disabled;
+    }
+
+    function filterCards() {
+      var q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      cards.forEach(function(card) {
+        var isNew = card.getAttribute('data-new') === '1';
+        var mappingVal = card.querySelector('.mapping-val') ? card.querySelector('.mapping-val').value : '';
+        var isSkipped = (mappingVal === '');
+        var isMatched = (!isNew && !isSkipped);
+
+        var matchesTab = false;
+        if (activeFilter === 'all') matchesTab = true;
+        else if (activeFilter === 'matched') matchesTab = isMatched;
+        else if (activeFilter === 'new') matchesTab = isNew;
+        else if (activeFilter === 'skipped') matchesTab = isSkipped;
+
+        var matchesSearch = true;
+        if (q) {
+          var name = card.getAttribute('data-name') || '';
+          matchesSearch = name.indexOf(q) !== -1;
+        }
+
+        if (matchesTab && matchesSearch) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Filter tab clicks
+    filterTabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        filterTabs.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        activeFilter = tab.getAttribute('data-filter');
+        filterCards();
+      });
+    });
+
+    // Search input
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        filterCards();
+      });
+    }
+
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return text.replace(re, '<span class="ac-match">$1</span>');
+    }
+
+    function filterProducts(query) {
+      var q = query.toLowerCase().trim();
+      if (!q) return productNames.slice(0, 20);
+      return productNames.filter(function(name) {
+        return name.toLowerCase().indexOf(q) !== -1;
+      }).slice(0, 20);
+    }
+
+    function setupAutocomplete(input, hiddenVal, card) {
+      var list = input.parentElement.querySelector('.ac-list');
+      var activeIdx = -1;
+
+      function render(query) {
+        var matches = filterProducts(query);
+        if (matches.length === 0) {
+          list.innerHTML = '<div class="ac-empty">No matching products found</div>';
+        } else {
+          list.innerHTML = matches.map(function(name, i) {
+            return '<div class="ac-item" data-val="' + name.replace(/"/g, '&quot;') + '" data-i="' + i + '">' + highlightMatch(name, query) + '</div>';
+          }).join('');
+        }
+        list.classList.add('open');
+        activeIdx = -1;
+      }
+
+      function selectVal(val) {
+        input.value = val;
+        hiddenVal.value = val;
+        list.classList.remove('open');
+        var matchedNameEl = card.querySelector('.matched-name');
+        if (matchedNameEl) matchedNameEl.textContent = val;
+        updateSummary();
+        filterCards();
+      }
+
+      input.addEventListener('input', function() {
+        hiddenVal.value = input.value;
+        render(input.value);
+        updateSummary();
+      });
+
+      input.addEventListener('focus', function() { render(input.value); });
+
+      input.addEventListener('keydown', function(e) {
+        var items = list.querySelectorAll('.ac-item');
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, items.length - 1); setActive(items); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); setActive(items); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0) selectVal(items[activeIdx].getAttribute('data-val')); }
+        else if (e.key === 'Escape') { list.classList.remove('open'); }
+      });
+
+      function setActive(items) {
+        items.forEach(function(el, i) { el.classList.toggle('active', i === activeIdx); });
+        if (activeIdx >= 0 && items[activeIdx]) items[activeIdx].scrollIntoView({ block: 'nearest' });
+      }
+
+      list.addEventListener('mousedown', function(e) {
+        var item = e.target.closest('.ac-item');
+        if (item) selectVal(item.getAttribute('data-val'));
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!input.parentElement.contains(e.target)) list.classList.remove('open');
+      });
+    }
+
+    cards.forEach(function(card) {
+      var mappingVal = card.querySelector('.mapping-val');
+      var acInput = card.querySelector('.ac-input');
+
+      if (acInput && mappingVal) {
+        setupAutocomplete(acInput, mappingVal, card);
+      }
+
+      var remapCheck = card.querySelector('.remap-check');
+      var remapSearchWrap = card.querySelector('.remap-search-wrap');
+      var newForm = card.querySelector('.new-product-section');
+      var badge = card.querySelector('.badge');
+
+      if (remapCheck && remapSearchWrap) {
+        remapCheck.addEventListener('change', function() {
+          var inputs = newForm ? newForm.querySelectorAll('input') : [];
+          if (remapCheck.checked) {
+            mappingVal.value = '';
+            remapSearchWrap.style.display = 'block';
+            if (newForm) newForm.style.display = 'none';
+            inputs.forEach(function(inp) { inp.setAttribute('disabled', 'disabled'); });
+            card.setAttribute('data-new', '0');
+            if (badge) {
+              badge.className = 'badge badge-match';
+              badge.innerHTML = '<i class="fa-solid fa-check"></i> REMAP';
+            }
+          } else {
+            mappingVal.value = '__new__';
+            remapSearchWrap.style.display = 'none';
+            if (newForm) newForm.style.display = 'block';
+            inputs.forEach(function(inp) { inp.removeAttribute('disabled'); });
+            card.setAttribute('data-new', '1');
+            if (badge) {
+              badge.className = 'badge badge-new';
+              badge.innerHTML = '<i class="fa-solid fa-sparkles"></i> NEW';
+            }
+          }
+          updateSummary();
+          filterCards();
+        });
+      }
+
+      var skipBtn = card.querySelector('.btn-toggle-skip');
+      if (skipBtn) {
+        skipBtn.addEventListener('click', function() {
+          var isSkipped = (mappingVal.value === '');
+          if (isSkipped) {
+            mappingVal.value = acInput ? acInput.value : card.getAttribute('data-name');
+            skipBtn.innerHTML = '<i class="fa-solid fa-ban"></i> Skip';
+            skipBtn.classList.remove('btn-skipped-state');
+            card.classList.remove('card-is-skipped');
+          } else {
+            mappingVal.value = '';
+            skipBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Include';
+            skipBtn.classList.add('btn-skipped-state');
+            card.classList.add('card-is-skipped');
+          }
+          updateSummary();
+          filterCards();
+        });
+      }
+    });
+
+    updateSummary();
+  })();
+  </script>
+{% endif %}
 </div>
 
+<!-- STYLESHEET FOR BULK STOCK IN -->
 <style>
-  .upload-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
-  .upload-header-icon { font-size: 1.8rem; color: var(--primary); margin-top: 0.15rem; }
-  .upload-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0; }
-  .upload-sub { font-size: 0.85rem; color: #64748b; margin: 0.25rem 0 0; }
+  /* Base Layout Container */
+  .bsi-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
 
+  /* -------------------------------------------------------------
+     STEPPER COMPONENT (COMPACT & CLEAN)
+     ------------------------------------------------------------- */
+  .bsi-stepper-wrap {
+    width: 100%;
+  }
+  .bsi-steps {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-xs);
+  }
+  .bsi-step {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .bsi-step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--color-on-surface-variant);
+    background: var(--color-surface-container);
+    border: 1.5px solid var(--color-outline-variant);
+    transition: all 0.25s var(--ease);
+  }
+  .bsi-step-active .bsi-step-dot {
+    background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(11, 61, 110, 0.3);
+  }
+  .bsi-step-done .bsi-step-dot {
+    background: var(--color-success);
+    border-color: transparent;
+    color: #ffffff;
+  }
+  .bsi-step-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+  .bsi-step-num {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-on-surface-variant);
+  }
+  .bsi-step-text strong {
+    font-size: 0.85rem;
+    color: var(--color-on-surface);
+  }
+  .bsi-step-text small {
+    font-size: 0.68rem;
+    color: var(--color-on-surface-variant);
+  }
+  .bsi-step-active .bsi-step-text strong {
+    color: var(--color-primary);
+  }
+  .bsi-step-line {
+    flex: 1;
+    height: 2px;
+    border-radius: 2px;
+    min-width: 20px;
+    background: linear-gradient(90deg, var(--color-outline-variant), var(--color-surface-container));
+  }
+  .bsi-step-line.bsi-step-line-active {
+    background: var(--color-success);
+  }
+
+  /* -------------------------------------------------------------
+     UPLOAD STEP (2-COLUMN FULL-WIDTH LAYOUT)
+     ------------------------------------------------------------- */
+  .bsi-upload-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .bsi-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--r-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-xs);
+  }
+  
+  /* Dropzone */
   .file-picker {
     position: relative;
-    border: 2px dashed #cbd5e1;
-    border-radius: 12px;
-    background: #f8fafc;
+    border: 2px dashed var(--color-outline);
+    border-radius: var(--r-lg);
+    background: linear-gradient(180deg, var(--color-surface-container), var(--color-surface));
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-    overflow: hidden;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s var(--ease);
   }
-  .file-picker:hover { border-color: #93c5fd; background: #f0f7ff; }
-  .file-picker:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+  .file-picker:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+    transform: translateY(-1px);
+  }
+  .file-picker.drag-over {
+    border-color: var(--color-accent);
+    background: var(--color-accent-light);
+    box-shadow: 0 0 0 3px var(--color-accent-light);
+  }
   .file-picker input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 5;
   }
-
   .file-picker-idle {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 2.5rem 1.5rem; text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    width: 100%;
   }
-  .file-picker-icon {
-    width: 56px; height: 56px; border-radius: 50%;
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 0.75rem;
+  .fp-glow-circle {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-surface-container-high), var(--color-primary-fixed));
+    border: 1px solid var(--color-primary-fixed-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .file-picker-icon i { font-size: 1.4rem; color: #3b82f6; }
-  .file-picker-label { font-weight: 600; color: #334155; font-size: 0.95rem; margin: 0; }
-  .file-picker-hint { font-size: 0.8rem; color: #94a3b8; margin: 0.25rem 0 0; }
+  .fp-icon {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+  }
+  .fp-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin: 0;
+  }
+  .fp-subtitle {
+    font-size: 0.82rem;
+    color: var(--color-on-surface-variant);
+    margin: 0.2rem 0 0;
+  }
+  .fp-browse-link {
+    font-weight: 600;
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+  .fp-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .fp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-on-surface-variant);
+    background: var(--color-surface-container);
+    border: 1px solid var(--color-outline-variant);
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+  }
+  .fp-badge i { color: var(--color-primary); }
 
+  /* Selected File Box */
   .file-picker-selected {
-    display: flex; align-items: center; gap: 0.85rem;
-    padding: 1rem 1.25rem; background: #f0fdf4;
-    border-color: #059669; border-style: solid;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    width: 100%;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
+    border: 1.5px solid var(--color-success);
+    border-radius: var(--r-lg);
   }
-  .file-picker-selected .file-icon {
-    width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
-    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-    display: flex; align-items: center; justify-content: center;
+  .fs-icon-wrap {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    background: var(--color-success);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
   }
-  .file-picker-selected .file-icon i { font-size: 1.2rem; color: #059669; }
-  .file-picker-selected .file-icon.pdf i { color: #dc2626; }
-  .file-meta { flex: 1; min-width: 0; }
-  .file-name { font-weight: 600; color: #0f172a; font-size: 0.9rem; margin: 0; word-break: break-all; }
-  .file-size { font-size: 0.78rem; color: #64748b; margin: 0.15rem 0 0; }
-  .file-remove {
-    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
-    background: none; border: 1px solid #e2e8f0; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: #94a3b8; transition: all 0.15s; z-index: 3; position: relative;
+  .fs-icon-wrap.pdf { background: var(--color-danger); }
+  .fs-meta-wrap { flex: 1; min-width: 0; }
+  .fs-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem; }
+  .fs-badge-ready {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-success-text);
+    background: var(--color-success-bg);
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
   }
-  .file-remove:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
-
-  .info-box {
-    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-    padding: 0.85rem 1rem; margin: 1.25rem 0; font-size: 0.85rem; color: #64748b;
+  .fs-type-tag { font-size: 0.7rem; color: var(--color-on-surface-variant); }
+  .fs-filename {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin: 0;
+    word-break: break-all;
   }
-  .info-steps { margin: 0.4rem 0 0; padding-left: 1.2rem; }
-  .info-steps li { margin-bottom: 0.15rem; }
-
-  .btn-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
-
-  @media (max-width: 640px) {
-    .file-picker-idle { padding: 1.5rem 1rem; }
-    .btn-row { flex-direction: column; }
-    .btn-row .btn { width: 100%; justify-content: center; }
+  .fs-size { font-size: 0.75rem; color: var(--color-on-surface-variant); margin: 0.15rem 0 0; }
+  .fs-remove-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--color-outline-variant);
+    background: var(--color-surface);
+    color: var(--color-on-surface-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    z-index: 10;
   }
-</style>
-
-<script>
-(function() {
-  var fi = document.getElementById('file-input');
-  var idle = document.getElementById('picker-idle');
-  var sel = document.getElementById('picker-selected');
-  var fn = document.getElementById('file-name');
-  var fs = document.getElementById('file-size');
-  var iconBox = document.getElementById('file-icon-box');
-  var rb = document.getElementById('remove-file');
-  var sb = document.getElementById('submit-btn');
-
-  if (!fi) return;
-
-  function fmt(b) { return b < 1024 ? b+' B' : b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB'; }
-
-  function show(f) {
-    fn.textContent = f.name;
-    fs.textContent = fmt(f.size);
-    iconBox.className = 'file-icon' + (f.name.toLowerCase().endsWith('.pdf') ? ' pdf' : '');
-    idle.style.display = 'none';
-    sel.style.display = 'flex';
-    sb.disabled = false;
-  }
-
-  function clear() {
-    fi.value = '';
-    idle.style.display = 'flex';
-    sel.style.display = 'none';
-    sb.disabled = true;
+  .fs-remove-btn:hover {
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger);
+    color: var(--color-danger);
   }
 
-  fi.addEventListener('change', function() {
-    if (fi.files.length > 0) show(fi.files[0]);
-  });
-
-  rb.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    clear();
-  });
-
-  document.getElementById('upload-form').addEventListener('submit', function(e) {
-    if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); }
-  });
-})();
-</script>
-
-{% elif step == 'map' %}
-<div class="card" style="max-width: 900px; width: 100%;">
-  <form method="POST" action="{{ url_for('inventory.bulk_stock_in_confirm') }}" id="map-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_value or csrf_token() }}">
-
-    <div class="map-header">
-      <div>
-        <h3 class="map-title"><i class="fa-solid fa-table" style="color: var(--primary);"></i> Parsed Items ({{ items|length }} found)</h3>
-        <p class="map-sub">New items are ready to create — just fill the missing details. Existing items will be stocked in automatically.</p>
-      </div>
-      <div class="map-summary" id="map-summary"></div>
-    </div>
-
-    {% for item in items %}
-    <div class="map-item" data-idx="{{ loop.index0 }}" data-new="{{ '1' if item.is_new else '0' }}">
-      <input type="hidden" name="item_name[]" value="{{ item.item_name }}">
-      <input type="hidden" name="item_qty[]" value="{{ item.quantity }}">
-      <input type="hidden" name="item_unit[]" value="{{ item.unit|default('', true) }}">
-      <input type="hidden" name="item_hsn[]" value="{{ item.hsn_code|default('', true) }}">
-
-      <div class="map-item-head">
-        <span class="map-idx">{{ loop.index }}</span>
-        <div class="map-item-info">
-          <span class="map-item-name">{{ item.item_name }}</span>
-          <span class="map-item-meta">
-            Qty: <strong>{{ item.quantity }}</strong>
-            {% if item.unit %} &middot; {{ item.unit }}{% endif %}
-            {% if item.hsn_code %} &middot; HSN: {{ item.hsn_code }}{% endif %}
-          </span>
-        </div>
-        {% if item.is_new %}
-          <span class="badge badge-new">NEW</span>
-        {% else %}
-          <span class="badge badge-match" title="Exists in inventory as: {{ item.matched_name }}">EXISTS</span>
-        {% endif %}
-      </div>
-
-      <div class="map-item-body">
-        {% if item.is_new %}
-          <input type="hidden" name="mapping[]" value="__new__">
-          <div class="new-product-form" style="display:block;">
-            <p class="npf-intro">
-              <i class="fa-solid fa-sparkles" style="color:#b45309; margin-right:0.3rem;"></i>
-              New to inventory — it will be <strong>created</strong>. Fill the details below.
-            </p>
-            <div class="npf-grid">
-              <div class="npf-field npf-required">
-                <label class="npf-label">Category <span>*</span></label>
-                <input type="text" name="new_category[]" class="form-control" placeholder="e.g., Fasteners, Electrical" value="{{ item.category|default('', true) }}" required>
-              </div>
-              <div class="npf-field">
-                <label class="npf-label">Price (per unit)</label>
-                <input type="number" name="new_price[]" class="form-control" step="0.01" min="0" placeholder="0.00" value="{{ item.price|default('', true) }}">
-              </div>
-              <div class="npf-field">
-                <label class="npf-label">GST Rate (%)</label>
-                <input type="number" name="new_gst[]" class="form-control" step="0.1" min="0" max="28" placeholder="0" value="{{ item.gst_rate|default('', true) }}">
-              </div>
-              <div class="npf-field npf-full">
-                <label class="npf-label">Description</label>
-                <input type="text" name="new_desc[]" class="form-control" placeholder="Optional notes" value="{{ item.description|default('', true) }}">
-              </div>
-            </div>
-            <div class="npf-grid">
-              <div class="npf-field npf-required">
-                <label class="npf-label">Unit <span>*</span></label>
-                {% if item.unit %}
-                  <input type="text" name="new_unit[]" class="form-control" value="{{ item.unit }}" placeholder="e.g., PCS, KG, MTR" required>
-                {% else %}
-                  <input type="text" name="new_unit[]" class="form-control" placeholder="e.g., PCS, KG, MTR" required>
-                {% endif %}
-              </div>
-              <div class="npf-field">
-                <label class="npf-label">HSN Code</label>
-                {% if item.hsn_code %}
-                  <input type="text" name="new_hsn[]" class="form-control" value="{{ item.hsn_code }}" placeholder="e.g., 7318">
-                {% else %}
-                  <input type="text" name="new_hsn[]" class="form-control" placeholder="e.g., 7318">
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        {% else %}
-          <div class="match-row">
-            <span class="match-icon"><i class="fa-solid fa-check"></i></span>
-            <span class="match-text">
-              Will stock into <strong>{{ item.matched_name }}</strong>
-            </span>
-            <select name="mapping[]" class="form-select map-select" data-idx="{{ loop.index0 }}">
-              <option value="">-- Skip --</option>
-              {% for pname in product_names %}
-                <option value="{{ pname }}" {% if pname|lower == item.matched_name|lower %}selected{% endif %}>{{ pname }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-    {% endfor %}
-
-    <div class="map-reason">
-      <label for="reason" class="form-label" style="font-weight: 600;">
-        <i class="fa-solid fa-clipboard-list" style="color: var(--primary); margin-right: 0.3rem;"></i>
-        Reason / Reference
-      </label>
-      <input type="text" id="reason" name="reason" class="form-control" value="Bulk import from supplier bill" placeholder="e.g., PO #45091">
-    </div>
-
-    <div class="btn-row" style="margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary" id="confirm-btn">
-        <i class="fa-solid fa-check"></i> Confirm &amp; Stock In
-      </button>
-      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary">
-        <i class="fa-solid fa-arrow-left"></i> Upload Different File
-      </a>
-    </div>
-  </form>
-</div>
-
-<style>
-  .map-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
-  .map-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.25rem; }
-  .map-sub { color: #64748b; font-size: 0.85rem; margin: 0; }
-  .map-summary { font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 0.4rem 0.75rem; border-radius: 6px; white-space: nowrap; }
-
-  .map-item {
-    border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 0.75rem;
-    background: #fff; overflow: hidden; transition: border-color 0.2s;
+  .bsi-upload-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 1rem;
   }
-  .map-item:hover { border-color: #cbd5e1; }
-  .map-item-head {
-    display: flex; align-items: center; gap: 0.75rem;
-    padding: 0.75rem 1rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+  .bsi-ready-msg {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--color-surface-container);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--r-md);
+    font-size: 0.8rem;
+    color: var(--color-on-surface);
   }
-  .map-idx {
-    width: 28px; height: 28px; border-radius: 50%; background: #e0e7ff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.78rem; font-weight: 600; color: #4338ca; flex-shrink: 0;
+  .bsi-ready-msg i { color: var(--color-primary); }
+  .bsi-submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    border-radius: var(--r-md);
   }
-  .map-item-info { flex: 1; min-width: 0; }
-  .map-item-name { font-weight: 600; color: #0f172a; font-size: 0.9rem; }
-  .map-item-meta { display: block; font-size: 0.78rem; color: #64748b; margin-top: 0.1rem; }
-  .map-item-meta strong { color: #3b82f6; }
+  .bsi-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .map-item-body { padding: 0.75rem 1rem; }
-  .map-select { width: 100%; font-size: 0.85rem; }
+  /* Upload Sidebar Guide */
+  .bsi-guide-card {
+    background: var(--color-surface);
+  }
+  .guide-heading {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .guide-heading i { color: var(--color-warning); }
+  .guide-steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .guide-step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+  .guide-step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .guide-step-content strong {
+    font-size: 0.82rem;
+    color: var(--color-on-surface);
+    display: block;
+    margin-bottom: 0.1rem;
+  }
+  .guide-step-content p {
+    font-size: 0.74rem;
+    color: var(--color-on-surface-variant);
+    margin: 0;
+    line-height: 1.35;
+  }
+  .guide-tip-box {
+    padding: 0.65rem 0.85rem;
+    background: var(--color-surface-container);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--r-sm);
+    font-size: 0.75rem;
+    color: var(--color-on-surface-variant);
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    line-height: 1.35;
+  }
+  .guide-tip-box i { color: var(--color-warning); font-size: 0.85rem; margin-top: 0.1rem; }
+
+  /* -------------------------------------------------------------
+     REVIEW / MAP STEP (DASHBOARD-GRADE FULL-WIDTH VIEW)
+     ------------------------------------------------------------- */
+  .bsi-map-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+  }
+
+  /* Top Toolbar */
+  .bsi-review-toolbar {
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--r-lg);
+    padding: 0.75rem 1.25rem;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 72px;
+    z-index: 40;
+    backdrop-filter: blur(8px);
+  }
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .toolbar-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .toolbar-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .toolbar-title i { color: var(--color-primary); }
+  .toolbar-count-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--color-primary);
+    color: #ffffff;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+  }
+
+  /* Filter Tabs */
+  .bsi-filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--color-surface-container);
+    padding: 0.2rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--color-outline-variant);
+  }
+  .filter-tab {
+    border: none;
+    background: transparent;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-on-surface-variant);
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.15s;
+  }
+  .filter-tab:hover {
+    color: var(--color-on-surface);
+  }
+  .filter-tab.active {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    box-shadow: var(--shadow-xs);
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-match { background: var(--color-success); }
+  .dot-new { background: var(--color-warning); }
+  .dot-skipped { background: var(--color-outline); }
+
+  /* Toolbar Right */
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+  .review-search-wrap {
+    position: relative;
+    width: 190px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-on-surface-variant);
+    font-size: 0.75rem;
+    pointer-events: none;
+  }
+  .review-search-input {
+    padding-left: 1.85rem !important;
+    font-size: 0.8rem !important;
+    height: 36px;
+    border-radius: var(--r-sm);
+  }
+  .toolbar-action-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .reason-input {
+    height: 36px;
+    font-size: 0.8rem !important;
+    border-radius: var(--r-sm);
+    width: 180px;
+  }
+  .btn-confirm-stock {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0 1rem;
+    border-radius: var(--r-sm);
+    white-space: nowrap;
+  }
+  .btn-back-upload {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    padding: 0 0.75rem;
+    border-radius: var(--r-sm);
+  }
+
+  /* -------------------------------------------------------------
+     ITEMS GRID (2 COLUMNS RESPONSIVE)
+     ------------------------------------------------------------- */
+  .bsi-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  /* Single Item Card */
+  .map-item-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s;
+  }
+  .map-item-card:hover {
+    border-color: var(--color-primary);
+  }
+  .map-item-card.card-is-skipped {
+    opacity: 0.55;
+    background: var(--color-surface-container);
+  }
+
+  /* Card Header */
+  .mic-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.9rem;
+    background: var(--color-surface-container);
+    border-bottom: 1px solid var(--color-outline-variant);
+  }
+  .mic-index {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #ffffff;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .mic-title-box {
+    flex: 1;
+    min-width: 0;
+  }
+  .mic-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin: 0 0 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mic-pills {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .mic-pill {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--color-on-surface-variant);
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .qty-pill {
+    color: var(--color-primary);
+    border-color: var(--color-primary-fixed-dim);
+    background: var(--color-primary-fixed);
+    font-weight: 600;
+  }
+  .qty-pill strong { color: var(--color-primary); }
 
   .badge {
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em;
-    padding: 0.2rem 0.55rem; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
   }
-  .badge-new { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
-  .badge-match { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-
-  .match-row {
-    display: flex; align-items: center; gap: 0.75rem;
-    background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
-    padding: 0.6rem 0.75rem;
+  .badge-match {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+    border: 1px solid var(--color-success);
   }
-  .match-icon {
-    width: 26px; height: 26px; border-radius: 50%; background: #16a34a;
-    color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; flex-shrink: 0;
+  .badge-new {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    border: 1px solid var(--color-warning);
   }
-  .match-text { flex: 1; font-size: 0.85rem; color: #14532d; min-width: 0; }
-  .match-row .map-select { max-width: 280px; }
 
-  .new-product-form { margin-top: 0.75rem; padding: 0.75rem; background: #fefce8; border: 1px solid #fde68a; border-radius: 8px; }
-  .npf-intro { margin: 0 0 0.6rem; font-size: 0.82rem; color: #92400e; }
-  .npf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
-  .npf-full { grid-column: 1 / -1; }
-  .npf-label { display: block; font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 0.2rem; }
-  .npf-label span { color: #dc2626; }
-  .npf-field .form-control { font-size: 0.82rem; padding: 0.4rem 0.6rem; }
-  .npf-note { margin: 0.5rem 0 0; font-size: 0.75rem; color: #92400e; }
+  /* Card Body */
+  .mic-body {
+    padding: 0.75rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
 
-  .map-reason { margin-top: 1.25rem; }
+  /* Matched Box */
+  .matched-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background: var(--color-surface-container);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--r-sm);
+    padding: 0.6rem 0.8rem;
+  }
+  .matched-info {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .matched-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+  .matched-text-wrap {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .matched-sub {
+    font-size: 0.65rem;
+    color: var(--color-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .matched-name {
+    font-size: 0.85rem;
+    color: var(--color-on-surface);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .matched-action-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
 
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .btn-toggle-skip {
+    border: 1px solid var(--color-outline-variant);
+    background: var(--color-surface);
+    color: var(--color-on-surface-variant);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-toggle-skip:hover {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+  }
+  .btn-skipped-state {
+    background: var(--color-primary-fixed) !important;
+    color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+  }
 
-  @media (max-width: 640px) {
-    .npf-grid { grid-template-columns: 1fr; }
-    .btn-row { flex-direction: column; }
-    .btn-row .btn { width: 100%; justify-content: center; }
-    .match-row { flex-wrap: wrap; }
-    .match-row .map-select { max-width: 100%; }
+  /* New Product Box */
+  .new-product-section {
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning);
+    border-radius: var(--r-sm);
+    padding: 0.7rem 0.85rem;
+  }
+  .npf-helper-text {
+    font-size: 0.74rem;
+    color: var(--color-warning-text);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+  }
+  .npf-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .npf-col {
+    flex: 1;
+    min-width: 95px;
+  }
+  .npf-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--color-warning-text);
+    margin-bottom: 0.15rem;
+  }
+  .npf-label .req { color: var(--color-danger); }
+  .npf-input {
+    font-size: 0.78rem !important;
+    padding: 0.3rem 0.55rem !important;
+    height: 32px !important;
+    border-radius: var(--r-xs) !important;
+    background: var(--color-surface) !important;
+  }
+
+  /* Remap Toggle */
+  .remap-container {
+    padding-top: 0.4rem;
+    border-top: 1px dashed var(--color-outline-variant);
+  }
+  .remap-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.74rem;
+    color: var(--color-on-surface-variant);
+    cursor: pointer;
+  }
+  .remap-toggle-label input { accent-color: var(--color-primary); }
+  .remap-search-wrap { margin-top: 0.4rem; }
+
+  /* Autocomplete Dropdown */
+  .ac-wrap {
+    position: relative;
+    flex: 1;
+  }
+  .ac-icon {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-on-surface-variant);
+    font-size: 0.72rem;
+    pointer-events: none;
+  }
+  .ac-input {
+    padding-left: 1.85rem !important;
+    font-size: 0.8rem !important;
+    height: 34px;
+    border-radius: var(--r-sm);
+  }
+  .ac-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--r-sm);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    margin-top: 3px;
+  }
+  .ac-list.open { display: block; }
+  .ac-item {
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: var(--color-on-surface);
+    border-bottom: 1px solid var(--color-outline-variant);
+    transition: background 0.15s;
+  }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:hover, .ac-item.active {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+  }
+  .ac-item .ac-match { font-weight: 700; color: var(--color-primary); }
+  .ac-empty {
+    padding: 0.65rem;
+    font-size: 0.75rem;
+    color: var(--color-on-surface-variant);
+    font-style: italic;
+  }
+
+  /* Sticky Bottom Summary for Mobile/Widescreen */
+  .bsi-bottom-floating-bar {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+    box-shadow: var(--shadow-lg);
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    z-index: 50;
+    backdrop-filter: blur(10px);
+  }
+  .bf-info {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-on-surface);
+  }
+
+  /* -------------------------------------------------------------
+     RESPONSIVE MEDIA QUERIES
+     ------------------------------------------------------------- */
+  @media (max-width: 1080px) {
+    .bsi-upload-layout {
+      grid-template-columns: 1fr;
+    }
+    .bsi-items-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .bsi-review-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+      position: static;
+    }
+    .toolbar-left, .toolbar-right {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .review-search-wrap, .reason-input {
+      width: 100%;
+    }
+    .toolbar-action-group {
+      flex-direction: column;
+    }
+    .toolbar-action-group .btn {
+      width: 100%;
+      justify-content: center;
+    }
+    .bsi-filter-tabs {
+      overflow-x: auto;
+      width: 100%;
+    }
   }
 </style>
-
-<script>
-(function() {
-  var cards = Array.prototype.slice.call(document.querySelectorAll('.map-item'));
-  var summary = document.getElementById('map-summary');
-
-  function updateSummary() {
-    var mapped = 0, newItems = 0, skipped = 0;
-    cards.forEach(function(card) {
-      if (card.getAttribute('data-new') === '1') { newItems++; return; }
-      var sel = card.querySelector('.map-select');
-      if (sel && sel.value === '') skipped++;
-      else mapped++;
-    });
-    summary.textContent = newItems + ' new to create, ' + mapped + ' existing to stock in, ' + skipped + ' skipped';
-    var btn = document.getElementById('confirm-btn');
-    if (btn) btn.disabled = (mapped + newItems === 0);
-  }
-
-  cards.forEach(function(card) {
-    var sel = card.querySelector('.map-select');
-    if (sel) sel.addEventListener('change', updateSummary);
-  });
-
-  window.bulkStockInConfig = {
-    csrfToken: document.querySelector('input[name="csrf_token"]').value,
-    itemCount: cards.length,
-    hasNew: cards.some(function(c) { return c.getAttribute('data-new') === '1'; })
-  };
-
-  updateSummary();
-})();
-</script>
-{% endif %}
 {% endblock %}

@@ -104,6 +104,7 @@ def adjust_stock(product_name=None):
 def bulk_stock_in():
     from inventory_app.services.import_service import parse_supplier_bill
     from inventory_app.services.product_service import search_products
+    from rapidfuzz import fuzz
 
     if request.method == 'POST':
         file = request.files.get('bill_file')
@@ -118,16 +119,28 @@ def bulk_stock_in():
 
         products = search_products(is_active=True, limit=500)
         product_names = [p['product_name'] for p in products]
-        product_map = {}
-        for p in products:
-            key = p['product_name'].strip().lower()
-            if key not in product_map:
-                product_map[key] = p['product_name']
 
         for item in items:
-            matched = product_map.get(item['item_name'].strip().lower(), None)
+            item_name = item['item_name'].strip()
+            item_lower = item_name.lower()
+
+            matched = None
+            best_score = 0
+
+            for pname in product_names:
+                pname_lower = pname.strip().lower()
+                if item_lower == pname_lower:
+                    matched = pname
+                    break
+                score = fuzz.token_sort_ratio(item_lower, pname_lower)
+                if score > best_score:
+                    best_score = score
+                    if score >= 72:
+                        matched = pname
+
             item['is_new'] = matched is None
             item['matched_name'] = matched or ''
+            item['match_score'] = best_score
 
         session['bulk_import_items'] = [
             {'item_name': item['item_name'], 'quantity': item['quantity']}
