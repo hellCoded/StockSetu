@@ -5,7 +5,7 @@
 {% block extra_head %}
 <style>
 /* ============================================================
-   STOCKSETU POS SYSTEM — Premium Modern UI
+   STOCKSETU POS SYSTEM — Integrated Customer & Catalog Flow
    ============================================================ */
 
 :root {
@@ -16,72 +16,62 @@
 }
 
 /* Category Accent Palette */
-.q-cat-0 { --cat: #0284c7; --cat-bg: #f0f9ff; --cat-border: #bae6fd; --cat-glow: rgba(2, 132, 199, 0.25); }
-.q-cat-1 { --cat: #6366f1; --cat-bg: #eef2ff; --cat-border: #c7d2fe; --cat-glow: rgba(99, 102, 241, 0.25); }
-.q-cat-2 { --cat: #0d9488; --cat-bg: #f0fdfa; --cat-border: #99f6e4; --cat-glow: rgba(13, 148, 136, 0.25); }
-.q-cat-3 { --cat: #ea580c; --cat-bg: #fff7ed; --cat-border: #fed7aa; --cat-glow: rgba(234, 88, 12, 0.25); }
-.q-cat-4 { --cat: #8b5cf6; --cat-bg: #f5f3ff; --cat-border: #ddd6fe; --cat-glow: rgba(139, 92, 246, 0.25); }
-.q-cat-5 { --cat: #059669; --cat-bg: #ecfdf5; --cat-border: #a7f3d0; --cat-glow: rgba(5, 150, 105, 0.25); }
-.q-cat-6 { --cat: #db2777; --cat-bg: #fdf2f8; --cat-border: #fbcfe8; --cat-glow: rgba(219, 39, 119, 0.25); }
-.q-cat-7 { --cat: #d97706; --cat-bg: #fffbeb; --cat-border: #fde68a; --cat-glow: rgba(217, 119, 6, 0.25); }
-.q-cat-8 { --cat: #4f46e5; --cat-bg: #eef2ff; --cat-border: #c7d2fe; --cat-glow: rgba(79, 70, 229, 0.25); }
-.q-cat-9 { --cat: #e11d48; --cat-bg: #fff1f2; --cat-border: #fecdd3; --cat-glow: rgba(225, 29, 72, 0.25); }
+.q-cat-0 { --cat: #0284c7; --cat-bg: #f0f9ff; --cat-border: #bae6fd; --cat-glow: rgba(2, 132, 199, 0.2); }
+.q-cat-1 { --cat: #6366f1; --cat-bg: #eef2ff; --cat-border: #c7d2fe; --cat-glow: rgba(99, 102, 241, 0.2); }
+.q-cat-2 { --cat: #0d9488; --cat-bg: #f0fdfa; --cat-border: #99f6e4; --cat-glow: rgba(13, 148, 136, 0.2); }
+.q-cat-3 { --cat: #ea580c; --cat-bg: #fff7ed; --cat-border: #fed7aa; --cat-glow: rgba(234, 88, 12, 0.2); }
+.q-cat-4 { --cat: #8b5cf6; --cat-bg: #f5f3ff; --cat-border: #ddd6fe; --cat-glow: rgba(139, 92, 246, 0.2); }
+.q-cat-5 { --cat: #059669; --cat-bg: #ecfdf5; --cat-border: #a7f3d0; --cat-glow: rgba(5, 150, 105, 0.2); }
+.q-cat-6 { --cat: #db2777; --cat-bg: #fdf2f8; --cat-border: #fbcfe8; --cat-glow: rgba(219, 39, 119, 0.2); }
+.q-cat-7 { --cat: #d97706; --cat-bg: #fffbeb; --cat-border: #fde68a; --cat-glow: rgba(217, 119, 6, 0.2); }
+.q-cat-8 { --cat: #4f46e5; --cat-bg: #eef2ff; --cat-border: #c7d2fe; --cat-glow: rgba(79, 70, 229, 0.2); }
+.q-cat-9 { --cat: #e11d48; --cat-bg: #fff1f2; --cat-border: #fecdd3; --cat-glow: rgba(225, 29, 72, 0.2); }
 
 /* ── Hero Top Header ── */
 .pos-hero-container {
   background: var(--pos-header-gradient);
   border-radius: var(--r-xl);
-  padding: 0.9rem 1.35rem;
-  margin-bottom: 0.85rem;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 0.75rem;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  box-shadow: 0 4px 20px rgba(11, 61, 110, 0.18);
+  box-shadow: 0 4px 18px rgba(11, 61, 110, 0.15);
   position: relative;
   overflow: hidden;
-}
-.pos-hero-container::before {
-  content: '';
-  position: absolute;
-  top: -50px;
-  right: -50px;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
-  pointer-events: none;
 }
 .pos-hero-left {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   position: relative;
   z-index: 2;
 }
 .pos-hero-badge-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #fbbf24, #f59e0b);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
   flex-shrink: 0;
 }
 .pos-hero-title-group h1 {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin: 0;
   letter-spacing: -0.01em;
   color: #ffffff;
 }
 .pos-hero-title-group p {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.75);
   margin: 0.1rem 0 0;
 }
@@ -89,7 +79,7 @@
 .pos-hero-right {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.6rem;
   position: relative;
   z-index: 2;
   flex-wrap: wrap;
@@ -98,16 +88,16 @@
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--r-md);
-  padding: 0.3rem 0.65rem;
+  padding: 0.25rem 0.6rem;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-align: center;
   color: #ffffff;
 }
 .pos-pill-clock span {
   display: block;
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   font-family: var(--font-ui);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -117,14 +107,14 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--r-md);
-  padding: 0.3rem 0.65rem;
-  font-size: 0.68rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.85);
-  line-height: 1.3;
+  line-height: 1.25;
 }
 .pos-store-tag strong {
   display: block;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   color: #ffffff;
 }
 .pos-hero-btn {
@@ -148,17 +138,164 @@
 /* ── POS 2-Column Responsive Layout ── */
 .q-pos-layout {
   display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 0.85rem;
+  grid-template-columns: 1fr 370px;
+  gap: 0.75rem;
   align-items: start;
   width: 100%;
 }
 
-/* ── Product Catalog Section (Left) ── */
+/* ── Main Left Section (Integrated Customer + Catalog) ── */
+.q-pos-main-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Integrated Customer Header Bar */
+.pos-customer-bar {
+  background: var(--pos-panel-bg);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-lg);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.pcb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.pcb-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+.pcb-title i { color: var(--color-primary); }
+
+.pcb-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+.pcb-name-wrap {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+.pcb-input {
+  height: 34px !important;
+  font-size: 0.8rem !important;
+  border-radius: var(--r-sm) !important;
+}
+.q-walkin-btn {
+  background: var(--color-surface-container);
+  border: 1px solid var(--pos-border);
+  color: var(--color-primary);
+  border-radius: var(--r-sm);
+  padding: 0 0.6rem;
+  height: 34px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.q-walkin-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.pcb-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--pos-border);
+}
+.q-pay-options {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+.q-pay-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  background: var(--color-surface);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-sm);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.q-pay-opt input { display: none; }
+.q-pay-opt i { font-size: 0.75rem; }
+.q-pay-opt.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(11, 61, 110, 0.25);
+}
+
+.pcb-extras {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.pcb-field-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+}
+.pcb-mini-input {
+  width: 65px;
+  height: 28px !important;
+  font-size: 0.75rem !important;
+  padding: 0 0.4rem !important;
+  text-align: right;
+  border-radius: var(--r-xs) !important;
+}
+.q-due-date-row {
+  display: none;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-danger);
+}
+.q-due-date-row.show { display: inline-flex; }
+.q-due-date-row input {
+  height: 28px;
+  font-size: 0.72rem !important;
+  width: 125px;
+  border-radius: var(--r-xs);
+}
+
+/* ── Product Catalog Section (Integrated Below Customer) ── */
 .q-pos-products {
   background: var(--pos-panel-bg);
   border: 1px solid var(--pos-border);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-lg);
   overflow: hidden;
   box-shadow: var(--shadow-xs);
   display: flex;
@@ -166,7 +303,7 @@
 }
 
 .q-pos-toolbar {
-  padding: 0.65rem 0.9rem;
+  padding: 0.6rem 0.85rem;
   border-bottom: 1px solid var(--pos-border);
   background: var(--color-surface-container);
   display: flex;
@@ -188,10 +325,10 @@
 }
 #live-search {
   padding-left: 2.2rem;
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: var(--color-surface);
-  font-size: 0.85rem;
-  height: 38px;
+  font-size: 0.82rem;
+  height: 36px;
   border: 1px solid var(--pos-border);
   width: 100%;
   color: var(--color-on-surface);
@@ -212,8 +349,8 @@
 /* Category Chips */
 .q-pos-chips {
   display: flex;
-  gap: 0.35rem;
-  padding: 0.55rem 0.9rem;
+  gap: 0.3rem;
+  padding: 0.45rem 0.85rem;
   border-bottom: 1px solid var(--pos-border);
   overflow-x: auto;
   flex-wrap: nowrap;
@@ -223,13 +360,13 @@
 .q-pos-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.75rem;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 999px;
   background: var(--color-surface);
   border: 1px solid var(--pos-border);
   color: var(--color-on-surface-variant);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -244,10 +381,10 @@
   background: var(--cat, var(--color-primary));
   border-color: var(--cat, var(--color-primary));
   color: #ffffff;
-  box-shadow: 0 2px 8px var(--cat-glow, rgba(11, 61, 110, 0.25));
+  box-shadow: 0 2px 6px var(--cat-glow, rgba(11, 61, 110, 0.25));
 }
 .q-pos-chip-count {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 700;
   background: rgba(0, 0, 0, 0.08);
   padding: 0.05rem 0.35rem;
@@ -261,10 +398,10 @@
 /* Product Cards Grid */
 .q-pos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
-  gap: 0.6rem;
-  padding: 0.75rem 0.9rem;
-  max-height: calc(100vh - 240px);
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.55rem;
+  padding: 0.65rem 0.85rem;
+  max-height: calc(100vh - 310px);
   overflow-y: auto;
 }
 
@@ -277,17 +414,17 @@
   border-top: 3px solid var(--cat);
   border-radius: var(--r-md);
   background: var(--color-surface);
-  padding: 0.6rem 0.65rem 0.55rem;
+  padding: 0.55rem 0.6rem 0.5rem;
   cursor: pointer;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   transition: all 0.15s var(--ease);
 }
 .q-prod-card:not(.disabled):hover {
   border-color: var(--cat);
-  box-shadow: 0 6px 16px var(--cat-glow);
+  box-shadow: 0 4px 14px var(--cat-glow);
   transform: translateY(-2px);
 }
 .q-prod-card:active:not(.disabled) {
@@ -305,7 +442,7 @@
   align-items: center;
 }
 .q-prod-cat-tag {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
   color: var(--cat);
   text-transform: uppercase;
@@ -321,11 +458,11 @@
   justify-content: flex-end;
 }
 .q-prod-qty-input {
-  width: 32px;
-  height: 22px;
+  width: 30px;
+  height: 20px;
   border: 1px solid var(--cat);
   border-radius: var(--r-xs);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-align: center;
   background: var(--color-surface);
@@ -338,42 +475,42 @@
 .q-prod-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .q-prod-qty-input:focus { outline: none; box-shadow: 0 0 0 2px var(--cat-glow); }
 .q-prod-add {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   background: var(--cat);
   color: #ffffff;
   border: none;
   border-radius: 50%;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px var(--cat-glow);
+  box-shadow: 0 2px 5px var(--cat-glow);
   transition: transform 0.15s;
 }
 .q-prod-add:hover { transform: scale(1.15); }
 .q-prod-qty-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -5px;
+  right: -5px;
   background: var(--cat);
   color: #ffffff;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 800;
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px var(--cat-glow);
+  box-shadow: 0 2px 5px var(--cat-glow);
   border: 2px solid var(--color-surface);
   animation: badgePop 0.2s var(--ease-spring);
 }
 @keyframes badgePop { from { transform: scale(0); } to { transform: scale(1); } }
 .q-prod-name {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: var(--color-on-surface);
   line-height: 1.25;
@@ -390,37 +527,37 @@
   gap: 0.2rem;
 }
 .q-prod-hsn {
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   color: var(--color-on-surface-variant);
   font-family: var(--font-mono);
 }
 .q-prod-gst {
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   font-weight: 700;
   color: var(--cat);
   background: var(--cat-bg);
   border: 1px solid var(--cat-border);
-  padding: 0.05rem 0.35rem;
+  padding: 0.04rem 0.3rem;
   border-radius: 999px;
 }
 .q-prod-price {
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: var(--cat);
 }
 .q-prod-incl {
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   color: var(--color-on-surface-variant);
 }
 .q-prod-stock {
   align-self: flex-start;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  padding: 0.1rem 0.4rem;
+  padding: 0.1rem 0.35rem;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 .q-prod-stock.ok  { background: var(--color-success-bg); color: var(--color-success-text); }
 .q-prod-stock.low { background: var(--color-warning-bg); color: var(--color-warning-text); }
@@ -429,25 +566,25 @@
   grid-column: 1 / -1;
   text-align: center;
   color: var(--color-on-surface-variant);
-  padding: 2.5rem 1rem;
-  font-size: 0.85rem;
+  padding: 2rem 1rem;
+  font-size: 0.82rem;
 }
 .q-pos-none i {
-  font-size: 2rem;
+  font-size: 1.8rem;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   color: var(--color-outline-variant);
 }
 
-/* ── Cart Section (Right) ── */
+/* ── Dedicated Cart Panel (Right) ── */
 .q-pos-cart {
   background: var(--pos-panel-bg);
   border: 1px solid var(--pos-border);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-xs);
   position: sticky;
   top: 72px;
   max-height: calc(100vh - 90px);
@@ -503,163 +640,26 @@
   border-color: var(--color-danger);
 }
 
-/* Customer Accordion */
-.q-cart-customer {
-  border-bottom: 1px solid var(--pos-border);
-  flex-shrink: 0;
-}
-.q-cart-cust-toggle {
-  width: 100%;
-  background: var(--color-surface);
-  border: none;
-  padding: 0.55rem 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--color-on-surface-variant);
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.q-cart-cust-toggle:hover { background: var(--color-surface-container); }
-.q-cart-cust-toggle i.fa-chevron-down {
-  font-size: 0.65rem;
-  transition: transform 0.2s;
-}
-.q-cart-cust-toggle.open i.fa-chevron-down { transform: rotate(180deg); }
-
-.q-cart-cust-body {
-  padding: 0.6rem 0.9rem;
-  background: var(--color-surface-container);
-  border-top: 1px solid var(--pos-border);
-  display: none;
-}
-.q-cart-cust-body.open { display: block; }
-.q-cart-name-row {
-  display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.4rem;
-}
-.q-cart-name-row input {
-  flex: 1;
-  height: 32px;
-  font-size: 0.78rem !important;
-}
-.q-walkin-btn {
-  background: var(--color-surface);
-  border: 1px solid var(--pos-border);
-  color: var(--color-primary);
-  border-radius: var(--r-sm);
-  padding: 0 0.6rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s;
-}
-.q-walkin-btn:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-}
-.q-cust-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.4rem;
-  margin-bottom: 0.4rem;
-}
-.q-cust-row input {
-  height: 32px;
-  font-size: 0.75rem !important;
-}
-.q-cart-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--color-on-surface-variant);
-  margin-bottom: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-.q-pay-options {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.3rem;
-  margin-bottom: 0.4rem;
-}
-.q-pay-opt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
-  padding: 0.35rem 0.2rem;
-  background: var(--color-surface);
-  border: 1px solid var(--pos-border);
-  border-radius: var(--r-sm);
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--color-on-surface-variant);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.q-pay-opt input { display: none; }
-.q-pay-opt i { font-size: 0.8rem; }
-.q-pay-opt.is-active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #ffffff;
-}
-.q-charges-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  margin-bottom: 0.25rem;
-  font-size: 0.72rem;
-  color: var(--color-on-surface-variant);
-}
-.q-charges-row input {
-  width: 75px;
-  height: 26px;
-  padding: 0.15rem 0.4rem;
-  font-size: 0.75rem !important;
-  text-align: right;
-}
-.q-due-date-row {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 0.4rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-.q-due-date-row.show { display: flex; }
-.q-due-date-row input {
-  height: 28px;
-  font-size: 0.72rem !important;
-  width: 140px;
-}
-
 /* Cart Items List */
 .q-cart-items {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem 0.75rem;
-  min-height: 120px;
-  max-height: 260px;
+  padding: 0.55rem 0.75rem;
+  min-height: 180px;
+  max-height: 380px;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 .q-cart-empty {
   text-align: center;
   color: var(--color-on-surface-variant);
-  padding: 1.5rem 0.5rem;
+  padding: 2.5rem 0.5rem;
   font-size: 0.78rem;
   line-height: 1.4;
 }
 .q-cart-empty i {
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   color: var(--color-outline-variant);
   display: block;
   margin-bottom: 0.4rem;
@@ -674,7 +674,7 @@
   background: var(--color-surface-container);
   border: 1px solid var(--pos-border);
   border-radius: var(--r-sm);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
 }
 .q-cart-row-name {
   font-weight: 700;
@@ -682,7 +682,7 @@
   line-height: 1.2;
 }
 .q-cart-row-sub {
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   color: var(--color-on-surface-variant);
   margin-top: 0.1rem;
 }
@@ -694,7 +694,7 @@
   font-size: 0.65rem;
 }
 .q-cart-row-disc input {
-  width: 42px;
+  width: 40px;
   height: 20px;
   padding: 0 0.25rem;
   font-size: 0.65rem !important;
@@ -763,7 +763,7 @@
   font-weight: 800;
   font-size: 0.78rem;
   color: var(--color-on-surface);
-  min-width: 54px;
+  min-width: 52px;
   text-align: right;
 }
 
@@ -771,10 +771,10 @@
 .q-cart-totals {
   background: var(--color-surface-container);
   border-top: 1px solid var(--pos-border);
-  padding: 0.6rem 0.9rem;
+  padding: 0.55rem 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.22rem;
   font-size: 0.72rem;
 }
 .q-total-row {
@@ -792,47 +792,47 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.4rem;
-  margin-top: 0.2rem;
+  padding-top: 0.35rem;
+  margin-top: 0.15rem;
   border-top: 1.5px dashed var(--pos-border);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 800;
   color: var(--color-on-surface);
 }
 .q-grand-row .val {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-family: var(--font-mono);
   color: var(--color-primary);
 }
 
 .q-cart-submit {
-  padding: 0.65rem 0.9rem;
+  padding: 0.6rem 0.85rem;
   background: var(--color-surface);
   border-top: 1px solid var(--pos-border);
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 .q-submit-btn {
   width: 100%;
-  height: 42px;
+  height: 40px;
   background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
   color: #ffffff;
   border: none;
-  border-radius: var(--r-md);
-  font-size: 0.9rem;
+  border-radius: var(--r-sm);
+  font-size: 0.88rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(11, 61, 110, 0.3);
+  box-shadow: 0 4px 12px rgba(11, 61, 110, 0.25);
   transition: all 0.2s;
 }
 .q-submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(11, 61, 110, 0.4);
+  box-shadow: 0 6px 16px rgba(11, 61, 110, 0.35);
 }
 .q-submit-btn:disabled {
   opacity: 0.5;
@@ -841,11 +841,11 @@
 }
 .q-submit-hint {
   text-align: center;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--color-on-surface-variant);
 }
 
-/* Mobile Toggle */
+/* Mobile Cart Toggle */
 .q-cart-overlay {
   display: none;
   position: fixed;
@@ -858,14 +858,14 @@
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--color-primary);
   color: #ffffff;
   border: none;
   box-shadow: var(--shadow-lg);
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -877,10 +877,10 @@
   right: -4px;
   background: var(--color-accent);
   color: #ffffff;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -889,6 +889,7 @@
 
 @media (max-width: 960px) {
   .q-pos-layout { grid-template-columns: 1fr; }
+  .pcb-grid { grid-template-columns: 1fr; }
   .q-pos-cart {
     position: fixed;
     top: 0;
@@ -916,7 +917,7 @@
   <span class="q-toggle-badge" id="toggle-badge">0</span>
 </button>
 
-<!-- Hero Header -->
+<!-- Hero Top Header -->
 <div class="pos-hero-container">
   <div class="pos-hero-left">
     <div class="pos-hero-badge-icon">
@@ -924,7 +925,7 @@
     </div>
     <div class="pos-hero-title-group">
       <h1>Quick POS Billing Counter</h1>
-      <p>Click products to add &middot; Real-time GST &amp; stock calculation</p>
+      <p>Customer details &amp; product catalog unified &middot; Real-time tax &amp; stock sync</p>
     </div>
   </div>
   <div class="pos-hero-right">
@@ -947,120 +948,125 @@
   <div id="item-fields-holder"></div>
 
   <div class="q-pos-layout">
-    <!-- Left: Products Catalog & Search -->
-    <div class="q-pos-products">
-      <div class="q-pos-toolbar">
-        <div class="q-pos-search-wrap">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="live-search" class="form-control" placeholder="Search by name, HSN, category (Ctrl+K or /)..." autocomplete="off">
+    <!-- Main Left Section: Integrated Customer Details + Items Catalog -->
+    <div class="q-pos-main-panel">
+      <!-- 1. Customer & Billing Configuration Bar -->
+      <div class="pos-customer-bar">
+        <div class="pcb-head">
+          <h3 class="pcb-title"><i class="fa-solid fa-user-tag"></i> Customer Information</h3>
         </div>
-        <span class="q-pos-result-count" id="q-pos-result-count">Loading items...</span>
-      </div>
 
-      <!-- Categories Filter Chips -->
-      <div class="q-pos-chips" id="q-pos-chips">
-        <button type="button" class="q-pos-chip q-cat-0 is-active" data-cat="all">All <span class="q-pos-chip-count">0</span></button>
-        {% for cat in categories %}
-          <button type="button" class="q-pos-chip" data-cat="{{ cat }}">{{ cat }} <span class="q-pos-chip-count">0</span></button>
-        {% endfor %}
-      </div>
-
-      <!-- Product Cards Grid -->
-      <div class="q-pos-grid" id="q-pos-grid">
-        {% for p in products %}
-          <div class="q-prod-card {% if (p.quantity or 0) <= 0 %}disabled{% endif %}"
-               data-name="{{ p.product_name }}"
-               data-stock="{{ p.quantity }}"
-               data-price="{{ '%.2f'|format(p.price or 0) }}"
-               data-gst="{{ p.gst_rate or 0 }}"
-               data-category="{{ p.category or '' }}"
-               data-search="{{ (p.product_name ~ ' ' ~ (p.hsn_code or '') ~ ' ' ~ (p.category or ''))|lower }}">
-            <div class="q-prod-top">
-              <span class="q-prod-cat-tag">{{ p.category or 'Item' }}</span>
-              {% if (p.quantity or 0) > 0 %}
-                <div class="q-prod-add-row">
-                  <input type="number" class="q-prod-qty-input" min="1" max="{{ p.quantity }}" value="1" data-name="{{ p.product_name }}" onclick="event.stopPropagation()" title="Quantity">
-                  <button type="button" class="q-prod-add" title="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                </div>
-              {% endif %}
-            </div>
-            <div class="q-prod-name">{{ p.product_name }}</div>
-            <div class="q-prod-meta">
-              <span class="q-prod-hsn">{% if p.hsn_code %}HSN {{ p.hsn_code }}{% else %}&nbsp;{% endif %}</span>
-              <span class="q-prod-gst">GST {{ p.gst_rate or 0 }}%</span>
-            </div>
-            <div class="q-prod-price">&#8377;{{ '%.2f'|format(p.price or 0) }}</div>
-            <div class="q-prod-incl">incl. &#8377;{{ '%.2f'|format((p.price or 0) * (1 + (p.gst_rate or 0) / 100)) }}</div>
-            {% if (p.quantity or 0) <= 0 %}
-              <span class="q-prod-stock out"><i class="fa-solid fa-ban"></i> Out of Stock</span>
-            {% elif (p.quantity or 0) <= 5 %}
-              <span class="q-prod-stock low"><i class="fa-solid fa-triangle-exclamation"></i> {{ p.quantity }} {{ p.unit }} left</span>
-            {% else %}
-              <span class="q-prod-stock ok"><i class="fa-solid fa-box"></i> {{ p.quantity }} {{ p.unit }}</span>
-            {% endif %}
+        <div class="pcb-grid">
+          <div class="pcb-name-wrap">
+            <input type="text" id="customer_name" name="customer_name" class="form-control pcb-input" placeholder="Customer Name *" required maxlength="120">
+            <button type="button" class="q-walkin-btn" id="walkin-btn" title="Quick walk-in customer"><i class="fa-solid fa-user"></i> Walk-in</button>
           </div>
-        {% endfor %}
-        <div class="q-pos-none" id="q-pos-none" style="display: none;">
-          <i class="fa-solid fa-box-open"></i>
-          No products match your search.
+          <div>
+            <input type="text" id="customer_phone" name="customer_phone" class="form-control pcb-input" placeholder="Phone Number (Optional)">
+          </div>
+          <div>
+            <input type="text" id="customer_gstin" name="customer_gstin" class="form-control pcb-input" placeholder="GSTIN (Optional)" maxlength="15">
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Right: Bill Cart Panel -->
-    <div class="q-pos-cart" id="pos-cart">
-      <div class="q-cart-head">
-        <div class="q-cart-title"><i class="fa-solid fa-receipt"></i> Bill Cart</div>
-        <span class="q-cart-badge" id="cart-badge">0 items</span>
-        <button type="button" class="q-cart-clear" id="clear-cart" title="Clear cart"><i class="fa-solid fa-trash-can"></i></button>
-      </div>
-
-      <!-- Collapsible Customer Section -->
-      <div class="q-cart-customer">
-        <button type="button" class="q-cart-cust-toggle" id="cust-toggle">
-          <span><i class="fa-solid fa-user-tag" style="margin-right:0.3rem; color:var(--color-primary);"></i> Customer Details</span>
-          <i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="q-cart-cust-body" id="cust-body">
-          <div class="q-cart-name-row">
-            <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Customer Name *" required maxlength="120">
-            <button type="button" class="q-walkin-btn" id="walkin-btn" title="Quick walk-in"><i class="fa-solid fa-user"></i> Walk-in</button>
-          </div>
-          <div class="q-cust-row">
-            <input type="text" id="customer_phone" name="customer_phone" class="form-control" placeholder="Phone (Optional)">
-            <input type="text" id="customer_gstin" name="customer_gstin" class="form-control" placeholder="GSTIN (Optional)" maxlength="15">
-          </div>
-          <div class="q-cart-label">Payment Method</div>
+        <!-- Payment & Charges Row -->
+        <div class="pcb-bottom-row">
           <div class="q-pay-options">
             <label class="q-pay-opt q-pay-cash is-active"><input type="radio" name="payment_method" value="CASH" checked><i class="fa-solid fa-money-bill-wave"></i> Cash</label>
             <label class="q-pay-opt q-pay-upi"><input type="radio" name="payment_method" value="UPI"><i class="fa-solid fa-mobile-screen-button"></i> UPI</label>
             <label class="q-pay-opt q-pay-card"><input type="radio" name="payment_method" value="CARD"><i class="fa-solid fa-credit-card"></i> Card</label>
             <label class="q-pay-opt q-pay-credit"><input type="radio" name="payment_method" value="CREDIT"><i class="fa-solid fa-clock"></i> Credit</label>
           </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.4rem;">
-            <span class="q-cart-label" style="margin: 0;">Bill Discount (%)</span>
-            <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100" step="0.5" style="width: 75px; height: 26px; font-size: 0.75rem; text-align: right;" oninput="window.__posRenderCart && window.__posRenderCart()">
-          </div>
 
-          <!-- Extra Charges -->
-          <div style="margin-top: 0.4rem;">
-            <div class="q-cart-label">Extra Charges</div>
-            <div class="q-charges-row">
-              <label>Shipping</label>
-              <input type="number" id="shipping_charge" name="shipping_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
+          <div class="pcb-extras">
+            <div class="pcb-field-group">
+              <span>Bill Disc (%):</span>
+              <input type="number" id="discount_percent" name="discount_percent" class="form-control pcb-mini-input" value="0" min="0" max="100" step="0.5" oninput="window.__posRenderCart && window.__posRenderCart()">
             </div>
-            <div class="q-charges-row">
-              <label>Packing</label>
-              <input type="number" id="packing_charge" name="packing_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
+            <div class="pcb-field-group">
+              <span>Shipping:</span>
+              <input type="number" id="shipping_charge" name="shipping_charge" class="form-control pcb-mini-input" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
             </div>
-          </div>
-
-          <!-- Due Date (for CREDIT) -->
-          <div class="q-due-date-row" id="due-date-row">
-            <label>Due Date *</label>
-            <input type="date" id="due_date" name="due_date" class="form-control">
+            <div class="pcb-field-group">
+              <span>Packing:</span>
+              <input type="number" id="packing_charge" name="packing_charge" class="form-control pcb-mini-input" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
+            </div>
+            <!-- Due Date (for CREDIT) -->
+            <div class="q-due-date-row" id="due-date-row">
+              <span>Due Date:</span>
+              <input type="date" id="due_date" name="due_date" class="form-control">
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- 2. Products Catalog & Live Filter -->
+      <div class="q-pos-products">
+        <div class="q-pos-toolbar">
+          <div class="q-pos-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="live-search" class="form-control" placeholder="Search by name, HSN, category (Ctrl+K or /)..." autocomplete="off">
+          </div>
+          <span class="q-pos-result-count" id="q-pos-result-count">Loading items...</span>
+        </div>
+
+        <!-- Categories Filter Chips -->
+        <div class="q-pos-chips" id="q-pos-chips">
+          <button type="button" class="q-pos-chip q-cat-0 is-active" data-cat="all">All <span class="q-pos-chip-count">0</span></button>
+          {% for cat in categories %}
+            <button type="button" class="q-pos-chip" data-cat="{{ cat }}">{{ cat }} <span class="q-pos-chip-count">0</span></button>
+          {% endfor %}
+        </div>
+
+        <!-- Product Cards Grid -->
+        <div class="q-pos-grid" id="q-pos-grid">
+          {% for p in products %}
+            <div class="q-prod-card {% if (p.quantity or 0) <= 0 %}disabled{% endif %}"
+                 data-name="{{ p.product_name }}"
+                 data-stock="{{ p.quantity }}"
+                 data-price="{{ '%.2f'|format(p.price or 0) }}"
+                 data-gst="{{ p.gst_rate or 0 }}"
+                 data-category="{{ p.category or '' }}"
+                 data-search="{{ (p.product_name ~ ' ' ~ (p.hsn_code or '') ~ ' ' ~ (p.category or ''))|lower }}">
+              <div class="q-prod-top">
+                <span class="q-prod-cat-tag">{{ p.category or 'Item' }}</span>
+                {% if (p.quantity or 0) > 0 %}
+                  <div class="q-prod-add-row">
+                    <input type="number" class="q-prod-qty-input" min="1" max="{{ p.quantity }}" value="1" data-name="{{ p.product_name }}" onclick="event.stopPropagation()" title="Quantity">
+                    <button type="button" class="q-prod-add" title="Add to cart"><i class="fa-solid fa-plus"></i></button>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="q-prod-name">{{ p.product_name }}</div>
+              <div class="q-prod-meta">
+                <span class="q-prod-hsn">{% if p.hsn_code %}HSN {{ p.hsn_code }}{% else %}&nbsp;{% endif %}</span>
+                <span class="q-prod-gst">GST {{ p.gst_rate or 0 }}%</span>
+              </div>
+              <div class="q-prod-price">&#8377;{{ '%.2f'|format(p.price or 0) }}</div>
+              <div class="q-prod-incl">incl. &#8377;{{ '%.2f'|format((p.price or 0) * (1 + (p.gst_rate or 0) / 100)) }}</div>
+              {% if (p.quantity or 0) <= 0 %}
+                <span class="q-prod-stock out"><i class="fa-solid fa-ban"></i> Out of Stock</span>
+              {% elif (p.quantity or 0) <= 5 %}
+                <span class="q-prod-stock low"><i class="fa-solid fa-triangle-exclamation"></i> {{ p.quantity }} {{ p.unit }} left</span>
+              {% else %}
+                <span class="q-prod-stock ok"><i class="fa-solid fa-box"></i> {{ p.quantity }} {{ p.unit }}</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <div class="q-pos-none" id="q-pos-none" style="display: none;">
+            <i class="fa-solid fa-box-open"></i>
+            No products match your search.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Dedicated Bill Cart Panel -->
+    <div class="q-pos-cart" id="pos-cart">
+      <div class="q-cart-head">
+        <div class="q-cart-title"><i class="fa-solid fa-receipt"></i> Bill Cart</div>
+        <span class="q-cart-badge" id="cart-badge">0 items</span>
+        <button type="button" class="q-cart-clear" id="clear-cart" title="Clear cart"><i class="fa-solid fa-trash-can"></i></button>
       </div>
 
       <!-- Scrollable Cart Items -->
@@ -1119,8 +1125,6 @@
   const cartPanel = document.getElementById('pos-cart');
   const cartToggle = document.getElementById('cart-toggle');
   const cartOverlay = document.getElementById('cart-overlay');
-  const custToggle = document.getElementById('cust-toggle');
-  const custBody = document.getElementById('cust-body');
   let currentCat = 'all';
 
   /* ── Category Colors ── */
@@ -1421,12 +1425,6 @@
     else item.disc = 0;
     renderCart();
   };
-
-  /* ── Customer Accordion Toggle ── */
-  custToggle.addEventListener('click', () => {
-    custToggle.classList.toggle('open');
-    custBody.classList.toggle('open');
-  });
 
   /* ── Mobile Cart Toggle ── */
   function openCart() { cartPanel.classList.add('open'); cartOverlay.classList.add('show'); }
