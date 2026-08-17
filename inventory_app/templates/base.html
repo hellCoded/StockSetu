@@ -118,26 +118,68 @@
       // Arc-style auto-hiding sidebar (desktop)
       var mqDesktop = window.matchMedia('(min-width: 769px)');
       var body = document.body;
+      var hoverTimer = null;
+
       function setSidebarHidden(hide) {
+        body.classList.remove('sidebar-hover-open');
         body.classList.toggle('sidebar-hidden', !!hide);
         try { localStorage.setItem('sidebar-hidden', hide ? '1' : '0'); } catch(e) {}
       }
+
+      function showHoverPeek() {
+        if (!body.classList.contains('sidebar-hidden')) return;
+        clearTimeout(hoverTimer);
+        body.classList.add('sidebar-hover-open');
+      }
+
+      function hideHoverPeekWithDelay(delayMs) {
+        if (!body.classList.contains('sidebar-hover-open')) return;
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(function() {
+          body.classList.remove('sidebar-hover-open');
+        }, delayMs || 250);
+      }
+
       if (mqDesktop.matches && sidebar) {
         var savedHidden;
         try { savedHidden = localStorage.getItem('sidebar-hidden'); } catch(e) {}
         if (savedHidden === '1') body.classList.add('sidebar-hidden');
 
+        // Edge hover triggers smooth overlay peek
+        document.addEventListener('mousemove', function(e) {
+          if (body.classList.contains('sidebar-hidden')) {
+            if (e.clientX <= 24) {
+              showHoverPeek();
+            } else if (e.clientX > 260 && body.classList.contains('sidebar-hover-open')) {
+              hideHoverPeekWithDelay(150);
+            }
+          }
+        });
+
+        sidebar.addEventListener('mouseenter', function() {
+          if (body.classList.contains('sidebar-hidden')) {
+            showHoverPeek();
+          }
+        });
+
+        sidebar.addEventListener('mouseleave', function() {
+          if (body.classList.contains('sidebar-hidden')) {
+            hideHoverPeekWithDelay(250);
+          }
+        });
+
+        var revealTab = document.getElementById('sidebar-reveal-tab');
+        if (revealTab) {
+          revealTab.addEventListener('mouseenter', showHoverPeek);
+          revealTab.addEventListener('click', function() {
+            setSidebarHidden(false);
+          });
+        }
+
         var deskToggle = document.getElementById('desk-sidebar-toggle');
         if (deskToggle) {
           deskToggle.addEventListener('click', function() {
             setSidebarHidden(!body.classList.contains('sidebar-hidden'));
-          });
-        }
-
-        var revealTab = document.getElementById('sidebar-reveal-tab');
-        if (revealTab) {
-          revealTab.addEventListener('click', function() {
-            setSidebarHidden(false);
           });
         }
 

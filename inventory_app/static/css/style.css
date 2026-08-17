@@ -204,13 +204,18 @@ a:hover { color: var(--primary-hover); }
    ============================================================ */
 .sidebar-reveal-tab { display: none; }
 @media (min-width: 769px) {
-  .sidebar { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease; }
+  .sidebar { transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease; }
 
   body.sidebar-hidden .sidebar {
     transform: translate3d(-100%, 0, 0);
     box-shadow: none;
   }
-  body.sidebar-hidden .main-wrapper { margin-left: 0; transition: margin-left 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+  body.sidebar-hidden.sidebar-hover-open .sidebar {
+    transform: translate3d(0, 0, 0);
+    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.25);
+    z-index: 120;
+  }
+  body.sidebar-hidden .main-wrapper { margin-left: 0; transition: margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
 
   /* Navbar toggle (desktop) */
   #desk-sidebar-toggle { display: flex !important; }
@@ -232,6 +237,7 @@ a:hover { color: var(--primary-hover); }
   }
   .sidebar-reveal-tab:hover { opacity: 1; width: 28px; }
   body.sidebar-hidden .sidebar-reveal-tab { display: flex; opacity: 0.7; }
+  body.sidebar-hidden.sidebar-hover-open .sidebar-reveal-tab { opacity: 0; pointer-events: none; }
 }
 
 /* ============================================================
