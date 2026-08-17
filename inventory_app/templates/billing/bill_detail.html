@@ -365,8 +365,8 @@
         </thead>
         <tbody>
           {% for item in bill.line_items %}
-          <tr{% if item.is_refunded %} style="opacity:0.5; text-decoration:line-through;"{% endif %}>
-            <td class="tl">{{ item.product_name }}{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.6rem; padding:0.05rem 0.25rem; border-radius:3px; font-weight:700; text-decoration:none;">REFUNDED</span>{% endif %}</td>
+          <tr{% if item.is_refunded %} style="opacity:0.5;"{% endif %}>
+            <td class="tl"><span{% if item.is_refunded %} style="text-decoration:line-through;"{% endif %}>{{ item.product_name }}</span>{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.6rem; padding:0.05rem 0.25rem; border-radius:3px; font-weight:700;">REFUNDED</span>{% endif %}</td>
             <td class="tc">{{ item.quantity | int }}</td>
             <td class="tr">{{ "%.2f"|format(item.unit_price) }}</td>
             <td class="tr">{{ "%.2f"|format(item.line_total) }}</td>
@@ -701,9 +701,9 @@
         {% set ns = namespace(total_qty=0) %}
         {% for item in bill.line_items %}
         {% set ns.total_qty = ns.total_qty + item.quantity %}
-        <tr{% if item.is_refunded %} style="opacity:0.5; text-decoration:line-through;"{% endif %}>
+        <tr{% if item.is_refunded %} style="opacity:0.5;"{% endif %}>
           <td class="c">{{ loop.index }}</td>
-          <td class="l">{{ item.product_name }}{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700; text-decoration:none; vertical-align:middle;">REFUNDED</span>{% endif %}</td>
+          <td class="l"><span{% if item.is_refunded %} style="text-decoration:line-through;"{% endif %}>{{ item.product_name }}</span>{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700; vertical-align:middle;">REFUNDED</span>{% endif %}</td>
           <td class="c">{{ item.hsn_code or '—' }}</td>
           <td class="c">{{ item.quantity | int }}</td>
           <td class="r">{{ "%.2f"|format(item.unit_price) }}</td>
