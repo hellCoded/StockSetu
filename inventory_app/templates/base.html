@@ -165,7 +165,7 @@
         clearTimeout(hoverTimer);
         hoverTimer = setTimeout(function() {
           body.classList.remove('sidebar-hover-active');
-        }, delayMs || 280);
+        }, delayMs !== undefined ? delayMs : 60);
       }
 
       if (mqDesktop.matches && sidebar) {
@@ -175,10 +175,10 @@
         // Edge and tab hover triggers smooth floating slide-in
         document.addEventListener('mousemove', function(e) {
           if (body.classList.contains('sidebar-hover-mode')) {
-            if (e.clientX <= 28) {
+            if (e.clientX <= 24) {
               showHoverSidebar();
-            } else if (e.clientX > 275 && body.classList.contains('sidebar-hover-active')) {
-              hideHoverSidebarWithDelay(200);
+            } else if (e.clientX > 250 && body.classList.contains('sidebar-hover-active')) {
+              hideHoverSidebarWithDelay(60);
             }
           }
         });
@@ -191,7 +191,7 @@
 
         sidebar.addEventListener('mouseleave', function() {
           if (body.classList.contains('sidebar-hover-mode')) {
-            hideHoverSidebarWithDelay(280);
+            hideHoverSidebarWithDelay(60);
           }
         });
 
