@@ -89,7 +89,7 @@
   {% endfor %}
 
   <div class="bills-kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-primary, #0b3d6e); display: flex; align-items: center; gap: 0.85rem;">
+    <div class="card" style="background: var(--color-surface, #ffffff); padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-primary, #0b3d6e); display: flex; align-items: center; gap: 0.85rem; box-shadow: var(--shadow-xs);">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-primary-light, rgba(11,61,110,0.1)); display: flex; align-items: center; justify-content: center; color: var(--color-primary, #0b3d6e); font-size: 1.1rem;">
         <i class="fa-solid fa-receipt"></i>
       </div>
@@ -99,7 +99,7 @@
       </div>
     </div>
 
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid #059669; display: flex; align-items: center; gap: 0.85rem;">
+    <div class="card" style="background: var(--color-surface, #ffffff); padding: 0.85rem 1.1rem; border-left: 3.5px solid #059669; display: flex; align-items: center; gap: 0.85rem; box-shadow: var(--shadow-xs);">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: rgba(5, 150, 105, 0.1); display: flex; align-items: center; justify-content: center; color: #059669; font-size: 1.1rem;">
         <i class="fa-solid fa-indian-rupee-sign"></i>
       </div>
@@ -109,7 +109,7 @@
       </div>
     </div>
 
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-success, #10b981); display: flex; align-items: center; gap: 0.85rem;">
+    <div class="card" style="background: var(--color-surface, #ffffff); padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-success, #10b981); display: flex; align-items: center; gap: 0.85rem; box-shadow: var(--shadow-xs);">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-success-bg, #dcfce7); display: flex; align-items: center; justify-content: center; color: var(--color-success, #10b981); font-size: 1.1rem;">
         <i class="fa-solid fa-circle-check"></i>
       </div>
@@ -119,7 +119,7 @@
       </div>
     </div>
 
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid #8b5cf6; display: flex; align-items: center; gap: 0.85rem;">
+    <div class="card" style="background: var(--color-surface, #ffffff); padding: 0.85rem 1.1rem; border-left: 3.5px solid #8b5cf6; display: flex; align-items: center; gap: 0.85rem; box-shadow: var(--shadow-xs);">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: #ede9fe; display: flex; align-items: center; justify-content: center; color: #8b5cf6; font-size: 1.1rem;">
         <i class="fa-solid fa-rotate-left"></i>
       </div>
@@ -211,17 +211,17 @@
                     </span>
                   {% endif %}
                 </div>
-                {# ── Product names ── #}
+                {# ── Product names (limit to 2 items) ── #}
                 <div style="font-size: 0.68rem; color: var(--color-on-surface-variant, #64748b); line-height: 1.3; margin-top: 0.2rem;">
-                  {% for item in bill.line_items[:3] %}
+                  {% for item in bill.line_items[:2] %}
                     {% if item.is_refunded %}
                       <span style="color:#dc2626; text-decoration: line-through;">{{ item.product_name[:14] }}{% if item.product_name|length > 14 %}...{% endif %}</span>
                     {% else %}
                       <span>{{ item.product_name[:14] }}{% if item.product_name|length > 14 %}...{% endif %}</span>
                     {% endif %}{% if not loop.last %}, {% endif %}
                   {% endfor %}
-                  {% if total_items > 3 %}
-                    <span style="font-weight: 600; color: var(--color-on-surface, #0f172a);">+{{ total_items - 3 }} more</span>
+                  {% if total_items > 2 %}
+                    <span style="font-weight: 600; color: var(--color-on-surface, #0f172a);">+{{ total_items - 2 }} more</span>
                   {% endif %}
                 </div>
               </div>
