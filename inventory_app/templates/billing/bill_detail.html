@@ -410,7 +410,7 @@
         {% endif %}
         <div class="rcpt-grand">
           <span>Grand Total</span>
-          {% set active_grand_th = ns.active_total + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
+          {% set active_grand_th = bill.line_items|selectattr('is_refunded','false')|map(attribute='line_total')|sum + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
           <span>{{ format_currency(active_grand_th) }}</span>
         </div>
       </div>
@@ -538,7 +538,9 @@
     </div>
 
     {# ── Payment Progress Bar ── #}
-    {% set paid_pct = ((bill.amount_paid or 0) / ns.active_total * 100) if ns.active_total > 0 else 0 %}
+    {% set _at = bill.line_items|selectattr('is_refunded','false')|map(attribute='line_total')|sum %}
+    {% set _ag = _at + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
+    {% set paid_pct = ((bill.amount_paid or 0) / _ag * 100) if _ag > 0 else 0 %}
     <div style="margin-top: 0.75rem;">
       <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 0.25rem;">
         <span style="font-weight: 600; color: var(--text-muted);">Payment Progress</span>
@@ -677,8 +679,8 @@
       </tfoot>
     </table>
 
-    {# ── Bottom ── #}
-    {% set active_grand = ns.active_total + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
+    {% set _active_total = bill.line_items|selectattr('is_refunded','false')|map(attribute='line_total')|sum %}
+    {% set active_grand = _active_total + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
     <div class="inv-bottom">
       <div class="inv-bl">
         <div class="inv-words-sec">
@@ -761,7 +763,7 @@
       </div>
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.6rem; text-align: center;">
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Bill Total</div>
-        <div style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">{{ format_currency(ns.active_total) }}</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">{{ format_currency(_active_total) }}</div>
       </div>
       <div style="background: {% if bill.payment_status == 'PAID' %}#f0fdf4; border-color: #bbf7d0;{% elif bill.payment_status == 'PARTIAL' %}#fffbeb; border-color: #fde68a;{% elif bill.payment_status == 'REFUNDED' %}#f5f3ff; border-color: #ddd6fe;{% else %}#f0fdf4; border-color: #bbf7d0;{% endif %} border: 1px solid; border-radius: 6px; padding: 0.6rem; text-align: center;">
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Status</div>
@@ -823,7 +825,9 @@
     </div>
 
     {# ── Payment Progress Bar ── #}
-    {% set paid_pct = ((bill.amount_paid or 0) / ns.active_total * 100) if ns.active_total > 0 else 0 %}
+    {% set _at = bill.line_items|selectattr('is_refunded','false')|map(attribute='line_total')|sum %}
+    {% set _ag = _at + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
+    {% set paid_pct = ((bill.amount_paid or 0) / _ag * 100) if _ag > 0 else 0 %}
     <div style="margin-top: 0.75rem;">
       <div style="display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 0.25rem;">
         <span style="font-weight: 600; color: var(--text-muted);">Payment Progress</span>
@@ -871,13 +875,13 @@
       <button class="um-modal-close" onclick="document.getElementById('payModal').classList.remove('active')">&times;</button>
     </div>
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-      Remaining due: <strong style="color: #ef4444;">{{ format_currency(bill.amount_due or ns.active_total) }}</strong>
+      Remaining due: <strong style="color: #ef4444;">{{ format_currency(bill.amount_due or _active_total) }}</strong>
     </p>
      <form action="{{ url_for('billing.record_payment', bill_id=bill._id or bill.id) }}" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Amount <span style="color: #ef4444;">*</span></label>
-        <input type="number" name="amount" class="form-control" required min="0.01" max="{{ bill.amount_due or ns.active_total }}" step="0.01" value="{{ "%.2f"|format(bill.amount_due or ns.active_total) }}">
+        <input type="number" name="amount" class="form-control" required min="0.01" max="{{ bill.amount_due or _active_total }}" step="0.01" value="{{ "%.2f"|format(bill.amount_due or _active_total) }}">
       </div>
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Method</label>
