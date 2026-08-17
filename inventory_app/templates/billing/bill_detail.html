@@ -282,7 +282,7 @@
       {% if bill.payment_status == 'REFUNDED' %}
         <span class="badge" style="background: #ef4444; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;">REFUNDED / CANCELLED</span>
       {% else %}
-        {% if bill.payment_status in ['DUE', 'PARTIAL'] %}
+        {% if bill.payment_status == 'PARTIAL' %}
           <button onclick="document.getElementById('payModal').classList.add('active')" class="btn btn-primary btn-sm"><i class="fa-solid fa-money-bill-wave"></i> Record Payment</button>
         {% endif %}
         <button onclick="document.getElementById('refundLineModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i> Refund Lines</button>
@@ -422,7 +422,7 @@
         <div class="rcpt-pay-row"><span class="rcpt-pay-label">Amount Paid</span><span class="rcpt-pay-val">{{ format_currency(bill.amount_paid or bill.grand_total) }}</span></div>
         <div class="rcpt-pay-row"><span class="rcpt-pay-label">Balance</span><span class="rcpt-pay-val {% if (bill.amount_due or 0) > 0 %}style="color:#ef4444;font-weight:900;"{% endif %}">{{ format_currency(bill.amount_due or 0) }}</span></div>
         {% endif %}
-        <div class="rcpt-paid-badge" style="background:{% if bill.payment_status == 'PAID' %}#dcfce7; color:#166534;{% elif bill.payment_status == 'DUE' %}#fef2f2; color:#dc2626;{% elif bill.payment_status == 'PARTIAL' %}#fef3c7; color:#92400e;{% elif bill.payment_status == 'REFUNDED' %}#ede9fe; color:#5b21b6;{% else %}#dcfce7; color:#166534;{% endif %}">{{ bill.payment_status }}</div>
+        <div class="rcpt-paid-badge" style="background:{% if bill.payment_status == 'PAID' %}#dcfce7; color:#166534;{% elif bill.payment_status == 'PARTIAL' %}#fef3c7; color:#92400e;{% elif bill.payment_status == 'REFUNDED' %}#ede9fe; color:#5b21b6;{% else %}#dcfce7; color:#166534;{% endif %}">{{ bill.payment_status }}</div>
       </div>
 
       <hr class="rcpt-line">
@@ -471,9 +471,9 @@
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Total</div>
         <div style="font-size: 1rem; font-weight: 800; color: #0f172a;">{{ format_currency(bill.grand_total) }}</div>
       </div>
-      <div style="background: {% if bill.payment_status == 'PAID' %}#f0fdf4; border-color: #bbf7d0;{% elif bill.payment_status == 'DUE' %}#fef2f2; border-color: #fecaca;{% elif bill.payment_status == 'PARTIAL' %}#fffbeb; border-color: #fde68a;{% else %}#f5f3ff; border-color: #ddd6fe;{% endif %} border: 1px solid; border-radius: 6px; padding: 0.6rem; text-align: center;">
+      <div style="background: {% if bill.payment_status == 'PAID' %}#f0fdf4; border-color: #bbf7d0;{% elif bill.payment_status == 'PARTIAL' %}#fffbeb; border-color: #fde68a;{% elif bill.payment_status == 'REFUNDED' %}#f5f3ff; border-color: #ddd6fe;{% else %}#f0fdf4; border-color: #bbf7d0;{% endif %} border: 1px solid; border-radius: 6px; padding: 0.6rem; text-align: center;">
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Status</div>
-        <div style="font-size: 0.85rem; font-weight: 800; color: {% if bill.payment_status == 'PAID' %}#166534;{% elif bill.payment_status == 'DUE' %}#dc2626;{% elif bill.payment_status == 'PARTIAL' %}#92400e;{% else %}#5b21b6;{% endif %}">{{ bill.payment_status }}</div>
+        <div style="font-size: 0.85rem; font-weight: 800; color: {% if bill.payment_status == 'PAID' %}#166534;{% elif bill.payment_status == 'PARTIAL' %}#92400e;{% elif bill.payment_status == 'REFUNDED' %}#5b21b6;{% else %}#166534;{% endif %}">{{ bill.payment_status }}</div>
       </div>
     </div>
 
@@ -591,7 +591,7 @@
           <tr><td>Invoice No.</td><td><strong>{{ bill.bill_number }}</strong></td></tr>
           <tr><td>Date</td><td>{{ format_datetime(bill.created_at) }}</td></tr>
           <tr><td>Payment</td><td>{{ bill.payment_method }}</td></tr>
-          <tr><td>Status</td><td><strong style="color:{% if bill.payment_status == 'PAID' %}#15803d{% elif bill.payment_status == 'DUE' %}#ef4444{% elif bill.payment_status == 'REFUNDED' %}#6366f1{% elif bill.payment_status == 'PARTIAL' %}#d97706{% else %}#15803d{% endif %};">{{ bill.payment_status }}</strong></td></tr>
+          <tr><td>Status</td><td><strong style="color:{% if bill.payment_status == 'PAID' %}#15803d{% elif bill.payment_status == 'REFUNDED' %}#6366f1{% elif bill.payment_status == 'PARTIAL' %}#d97706{% else %}#15803d{% endif %};">{{ bill.payment_status }}</strong></td></tr>
         </table>
       </div>
     </div>
@@ -743,9 +743,9 @@
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Bill Total</div>
         <div style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">{{ format_currency(bill.grand_total) }}</div>
       </div>
-      <div style="background: {% if bill.payment_status == 'PAID' %}#f0fdf4; border-color: #bbf7d0;{% elif bill.payment_status == 'DUE' %}#fef2f2; border-color: #fecaca;{% elif bill.payment_status == 'PARTIAL' %}#fffbeb; border-color: #fde68a;{% else %}#f5f3ff; border-color: #ddd6fe;{% endif %} border: 1px solid; border-radius: 6px; padding: 0.6rem; text-align: center;">
+      <div style="background: {% if bill.payment_status == 'PAID' %}#f0fdf4; border-color: #bbf7d0;{% elif bill.payment_status == 'PARTIAL' %}#fffbeb; border-color: #fde68a;{% elif bill.payment_status == 'REFUNDED' %}#f5f3ff; border-color: #ddd6fe;{% else %}#f0fdf4; border-color: #bbf7d0;{% endif %} border: 1px solid; border-radius: 6px; padding: 0.6rem; text-align: center;">
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Status</div>
-        <div style="font-size: 0.9rem; font-weight: 800; color: {% if bill.payment_status == 'PAID' %}#166534;{% elif bill.payment_status == 'DUE' %}#dc2626;{% elif bill.payment_status == 'PARTIAL' %}#92400e;{% else %}#5b21b6;{% endif %}">{{ bill.payment_status }}</div>
+        <div style="font-size: 0.9rem; font-weight: 800; color: {% if bill.payment_status == 'PAID' %}#166534;{% elif bill.payment_status == 'PARTIAL' %}#92400e;{% elif bill.payment_status == 'REFUNDED' %}#5b21b6;{% else %}#166534;{% endif %}">{{ bill.payment_status }}</div>
       </div>
     </div>
 
@@ -843,7 +843,7 @@
 </div>
 {% endif %}
 
-{% if bill.payment_status in ['DUE', 'PARTIAL'] %}
+{% if bill.payment_status == 'PARTIAL' %}
 <div id="payModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
   <div class="modal-card" style="max-width: 420px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">

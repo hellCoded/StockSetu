@@ -30,7 +30,6 @@
       <option value="">All Status</option>
       <option value="PAID" {% if current_status == 'PAID' %}selected{% endif %}>PAID</option>
       <option value="PARTIAL" {% if current_status == 'PARTIAL' %}selected{% endif %}>PARTIAL</option>
-      <option value="DUE" {% if current_status == 'DUE' %}selected{% endif %}>DUE</option>
       <option value="REFUNDED" {% if current_status == 'REFUNDED' %}selected{% endif %}>REFUNDED</option>
     </select>
     <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
@@ -141,8 +140,6 @@
               <span style="background:#dcfce7; color:#166534; font-size:0.72rem; padding:0.18rem 0.5rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-circle-check" style="font-size:0.65rem;"></i> PAID</span>
             {% elif ps == 'PARTIAL' %}
               <span style="background:#fef3c7; color:#92400e; font-size:0.72rem; padding:0.18rem 0.5rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-clock" style="font-size:0.65rem;"></i> PARTIAL</span>
-            {% elif ps == 'DUE' %}
-              <span style="background:#fef2f2; color:#dc2626; font-size:0.72rem; padding:0.18rem 0.5rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-triangle-exclamation" style="font-size:0.65rem;"></i> DUE</span>
             {% elif ps == 'REFUNDED' %}
               <span style="background:#5b21b6; color:#ffffff; font-size:0.72rem; padding:0.18rem 0.5rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-rotate-left" style="font-size:0.65rem;"></i> REFUNDED</span>
             {% else %}
