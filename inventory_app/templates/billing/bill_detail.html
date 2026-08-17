@@ -305,9 +305,15 @@
     {% set time_str = bill.created_at.strftime('%I:%M %p') %}
   {% endif %}
 
-  {% set ns = namespace(total_qty=0) %}
+  {% set ns = namespace(total_qty=0, active_taxable=0, active_cgst=0, active_sgst=0, active_total=0) %}
   {% for item in bill.line_items %}
     {% set ns.total_qty = ns.total_qty + item.quantity | int %}
+    {% if not item.is_refunded %}
+      {% set ns.active_taxable = ns.active_taxable + item.taxable %}
+      {% set ns.active_cgst = ns.active_cgst + item.cgst %}
+      {% set ns.active_sgst = ns.active_sgst + item.sgst %}
+      {% set ns.active_total = ns.active_total + item.line_total %}
+    {% endif %}
   {% endfor %}
 
   <div class="receipt-container">
@@ -387,12 +393,12 @@
 
       {# ── Tax Breakdown ── #}
       <div class="rcpt-totals">
-        <div class="rcpt-tot-row"><span class="lbl">Taxable Amount</span><span class="val">{{ "%.2f"|format(bill.subtotal) }}</span></div>
+        <div class="rcpt-tot-row"><span class="lbl">Taxable Amount</span><span class="val">{{ "%.2f"|format(ns.active_taxable) }}</span></div>
         {% if bill.total_line_discount and bill.total_line_discount > 0 %}
         <div class="rcpt-tot-row" style="color:#ef4444;"><span class="lbl">Line Discounts</span><span class="val">-{{ "%.2f"|format(bill.total_line_discount) }}</span></div>
         {% endif %}
-        <div class="rcpt-tot-row"><span class="lbl">CGST</span><span class="val">{{ "%.2f"|format(bill.cgst_total) }}</span></div>
-        <div class="rcpt-tot-row"><span class="lbl">SGST</span><span class="val">{{ "%.2f"|format(bill.sgst_total) }}</span></div>
+        <div class="rcpt-tot-row"><span class="lbl">CGST</span><span class="val">{{ "%.2f"|format(ns.active_cgst) }}</span></div>
+        <div class="rcpt-tot-row"><span class="lbl">SGST</span><span class="val">{{ "%.2f"|format(ns.active_sgst) }}</span></div>
         {% if bill.shipping_charge and bill.shipping_charge > 0 %}
         <div class="rcpt-tot-row"><span class="lbl">Shipping</span><span class="val">{{ "%.2f"|format(bill.shipping_charge) }}</span></div>
         {% endif %}
@@ -404,14 +410,15 @@
         {% endif %}
         <div class="rcpt-grand">
           <span>Grand Total</span>
-          <span>{{ format_currency(bill.grand_total) }}</span>
+          {% set active_grand_th = ns.active_total + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
+          <span>{{ format_currency(active_grand_th) }}</span>
         </div>
       </div>
 
       {# ── Amount in Words ── #}
       <div class="rcpt-words">
         <div class="rcpt-words-hd">Amount in Words</div>
-        <div>{{ amount_in_words(bill.grand_total) }} Rupees Only</div>
+        <div>{{ amount_in_words(active_grand_th) }} Rupees Only</div>
       </div>
 
       <hr class="rcpt-line">
@@ -419,7 +426,7 @@
       {# ── Payment Status ── #}
       <div class="rcpt-pay">
         {% if bill.payment_status != 'REFUNDED' %}
-        <div class="rcpt-pay-row"><span class="rcpt-pay-label">Amount Paid</span><span class="rcpt-pay-val">{{ format_currency(bill.amount_paid or bill.grand_total) }}</span></div>
+        <div class="rcpt-pay-row"><span class="rcpt-pay-label">Amount Paid</span><span class="rcpt-pay-val">{{ format_currency(bill.amount_paid or active_grand_th) }}</span></div>
         <div class="rcpt-pay-row"><span class="rcpt-pay-label">Balance</span><span class="rcpt-pay-val {% if (bill.amount_due or 0) > 0 %}style="color:#ef4444;font-weight:900;"{% endif %}">{{ format_currency(bill.amount_due or 0) }}</span></div>
         {% endif %}
         <div class="rcpt-paid-badge" style="background:{% if bill.payment_status == 'PAID' %}#dcfce7; color:#166534;{% elif bill.payment_status == 'PARTIAL' %}#fef3c7; color:#92400e;{% elif bill.payment_status == 'REFUNDED' %}#ede9fe; color:#5b21b6;{% else %}#dcfce7; color:#166534;{% endif %}">{{ bill.payment_status }}</div>
@@ -469,7 +476,7 @@
       </div>
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.6rem; text-align: center;">
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Total</div>
-        <div style="font-size: 1rem; font-weight: 800; color: #0f172a;">{{ format_currency(bill.grand_total) }}</div>
+        <div style="font-size: 1rem; font-weight: 800; color: #0f172a;">{{ format_currency(ns.active_total) }}</div>
       </div>
       <div style="background: {% if bill.payment_status == 'PAID' %}#f0fdf4; border-color: #bbf7d0;{% elif bill.payment_status == 'PARTIAL' %}#fffbeb; border-color: #fde68a;{% elif bill.payment_status == 'REFUNDED' %}#f5f3ff; border-color: #ddd6fe;{% else %}#f0fdf4; border-color: #bbf7d0;{% endif %} border: 1px solid; border-radius: 6px; padding: 0.6rem; text-align: center;">
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Status</div>
@@ -531,7 +538,7 @@
     </div>
 
     {# ── Payment Progress Bar ── #}
-    {% set paid_pct = ((bill.amount_paid or 0) / bill.grand_total * 100) if bill.grand_total > 0 else 0 %}
+    {% set paid_pct = ((bill.amount_paid or 0) / ns.active_total * 100) if ns.active_total > 0 else 0 %}
     <div style="margin-top: 0.75rem;">
       <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 0.25rem;">
         <span style="font-weight: 600; color: var(--text-muted);">Payment Progress</span>
@@ -631,9 +638,15 @@
         </tr>
       </thead>
       <tbody>
-        {% set ns = namespace(total_qty=0) %}
+        {% set ns = namespace(total_qty=0, active_taxable=0, active_cgst=0, active_sgst=0, active_total=0) %}
         {% for item in bill.line_items %}
         {% set ns.total_qty = ns.total_qty + item.quantity %}
+        {% if not item.is_refunded %}
+          {% set ns.active_taxable = ns.active_taxable + item.taxable %}
+          {% set ns.active_cgst = ns.active_cgst + item.cgst %}
+          {% set ns.active_sgst = ns.active_sgst + item.sgst %}
+          {% set ns.active_total = ns.active_total + item.line_total %}
+        {% endif %}
         <tr{% if item.is_refunded %} style="opacity:0.5;"{% endif %}>
           <td class="c">{{ loop.index }}</td>
           <td class="l"><span{% if item.is_refunded %} style="text-decoration:line-through;"{% endif %}>{{ item.product_name }}</span>{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700; vertical-align:middle;">REFUNDED</span>{% endif %}</td>
@@ -654,12 +667,12 @@
           <td class="r tfoot" colspan="3">Total</td>
           <td class="c tfoot">{{ ns.total_qty }}</td>
           <td class="tfoot"></td>
-          <td class="r tfoot">{{ "%.2f"|format(bill.subtotal) }}</td>
+          <td class="r tfoot">{{ "%.2f"|format(ns.active_taxable) }}</td>
           <td class="tfoot"></td>
-          <td class="r tfoot">{{ "%.2f"|format(bill.cgst_total) }}</td>
+          <td class="r tfoot">{{ "%.2f"|format(ns.active_cgst) }}</td>
           <td class="tfoot"></td>
-          <td class="r tfoot">{{ "%.2f"|format(bill.sgst_total) }}</td>
-          <td class="r tfoot">{{ "%.2f"|format(bill.grand_total) }}</td>
+          <td class="r tfoot">{{ "%.2f"|format(ns.active_sgst) }}</td>
+          <td class="r tfoot">{{ "%.2f"|format(ns.active_total) }}</td>
         </tr>
       </tfoot>
     </table>
@@ -669,7 +682,7 @@
       <div class="inv-bl">
         <div class="inv-words-sec">
           <div class="inv-bsec-hd">Total in Words</div>
-          <div class="inv-words-val">{{ amount_in_words(bill.grand_total) }}</div>
+          <div class="inv-words-val">{{ amount_in_words(active_grand) }}</div>
         </div>
         <div class="inv-terms-sec">
           <div class="inv-bsec-hd" style="margin:-0.2rem -0.5rem 0.2rem;">Terms &amp; Conditions</div>
@@ -681,15 +694,21 @@
       </div>
 
       <div class="inv-totals">
+        {% set active_taxable = ns.active_taxable %}
+        {% set active_cgst = ns.active_cgst %}
+        {% set active_sgst = ns.active_sgst %}
+        {% set active_total = ns.active_total %}
+        {% set active_gst = active_cgst + active_sgst %}
+        {% set active_grand = active_total + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
         <table class="inv-tot-tbl">
-          <tr><td>Taxable Amount</td><td>{{ "%.2f"|format(bill.subtotal) }}</td></tr>
+          <tr><td>Taxable Amount</td><td>{{ "%.2f"|format(active_taxable) }}</td></tr>
           {% if bill.total_line_discount and bill.total_line_discount > 0 %}
           <tr style="color:#ef4444;"><td>Line Discounts</td><td>-{{ "%.2f"|format(bill.total_line_discount) }}</td></tr>
           {% endif %}
           <tr><td>Bill Discount{% if bill.discount_percent %} ({{ "%.1f"|format(bill.discount_percent) }}%){% endif %}</td><td>{% if bill.discount_amount %}-{% endif %}{{ "%.2f"|format(bill.discount_amount or 0) }}</td></tr>
-          <tr><td>Add : CGST</td><td>{{ "%.2f"|format(bill.cgst_total) }}</td></tr>
-          <tr><td>Add : SGST</td><td>{{ "%.2f"|format(bill.sgst_total) }}</td></tr>
-          <tr><td>Total Tax</td><td>{{ "%.2f"|format(bill.gst_total) }}</td></tr>
+          <tr><td>Add : CGST</td><td>{{ "%.2f"|format(active_cgst) }}</td></tr>
+          <tr><td>Add : SGST</td><td>{{ "%.2f"|format(active_sgst) }}</td></tr>
+          <tr><td>Total Tax</td><td>{{ "%.2f"|format(active_gst) }}</td></tr>
           {% if bill.shipping_charge and bill.shipping_charge > 0 %}
           <tr><td>Shipping</td><td>{{ "%.2f"|format(bill.shipping_charge) }}</td></tr>
           {% endif %}
@@ -701,13 +720,13 @@
           {% endif %}
           <tr class="grand">
             <td>Total After Tax</td>
-            <td>{{ format_currency(bill.grand_total) }}</td>
+            <td>{{ format_currency(active_grand) }}</td>
           </tr>
           {% if bill.free_total and bill.free_total > 0 %}
           <tr style="color:#16a34a;"><td>Free Supply Value</td><td>{{ format_currency(bill.free_total) }}</td></tr>
           {% endif %}
           {% if bill.payment_status != 'REFUNDED' %}
-          <tr><td>Amount Paid</td><td style="color:#16a34a;">{{ format_currency(bill.amount_paid or bill.grand_total) }}</td></tr>
+          <tr><td>Amount Paid</td><td style="color:#16a34a;">{{ format_currency(bill.amount_paid or active_grand) }}</td></tr>
           <tr><td>Amount Due</td><td style="{% if (bill.amount_due or 0) > 0 %}color:#ef4444;font-weight:900;{% endif %}">{{ format_currency(bill.amount_due or 0) }}</td></tr>
           {% endif %}
         </table>
@@ -741,7 +760,7 @@
       </div>
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.6rem; text-align: center;">
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Bill Total</div>
-        <div style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">{{ format_currency(bill.grand_total) }}</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">{{ format_currency(ns.active_total) }}</div>
       </div>
       <div style="background: {% if bill.payment_status == 'PAID' %}#f0fdf4; border-color: #bbf7d0;{% elif bill.payment_status == 'PARTIAL' %}#fffbeb; border-color: #fde68a;{% elif bill.payment_status == 'REFUNDED' %}#f5f3ff; border-color: #ddd6fe;{% else %}#f0fdf4; border-color: #bbf7d0;{% endif %} border: 1px solid; border-radius: 6px; padding: 0.6rem; text-align: center;">
         <div style="font-size: 0.65rem; color: #475569; font-weight: 600; text-transform: uppercase;">Status</div>
@@ -803,7 +822,7 @@
     </div>
 
     {# ── Payment Progress Bar ── #}
-    {% set paid_pct = ((bill.amount_paid or 0) / bill.grand_total * 100) if bill.grand_total > 0 else 0 %}
+    {% set paid_pct = ((bill.amount_paid or 0) / ns.active_total * 100) if ns.active_total > 0 else 0 %}
     <div style="margin-top: 0.75rem;">
       <div style="display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 0.25rem;">
         <span style="font-weight: 600; color: var(--text-muted);">Payment Progress</span>
@@ -851,13 +870,13 @@
       <button class="um-modal-close" onclick="document.getElementById('payModal').classList.remove('active')">&times;</button>
     </div>
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-      Remaining due: <strong style="color: #ef4444;">{{ format_currency(bill.amount_due or bill.grand_total) }}</strong>
+      Remaining due: <strong style="color: #ef4444;">{{ format_currency(bill.amount_due or ns.active_total) }}</strong>
     </p>
      <form action="{{ url_for('billing.record_payment', bill_id=bill._id or bill.id) }}" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Amount <span style="color: #ef4444;">*</span></label>
-        <input type="number" name="amount" class="form-control" required min="0.01" max="{{ bill.amount_due or bill.grand_total }}" step="0.01" value="{{ "%.2f"|format(bill.amount_due or bill.grand_total) }}">
+        <input type="number" name="amount" class="form-control" required min="0.01" max="{{ bill.amount_due or ns.active_total }}" step="0.01" value="{{ "%.2f"|format(bill.amount_due or ns.active_total) }}">
       </div>
       <div style="margin-bottom: 1rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.85rem;">Method</label>
