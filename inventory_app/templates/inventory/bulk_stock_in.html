@@ -420,11 +420,9 @@
 
   <script>
   (function() {
-    // Hide review skeleton after brief shimmer
+    // Hide review skeleton immediately
     var revSkel = document.getElementById('bsi-review-skeleton');
-    if (revSkel) {
-      setTimeout(function() { revSkel.style.display = 'none'; }, 300);
-    }
+    if (revSkel) revSkel.style.display = 'none';
 
     var cards = Array.prototype.slice.call(document.querySelectorAll('.map-item-card'));
     var productNames = {{ product_names|tojson }};

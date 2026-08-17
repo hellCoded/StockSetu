@@ -283,13 +283,8 @@
 document.addEventListener('DOMContentLoaded', function() {
   var skel = document.getElementById('dash-skeleton');
   var real = document.querySelector('.dash-real-content');
-  if (!skel || !real) return;
-  // Brief shimmer for perceived performance
-  setTimeout(function() {
-    skel.style.display = 'none';
-    real.style.display = 'block';
-    real.classList.add('loaded');
-  }, 400);
+  if (skel) skel.style.display = 'none';
+  if (real) { real.style.display = 'block'; real.classList.add('loaded'); }
 });
 </script>
 {% endblock %}

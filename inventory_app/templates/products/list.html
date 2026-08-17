@@ -281,15 +281,10 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Show skeleton briefly for perceived performance, then reveal real content
   var skel = document.getElementById('products-skeleton');
   var real = document.querySelector('.products-real-content');
-  if (!skel || !real) return;
-  setTimeout(function() {
-    skel.style.display = 'none';
-    real.style.display = 'block';
-    real.classList.add('loaded');
-  }, 350);
+  if (skel) skel.style.display = 'none';
+  if (real) { real.style.display = 'block'; real.classList.add('loaded'); }
 });
 </script>
 {% endblock %}

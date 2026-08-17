@@ -297,25 +297,29 @@ function hidePageLoading() {
   }
 }
 
-// Show loading overlay for any internal navigation link
+// Show loading overlay for any internal navigation link (only if slow)
 function initNavigationLoading() {
+  var navTimer = null;
   document.addEventListener('click', function(e) {
     const link = e.target.closest('a[href]');
     if (!link) return;
     const href = link.getAttribute('href');
-    // Skip external, anchor-only, javascript:, downloads
     if (!href || href.startsWith('#') || href.startsWith('javascript:') ||
         href.startsWith('http') || href.endsWith('.pdf') || href.endsWith('.xlsx') ||
         link.hasAttribute('download') || link.target === '_blank') return;
-    // Skip if modifier key held (new tab)
     if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-    // Skip if link is inside a form
     if (link.closest('form')) return;
-    showPageLoading('Loading\u2026');
+    // Delay overlay — fast navigations won't flash it
+    navTimer = setTimeout(function() { showPageLoading('Loading\u2026'); }, 150);
   });
 
-  // Hide overlay when page finishes loading (covers back/forward too)
-  window.addEventListener('pageshow', hidePageLoading);
+  window.addEventListener('pageshow', function() {
+    clearTimeout(navTimer);
+    hidePageLoading();
+  });
+  window.addEventListener('beforeunload', function() {
+    clearTimeout(navTimer);
+  });
 }
 
 // ── 8. data-confirm → custom modal ───────────────────────────
