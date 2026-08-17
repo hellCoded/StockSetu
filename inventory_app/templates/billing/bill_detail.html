@@ -678,6 +678,7 @@
     </table>
 
     {# ── Bottom ── #}
+    {% set active_grand = ns.active_total + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
     <div class="inv-bottom">
       <div class="inv-bl">
         <div class="inv-words-sec">
