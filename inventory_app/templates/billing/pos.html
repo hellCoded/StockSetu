@@ -5,7 +5,7 @@
 {% block extra_head %}
 <style>
 /* ============================================================
-   STOCKSETU POS SYSTEM — Integrated Customer & Catalog Flow
+   STOCKSETU POS SYSTEM — Integrated Cart & Customer Flow
    ============================================================ */
 
 :root {
@@ -138,160 +138,13 @@
 /* ── POS 2-Column Responsive Layout ── */
 .q-pos-layout {
   display: grid;
-  grid-template-columns: 1fr 370px;
-  gap: 0.75rem;
+  grid-template-columns: 1fr 400px;
+  gap: 0.85rem;
   align-items: start;
   width: 100%;
 }
 
-/* ── Main Left Section (Integrated Customer + Catalog) ── */
-.q-pos-main-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-/* Integrated Customer Header Bar */
-.pos-customer-bar {
-  background: var(--pos-panel-bg);
-  border: 1px solid var(--pos-border);
-  border-radius: var(--r-lg);
-  padding: 0.75rem 1rem;
-  box-shadow: var(--shadow-xs);
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-.pcb-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-.pcb-title {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--color-on-surface);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0;
-}
-.pcb-title i { color: var(--color-primary); }
-
-.pcb-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
-  gap: 0.5rem;
-  align-items: center;
-}
-.pcb-name-wrap {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-}
-.pcb-input {
-  height: 34px !important;
-  font-size: 0.8rem !important;
-  border-radius: var(--r-sm) !important;
-}
-.q-walkin-btn {
-  background: var(--color-surface-container);
-  border: 1px solid var(--pos-border);
-  color: var(--color-primary);
-  border-radius: var(--r-sm);
-  padding: 0 0.6rem;
-  height: 34px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-.q-walkin-btn:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-}
-
-.pcb-bottom-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  padding-top: 0.4rem;
-  border-top: 1px dashed var(--pos-border);
-}
-.q-pay-options {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-}
-.q-pay-opt {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.65rem;
-  background: var(--color-surface);
-  border: 1px solid var(--pos-border);
-  border-radius: var(--r-sm);
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: var(--color-on-surface-variant);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.q-pay-opt input { display: none; }
-.q-pay-opt i { font-size: 0.75rem; }
-.q-pay-opt.is-active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(11, 61, 110, 0.25);
-}
-
-.pcb-extras {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-.pcb-field-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.72rem;
-  color: var(--color-on-surface-variant);
-  font-weight: 600;
-}
-.pcb-mini-input {
-  width: 65px;
-  height: 28px !important;
-  font-size: 0.75rem !important;
-  padding: 0 0.4rem !important;
-  text-align: right;
-  border-radius: var(--r-xs) !important;
-}
-.q-due-date-row {
-  display: none;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--color-danger);
-}
-.q-due-date-row.show { display: inline-flex; }
-.q-due-date-row input {
-  height: 28px;
-  font-size: 0.72rem !important;
-  width: 125px;
-  border-radius: var(--r-xs);
-}
-
-/* ── Product Catalog Section (Integrated Below Customer) ── */
+/* ── Product Catalog Section (Left) ── */
 .q-pos-products {
   background: var(--pos-panel-bg);
   border: 1px solid var(--pos-border);
@@ -303,7 +156,7 @@
 }
 
 .q-pos-toolbar {
-  padding: 0.6rem 0.85rem;
+  padding: 0.65rem 0.9rem;
   border-bottom: 1px solid var(--pos-border);
   background: var(--color-surface-container);
   display: flex;
@@ -327,8 +180,8 @@
   padding-left: 2.2rem;
   border-radius: var(--r-sm);
   background: var(--color-surface);
-  font-size: 0.82rem;
-  height: 36px;
+  font-size: 0.84rem;
+  height: 38px;
   border: 1px solid var(--pos-border);
   width: 100%;
   color: var(--color-on-surface);
@@ -349,8 +202,8 @@
 /* Category Chips */
 .q-pos-chips {
   display: flex;
-  gap: 0.3rem;
-  padding: 0.45rem 0.85rem;
+  gap: 0.35rem;
+  padding: 0.5rem 0.9rem;
   border-bottom: 1px solid var(--pos-border);
   overflow-x: auto;
   flex-wrap: nowrap;
@@ -360,13 +213,13 @@
 .q-pos-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.25rem 0.65rem;
+  gap: 0.35rem;
+  padding: 0.28rem 0.7rem;
   border-radius: 999px;
   background: var(--color-surface);
   border: 1px solid var(--pos-border);
   color: var(--color-on-surface-variant);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -384,7 +237,7 @@
   box-shadow: 0 2px 6px var(--cat-glow, rgba(11, 61, 110, 0.25));
 }
 .q-pos-chip-count {
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 700;
   background: rgba(0, 0, 0, 0.08);
   padding: 0.05rem 0.35rem;
@@ -400,8 +253,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 0.55rem;
-  padding: 0.65rem 0.85rem;
-  max-height: calc(100vh - 310px);
+  padding: 0.75rem 0.9rem;
+  max-height: calc(100vh - 240px);
   overflow-y: auto;
 }
 
@@ -414,7 +267,7 @@
   border-top: 3px solid var(--cat);
   border-radius: var(--r-md);
   background: var(--color-surface);
-  padding: 0.55rem 0.6rem 0.5rem;
+  padding: 0.55rem 0.65rem 0.5rem;
   cursor: pointer;
   position: relative;
   display: flex;
@@ -541,7 +394,7 @@
   border-radius: 999px;
 }
 .q-prod-price {
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   font-weight: 800;
   color: var(--cat);
 }
@@ -566,17 +419,17 @@
   grid-column: 1 / -1;
   text-align: center;
   color: var(--color-on-surface-variant);
-  padding: 2rem 1rem;
-  font-size: 0.82rem;
+  padding: 2.5rem 1rem;
+  font-size: 0.85rem;
 }
 .q-pos-none i {
-  font-size: 1.8rem;
+  font-size: 2rem;
   display: block;
   margin-bottom: 0.4rem;
   color: var(--color-outline-variant);
 }
 
-/* ── Dedicated Cart Panel (Right) ── */
+/* ── Bill Cart Panel (Right) — Unified Customer & Purchased Items ── */
 .q-pos-cart {
   background: var(--pos-panel-bg);
   border: 1px solid var(--pos-border);
@@ -584,7 +437,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 72px;
   max-height: calc(100vh - 90px);
@@ -594,7 +447,7 @@
   background: var(--color-surface-container);
   color: var(--color-on-surface);
   border-bottom: 1px solid var(--pos-border);
-  padding: 0.65rem 0.9rem;
+  padding: 0.6rem 0.85rem;
   font-size: 0.82rem;
   font-weight: 700;
   display: flex;
@@ -625,8 +478,8 @@
   color: var(--color-on-surface-variant);
   border: 1px solid var(--pos-border);
   border-radius: var(--r-sm);
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -640,13 +493,139 @@
   border-color: var(--color-danger);
 }
 
-/* Cart Items List */
+/* 1. Integrated Customer Strip inside Cart */
+.cart-customer-section {
+  padding: 0.65rem 0.85rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--pos-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.cart-customer-name-row {
+  display: flex;
+  gap: 0.35rem;
+}
+.cart-customer-name-row input {
+  flex: 1;
+  height: 32px;
+  font-size: 0.78rem !important;
+}
+.q-walkin-btn {
+  background: var(--color-surface-container);
+  border: 1px solid var(--pos-border);
+  color: var(--color-primary);
+  border-radius: var(--r-sm);
+  padding: 0 0.55rem;
+  height: 32px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.q-walkin-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+.cart-customer-subrow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+.cart-customer-subrow input {
+  height: 30px;
+  font-size: 0.74rem !important;
+}
+.cart-payment-methods {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25rem;
+  margin-top: 0.1rem;
+}
+.q-pay-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.15rem;
+  background: var(--color-surface-container);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-sm);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.q-pay-opt input { display: none; }
+.q-pay-opt i { font-size: 0.75rem; }
+.q-pay-opt.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.cart-charges-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--color-on-surface-variant);
+  margin-top: 0.1rem;
+}
+.cart-charges-inline input {
+  width: 58px;
+  height: 24px;
+  font-size: 0.7rem !important;
+  padding: 0 0.3rem;
+  text-align: right;
+}
+.q-due-date-row {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-danger);
+  margin-top: 0.1rem;
+}
+.q-due-date-row.show { display: flex; }
+.q-due-date-row input {
+  height: 26px;
+  font-size: 0.7rem !important;
+  width: 125px;
+}
+
+/* 2. Purchased Items Section Header */
+.cart-items-head {
+  padding: 0.4rem 0.85rem;
+  background: var(--color-surface-container);
+  border-bottom: 1px solid var(--pos-border);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-on-surface-variant);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+/* 3. Scrollable Purchased Items List */
 .q-cart-items {
   flex: 1;
   overflow-y: auto;
-  padding: 0.55rem 0.75rem;
-  min-height: 180px;
-  max-height: 380px;
+  padding: 0.5rem 0.75rem;
+  min-height: 140px;
+  max-height: 250px;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -654,23 +633,23 @@
 .q-cart-empty {
   text-align: center;
   color: var(--color-on-surface-variant);
-  padding: 2.5rem 0.5rem;
-  font-size: 0.78rem;
+  padding: 1.8rem 0.5rem;
+  font-size: 0.76rem;
   line-height: 1.4;
 }
 .q-cart-empty i {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   color: var(--color-outline-variant);
   display: block;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
 }
 
 .q-cart-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.45rem 0.6rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.55rem;
   background: var(--color-surface-container);
   border: 1px solid var(--pos-border);
   border-radius: var(--r-sm);
@@ -682,7 +661,7 @@
   line-height: 1.2;
 }
 .q-cart-row-sub {
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   color: var(--color-on-surface-variant);
   margin-top: 0.1rem;
 }
@@ -691,12 +670,12 @@
   align-items: center;
   gap: 0.25rem;
   margin-top: 0.2rem;
-  font-size: 0.65rem;
+  font-size: 0.64rem;
 }
 .q-cart-row-disc input {
-  width: 40px;
+  width: 38px;
   height: 20px;
-  padding: 0 0.25rem;
+  padding: 0 0.2rem;
   font-size: 0.65rem !important;
   text-align: center;
   border-radius: var(--r-xs);
@@ -706,9 +685,9 @@
   background: var(--color-surface);
   border: 1px solid var(--pos-border);
   border-radius: var(--r-xs);
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 800;
-  padding: 0.1rem 0.35rem;
+  padding: 0.1rem 0.3rem;
   cursor: pointer;
   color: var(--color-on-surface-variant);
 }
@@ -721,16 +700,16 @@
 .q-cart-row-right {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 .qty-btn {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--r-xs);
   border: 1px solid var(--pos-border);
   background: var(--color-surface);
   color: var(--color-on-surface);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -745,37 +724,38 @@
 .qty-val {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.75rem;
-  min-width: 16px;
+  font-size: 0.74rem;
+  min-width: 14px;
   text-align: center;
 }
 .trash-btn {
   background: transparent;
   border: none;
   color: var(--color-on-surface-variant);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.15rem;
 }
 .trash-btn:hover { color: var(--color-danger); }
 .q-cart-row-total {
   font-family: var(--font-mono);
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--color-on-surface);
-  min-width: 52px;
+  min-width: 50px;
   text-align: right;
 }
 
-/* Cart Totals & Checkout */
+/* 4. Live Totals Summary */
 .q-cart-totals {
   background: var(--color-surface-container);
   border-top: 1px solid var(--pos-border);
-  padding: 0.55rem 0.85rem;
+  padding: 0.5rem 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 0.22rem;
+  gap: 0.2rem;
   font-size: 0.72rem;
+  flex-shrink: 0;
 }
 .q-total-row {
   display: flex;
@@ -795,23 +775,25 @@
   padding-top: 0.35rem;
   margin-top: 0.15rem;
   border-top: 1.5px dashed var(--pos-border);
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   font-weight: 800;
   color: var(--color-on-surface);
 }
 .q-grand-row .val {
-  font-size: 1.1rem;
+  font-size: 1.12rem;
   font-family: var(--font-mono);
   color: var(--color-primary);
 }
 
+/* 5. Checkout Action */
 .q-cart-submit {
-  padding: 0.6rem 0.85rem;
+  padding: 0.55rem 0.85rem;
   background: var(--color-surface);
   border-top: 1px solid var(--pos-border);
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex-shrink: 0;
 }
 .q-submit-btn {
   width: 100%;
@@ -845,7 +827,7 @@
   color: var(--color-on-surface-variant);
 }
 
-/* Mobile Cart Toggle */
+/* Mobile Toggle */
 .q-cart-overlay {
   display: none;
   position: fixed;
@@ -889,13 +871,12 @@
 
 @media (max-width: 960px) {
   .q-pos-layout { grid-template-columns: 1fr; }
-  .pcb-grid { grid-template-columns: 1fr; }
   .q-pos-cart {
     position: fixed;
     top: 0;
     right: -100%;
-    width: 340px;
-    max-width: 90vw;
+    width: 360px;
+    max-width: 92vw;
     height: 100vh;
     max-height: 100vh;
     border-radius: 0;
@@ -925,7 +906,7 @@
     </div>
     <div class="pos-hero-title-group">
       <h1>Quick POS Billing Counter</h1>
-      <p>Customer details &amp; product catalog unified &middot; Real-time tax &amp; stock sync</p>
+      <p>Tap products to add &middot; Real-time tax, discount, &amp; stock sync</p>
     </div>
   </div>
   <div class="pos-hero-right">
@@ -948,128 +929,119 @@
   <div id="item-fields-holder"></div>
 
   <div class="q-pos-layout">
-    <!-- Main Left Section: Integrated Customer Details + Items Catalog -->
-    <div class="q-pos-main-panel">
-      <!-- 1. Customer & Billing Configuration Bar -->
-      <div class="pos-customer-bar">
-        <div class="pcb-head">
-          <h3 class="pcb-title"><i class="fa-solid fa-user-tag"></i> Customer Information</h3>
+    <!-- Left: Product Catalog & Fast Search -->
+    <div class="q-pos-products">
+      <div class="q-pos-toolbar">
+        <div class="q-pos-search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="live-search" class="form-control" placeholder="Search products, HSN, category (Ctrl+K or /)..." autocomplete="off">
         </div>
-
-        <div class="pcb-grid">
-          <div class="pcb-name-wrap">
-            <input type="text" id="customer_name" name="customer_name" class="form-control pcb-input" placeholder="Customer Name *" required maxlength="120">
-            <button type="button" class="q-walkin-btn" id="walkin-btn" title="Quick walk-in customer"><i class="fa-solid fa-user"></i> Walk-in</button>
-          </div>
-          <div>
-            <input type="text" id="customer_phone" name="customer_phone" class="form-control pcb-input" placeholder="Phone Number (Optional)">
-          </div>
-          <div>
-            <input type="text" id="customer_gstin" name="customer_gstin" class="form-control pcb-input" placeholder="GSTIN (Optional)" maxlength="15">
-          </div>
-        </div>
-
-        <!-- Payment & Charges Row -->
-        <div class="pcb-bottom-row">
-          <div class="q-pay-options">
-            <label class="q-pay-opt q-pay-cash is-active"><input type="radio" name="payment_method" value="CASH" checked><i class="fa-solid fa-money-bill-wave"></i> Cash</label>
-            <label class="q-pay-opt q-pay-upi"><input type="radio" name="payment_method" value="UPI"><i class="fa-solid fa-mobile-screen-button"></i> UPI</label>
-            <label class="q-pay-opt q-pay-card"><input type="radio" name="payment_method" value="CARD"><i class="fa-solid fa-credit-card"></i> Card</label>
-            <label class="q-pay-opt q-pay-credit"><input type="radio" name="payment_method" value="CREDIT"><i class="fa-solid fa-clock"></i> Credit</label>
-          </div>
-
-          <div class="pcb-extras">
-            <div class="pcb-field-group">
-              <span>Bill Disc (%):</span>
-              <input type="number" id="discount_percent" name="discount_percent" class="form-control pcb-mini-input" value="0" min="0" max="100" step="0.5" oninput="window.__posRenderCart && window.__posRenderCart()">
-            </div>
-            <div class="pcb-field-group">
-              <span>Shipping:</span>
-              <input type="number" id="shipping_charge" name="shipping_charge" class="form-control pcb-mini-input" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
-            </div>
-            <div class="pcb-field-group">
-              <span>Packing:</span>
-              <input type="number" id="packing_charge" name="packing_charge" class="form-control pcb-mini-input" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
-            </div>
-            <!-- Due Date (for CREDIT) -->
-            <div class="q-due-date-row" id="due-date-row">
-              <span>Due Date:</span>
-              <input type="date" id="due_date" name="due_date" class="form-control">
-            </div>
-          </div>
-        </div>
+        <span class="q-pos-result-count" id="q-pos-result-count">Loading items...</span>
       </div>
 
-      <!-- 2. Products Catalog & Live Filter -->
-      <div class="q-pos-products">
-        <div class="q-pos-toolbar">
-          <div class="q-pos-search-wrap">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="live-search" class="form-control" placeholder="Search by name, HSN, category (Ctrl+K or /)..." autocomplete="off">
-          </div>
-          <span class="q-pos-result-count" id="q-pos-result-count">Loading items...</span>
-        </div>
+      <!-- Categories Filter Chips -->
+      <div class="q-pos-chips" id="q-pos-chips">
+        <button type="button" class="q-pos-chip q-cat-0 is-active" data-cat="all">All <span class="q-pos-chip-count">0</span></button>
+        {% for cat in categories %}
+          <button type="button" class="q-pos-chip" data-cat="{{ cat }}">{{ cat }} <span class="q-pos-chip-count">0</span></button>
+        {% endfor %}
+      </div>
 
-        <!-- Categories Filter Chips -->
-        <div class="q-pos-chips" id="q-pos-chips">
-          <button type="button" class="q-pos-chip q-cat-0 is-active" data-cat="all">All <span class="q-pos-chip-count">0</span></button>
-          {% for cat in categories %}
-            <button type="button" class="q-pos-chip" data-cat="{{ cat }}">{{ cat }} <span class="q-pos-chip-count">0</span></button>
-          {% endfor %}
-        </div>
-
-        <!-- Product Cards Grid -->
-        <div class="q-pos-grid" id="q-pos-grid">
-          {% for p in products %}
-            <div class="q-prod-card {% if (p.quantity or 0) <= 0 %}disabled{% endif %}"
-                 data-name="{{ p.product_name }}"
-                 data-stock="{{ p.quantity }}"
-                 data-price="{{ '%.2f'|format(p.price or 0) }}"
-                 data-gst="{{ p.gst_rate or 0 }}"
-                 data-category="{{ p.category or '' }}"
-                 data-search="{{ (p.product_name ~ ' ' ~ (p.hsn_code or '') ~ ' ' ~ (p.category or ''))|lower }}">
-              <div class="q-prod-top">
-                <span class="q-prod-cat-tag">{{ p.category or 'Item' }}</span>
-                {% if (p.quantity or 0) > 0 %}
-                  <div class="q-prod-add-row">
-                    <input type="number" class="q-prod-qty-input" min="1" max="{{ p.quantity }}" value="1" data-name="{{ p.product_name }}" onclick="event.stopPropagation()" title="Quantity">
-                    <button type="button" class="q-prod-add" title="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                  </div>
-                {% endif %}
-              </div>
-              <div class="q-prod-name">{{ p.product_name }}</div>
-              <div class="q-prod-meta">
-                <span class="q-prod-hsn">{% if p.hsn_code %}HSN {{ p.hsn_code }}{% else %}&nbsp;{% endif %}</span>
-                <span class="q-prod-gst">GST {{ p.gst_rate or 0 }}%</span>
-              </div>
-              <div class="q-prod-price">&#8377;{{ '%.2f'|format(p.price or 0) }}</div>
-              <div class="q-prod-incl">incl. &#8377;{{ '%.2f'|format((p.price or 0) * (1 + (p.gst_rate or 0) / 100)) }}</div>
-              {% if (p.quantity or 0) <= 0 %}
-                <span class="q-prod-stock out"><i class="fa-solid fa-ban"></i> Out of Stock</span>
-              {% elif (p.quantity or 0) <= 5 %}
-                <span class="q-prod-stock low"><i class="fa-solid fa-triangle-exclamation"></i> {{ p.quantity }} {{ p.unit }} left</span>
-              {% else %}
-                <span class="q-prod-stock ok"><i class="fa-solid fa-box"></i> {{ p.quantity }} {{ p.unit }}</span>
+      <!-- Product Cards Grid -->
+      <div class="q-pos-grid" id="q-pos-grid">
+        {% for p in products %}
+          <div class="q-prod-card {% if (p.quantity or 0) <= 0 %}disabled{% endif %}"
+               data-name="{{ p.product_name }}"
+               data-stock="{{ p.quantity }}"
+               data-price="{{ '%.2f'|format(p.price or 0) }}"
+               data-gst="{{ p.gst_rate or 0 }}"
+               data-category="{{ p.category or '' }}"
+               data-search="{{ (p.product_name ~ ' ' ~ (p.hsn_code or '') ~ ' ' ~ (p.category or ''))|lower }}">
+            <div class="q-prod-top">
+              <span class="q-prod-cat-tag">{{ p.category or 'Item' }}</span>
+              {% if (p.quantity or 0) > 0 %}
+                <div class="q-prod-add-row">
+                  <input type="number" class="q-prod-qty-input" min="1" max="{{ p.quantity }}" value="1" data-name="{{ p.product_name }}" onclick="event.stopPropagation()" title="Quantity">
+                  <button type="button" class="q-prod-add" title="Add to cart"><i class="fa-solid fa-plus"></i></button>
+                </div>
               {% endif %}
             </div>
-          {% endfor %}
-          <div class="q-pos-none" id="q-pos-none" style="display: none;">
-            <i class="fa-solid fa-box-open"></i>
-            No products match your search.
+            <div class="q-prod-name">{{ p.product_name }}</div>
+            <div class="q-prod-meta">
+              <span class="q-prod-hsn">{% if p.hsn_code %}HSN {{ p.hsn_code }}{% else %}&nbsp;{% endif %}</span>
+              <span class="q-prod-gst">GST {{ p.gst_rate or 0 }}%</span>
+            </div>
+            <div class="q-prod-price">&#8377;{{ '%.2f'|format(p.price or 0) }}</div>
+            <div class="q-prod-incl">incl. &#8377;{{ '%.2f'|format((p.price or 0) * (1 + (p.gst_rate or 0) / 100)) }}</div>
+            {% if (p.quantity or 0) <= 0 %}
+              <span class="q-prod-stock out"><i class="fa-solid fa-ban"></i> Out of Stock</span>
+            {% elif (p.quantity or 0) <= 5 %}
+              <span class="q-prod-stock low"><i class="fa-solid fa-triangle-exclamation"></i> {{ p.quantity }} {{ p.unit }} left</span>
+            {% else %}
+              <span class="q-prod-stock ok"><i class="fa-solid fa-box"></i> {{ p.quantity }} {{ p.unit }}</span>
+            {% endif %}
           </div>
+        {% endfor %}
+        <div class="q-pos-none" id="q-pos-none" style="display: none;">
+          <i class="fa-solid fa-box-open"></i>
+          No products match your search.
         </div>
       </div>
     </div>
 
-    <!-- Right: Dedicated Bill Cart Panel -->
+    <!-- Right: Bill Cart Panel (Customer Details + Purchase Items Listing Unified) -->
     <div class="q-pos-cart" id="pos-cart">
       <div class="q-cart-head">
-        <div class="q-cart-title"><i class="fa-solid fa-receipt"></i> Bill Cart</div>
+        <div class="q-cart-title"><i class="fa-solid fa-receipt"></i> Bill Invoice</div>
         <span class="q-cart-badge" id="cart-badge">0 items</span>
         <button type="button" class="q-cart-clear" id="clear-cart" title="Clear cart"><i class="fa-solid fa-trash-can"></i></button>
       </div>
 
-      <!-- Scrollable Cart Items -->
+      <!-- Integrated Customer & Billing Configuration inside Cart -->
+      <div class="cart-customer-section">
+        <div class="cart-customer-name-row">
+          <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Customer Name *" required maxlength="120">
+          <button type="button" class="q-walkin-btn" id="walkin-btn" title="Quick walk-in customer"><i class="fa-solid fa-user"></i> Walk-in</button>
+        </div>
+        <div class="cart-customer-subrow">
+          <input type="text" id="customer_phone" name="customer_phone" class="form-control" placeholder="Phone (Optional)">
+          <input type="text" id="customer_gstin" name="customer_gstin" class="form-control" placeholder="GSTIN (Optional)" maxlength="15">
+        </div>
+        <div class="cart-payment-methods">
+          <label class="q-pay-opt q-pay-cash is-active"><input type="radio" name="payment_method" value="CASH" checked><i class="fa-solid fa-money-bill-wave"></i> Cash</label>
+          <label class="q-pay-opt q-pay-upi"><input type="radio" name="payment_method" value="UPI"><i class="fa-solid fa-mobile-screen-button"></i> UPI</label>
+          <label class="q-pay-opt q-pay-card"><input type="radio" name="payment_method" value="CARD"><i class="fa-solid fa-credit-card"></i> Card</label>
+          <label class="q-pay-opt q-pay-credit"><input type="radio" name="payment_method" value="CREDIT"><i class="fa-solid fa-clock"></i> Credit</label>
+        </div>
+
+        <div class="cart-charges-inline">
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <span>Disc%:</span>
+            <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100" step="0.5" oninput="window.__posRenderCart && window.__posRenderCart()">
+          </div>
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <span>Ship:</span>
+            <input type="number" id="shipping_charge" name="shipping_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
+          </div>
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <span>Pack:</span>
+            <input type="number" id="packing_charge" name="packing_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
+          </div>
+        </div>
+
+        <!-- Due Date (for CREDIT) -->
+        <div class="q-due-date-row" id="due-date-row">
+          <span>Due Date:</span>
+          <input type="date" id="due_date" name="due_date" class="form-control">
+        </div>
+      </div>
+
+      <!-- Section Header for Purchased Items -->
+      <div class="cart-items-head">
+        <span><i class="fa-solid fa-boxes-stacked" style="margin-right:0.3rem;"></i> Items In Bill</span>
+      </div>
+
+      <!-- Scrollable Purchased Items List -->
       <div class="q-cart-items" id="cart-items">
         <div class="q-cart-empty">
           <i class="fa-solid fa-cart-shopping"></i>
