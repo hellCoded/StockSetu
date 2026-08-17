@@ -140,7 +140,20 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
     """
     Searches and filters products using server-side MongoDB query.
     Stock status filtering is pushed to MongoDB via $expr to avoid Python-side iteration.
+    Results are cached for 15 seconds to avoid redundant DB hits across routes.
     """
+    import hashlib
+    # Build a stable cache key from all filter parameters
+    _key_parts = f"{query}|{category}|{location}|{stock_status}|{is_active}|{sort_by}|{sort_dir}|{limit}"
+    _cache_key = "products:search:" + hashlib.md5(_key_parts.encode()).hexdigest()
+
+    cached = cache_get(_cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except (TypeError, ValueError):
+            pass
+
     db = get_db()
     filter_query = {}
     
@@ -192,7 +205,8 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         p["_id"] = str(p["_id"])
         p["status"] = calculate_stock_status(p.get("quantity", 0))
         result.append(p)
-        
+
+    cache_set(_cache_key, json.dumps(result, default=str), ttl=15)
     return result
 
 def update_product(product_name: str, update_data: dict, performed_by: str) -> tuple[bool, str, dict]:

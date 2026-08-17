@@ -3,6 +3,7 @@ from inventory_app.database import get_db
 from inventory_app.services.product_service import get_product_by_name, invalidate_product_cache
 from inventory_app.services.audit_service import log_audit
 from inventory_app.utils.helpers import calculate_stock_status
+from inventory_app import cache_get, cache_set
 
 def stock_in(product_name: str, quantity: float, reason: str, performed_by: str) -> tuple[bool, str, dict]:
     """
@@ -190,16 +191,37 @@ def stock_adjust(product_name: str, target_quantity: float, reason: str, perform
         return False, "An unexpected error occurred while adjusting stock.", {}
 
 def get_product_transactions(product_name: str, limit: int = 50) -> list:
-    """Retrieves transaction history for a specific product."""
+    """Retrieves transaction history for a specific product. Cached 15s."""
+    import hashlib, json
+    _cache_key = "inventory:product_txns:" + hashlib.md5(f"{product_name}:{limit}".encode()).hexdigest()
+    cached = cache_get(_cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except (TypeError, ValueError):
+            pass
+
     db = get_db()
     norm_name = product_name.strip()
     txs = list(db.inventory_transactions.find({"product_name": norm_name}).sort("created_at", -1).limit(limit))
     for t in txs:
         t["_id"] = str(t["_id"])
+
+    cache_set(_cache_key, json.dumps(txs, default=str), ttl=15)
     return txs
 
 def get_all_transactions(product_name: str = "", transaction_type: str = "", limit: int = 100) -> list:
-    """Retrieves inventory transactions with optional filtering."""
+    """Retrieves inventory transactions with optional filtering. Cached 15s."""
+    import hashlib, json
+    _key = f"txns:{product_name}:{transaction_type}:{limit}"
+    _cache_key = "inventory:txns:" + hashlib.md5(_key.encode()).hexdigest()
+    cached = cache_get(_cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except (TypeError, ValueError):
+            pass
+
     db = get_db()
     query = {}
     
@@ -212,6 +234,7 @@ def get_all_transactions(product_name: str = "", transaction_type: str = "", lim
     txs = list(db.inventory_transactions.find(query).sort("created_at", -1).limit(limit))
     for t in txs:
         t["_id"] = str(t["_id"])
+    cache_set(_cache_key, json.dumps(txs, default=str), ttl=15)
     return txs
 
 def get_dashboard_metrics() -> dict:

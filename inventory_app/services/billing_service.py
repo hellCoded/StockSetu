@@ -1,6 +1,7 @@
 import math
 import re
 import time
+import json
 from datetime import datetime, timezone
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
@@ -967,16 +968,35 @@ def get_bill_by_id(bill_id: str) -> dict:
 
 
 def get_bill_by_number(bill_number: str) -> dict:
-    """Retrieves a bill by its invoice number."""
+    """Retrieves a bill by its invoice number. Cached for 30s."""
+    _cache_key = f"billing:bill:{bill_number.strip().upper()}"
+    cached = cache_get(_cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except (TypeError, ValueError):
+            pass
+
     db = get_db()
     bill = db.invoices.find_one({"bill_number": bill_number.strip().upper()})
     if bill:
         bill["_id"] = str(bill["_id"])
+        cache_set(_cache_key, json.dumps(bill, default=str), ttl=30)
     return bill
 
 
 def get_bills(search: str = "", limit: int = 100, payment_status: str = "") -> list:
     """Lists invoices, newest first, with optional bill number/customer search and status filter."""
+    import hashlib
+    _key = f"bills:{search}:{limit}:{payment_status}"
+    _cache_key = "billing:bills:" + hashlib.md5(_key.encode()).hexdigest()
+    cached = cache_get(_cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except (TypeError, ValueError):
+            pass
+
     db = get_db()
     query = {}
     search = search.strip()
@@ -1004,6 +1024,7 @@ def get_bills(search: str = "", limit: int = 100, payment_status: str = "") -> l
     bills = list(db.invoices.find(query, projection).sort("created_at", -1).limit(limit))
     for b in bills:
         b["_id"] = str(b["_id"])
+    cache_set(_cache_key, json.dumps(bills, default=str), ttl=30)
     return bills
 
 
@@ -1072,13 +1093,23 @@ def get_bill_payments(bill_id: str) -> list:
 
 
 def get_bill_audit_history(bill_number: str) -> list:
-    """Returns audit log entries for a specific bill."""
+    """Returns audit log entries for a specific bill. Cached for 60s."""
+    _cache_key = f"billing:audit:{bill_number}"
+    cached = cache_get(_cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except (TypeError, ValueError):
+            pass
+
     db = get_db()
     logs = list(db.audit_logs.find(
         {"target_resource": bill_number}
     ).sort("created_at", -1).limit(50))
     for log in logs:
         log["_id"] = str(log["_id"])
+
+    cache_set(_cache_key, json.dumps(logs, default=str), ttl=60)
     return logs
 
 
@@ -1089,8 +1120,16 @@ def get_bill_audit_history(bill_number: str) -> list:
 def get_reconciliation_report() -> list:
     """
     Cross-checks invoices vs inventory_transactions vs audit_logs
-    and returns a list of anomalies.
+    and returns a list of anomalies. Cached for 60s (heavy query).
     """
+    _cache_key = "billing:reconciliation"
+    cached = cache_get(_cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except (TypeError, ValueError):
+            pass
+
     db = get_db()
     anomalies = []
 
@@ -1184,4 +1223,6 @@ def get_reconciliation_report() -> list:
                     "created_at": bill.get("created_at"),
                 })
 
+    import json
+    cache_set(_cache_key, json.dumps(anomalies, default=str), ttl=60)
     return anomalies
