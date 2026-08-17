@@ -467,16 +467,23 @@
 
   <script>
   (function() {
-    // Fade out review skeleton after minimum display time
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.map-item-card'));
+
+    // Fade out review skeleton after minimum display time, then show cards
     var revSkel = document.getElementById('bsi-review-skeleton');
     if (revSkel) {
       setTimeout(function() {
         revSkel.classList.add('hiding');
+        // Show cards with staggered fade-in
+        cards.forEach(function(card, i) {
+          setTimeout(function() { card.classList.add('card-visible'); }, i * 40);
+        });
         setTimeout(function() { revSkel.style.display = 'none'; }, 300);
       }, 300);
+    } else {
+      // No skeleton — show cards immediately
+      cards.forEach(function(card) { card.classList.add('card-visible'); });
     }
-
-    var cards = Array.prototype.slice.call(document.querySelectorAll('.map-item-card'));
     var productNames = {{ product_names|tojson }};
     var cntAll = document.getElementById('cnt-all');
     var cntMatched = document.getElementById('cnt-matched');
@@ -1250,6 +1257,22 @@
     grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
     gap: 0.75rem;
     width: 100%;
+    position: relative;
+  }
+  .bsi-items-grid .skeleton-container {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: var(--color-background, #f8f9fa);
+    border-radius: var(--r-md);
+    padding: 1rem;
+  }
+  .bsi-items-grid .map-item-card {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .bsi-items-grid .map-item-card.card-visible {
+    opacity: 1;
   }
 
   /* Single Item Card */
