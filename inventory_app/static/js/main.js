@@ -251,15 +251,71 @@ function initFormLoadingState() {
       btn.style.pointerEvents = 'none';
       btn.style.opacity = '0.75';
       const orig = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing…';
-      setTimeout(() => {
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing\u2026';
+
+      // Show page-level overlay for heavy forms (file uploads, bulk ops)
+      if (form.enctype === 'multipart/form-data' || form.querySelector('[data-heavy]')) {
+        showPageLoading('Processing your request\u2026', 'This may take a few seconds');
+      }
+
+      // Persist until page unloads (no timeout revert)
+      window.addEventListener('beforeunload', () => {
         btn.innerHTML = orig;
         btn.style.pointerEvents = 'auto';
         btn.style.opacity = '1';
         delete btn.dataset.loading;
-      }, 8000);
+      });
     });
   });
+}
+
+// ── 7b. PAGE-LEVEL LOADING OVERLAY ───────────────────────────
+function showPageLoading(title, subtitle) {
+  let overlay = document.getElementById('page-loading-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'page-loading-overlay';
+    overlay.className = 'page-loading-overlay';
+    overlay.innerHTML = `
+      <div class="page-spinner">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <strong></strong>
+        <span></span>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+  overlay.querySelector('strong').textContent = title || 'Loading\u2026';
+  overlay.querySelector('span').textContent = subtitle || '';
+  requestAnimationFrame(() => overlay.classList.add('active'));
+}
+
+function hidePageLoading() {
+  const overlay = document.getElementById('page-loading-overlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    setTimeout(() => overlay.remove(), 300);
+  }
+}
+
+// Show loading overlay for any internal navigation link
+function initNavigationLoading() {
+  document.addEventListener('click', function(e) {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    // Skip external, anchor-only, javascript:, downloads
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') ||
+        href.startsWith('http') || href.endsWith('.pdf') || href.endsWith('.xlsx') ||
+        link.hasAttribute('download') || link.target === '_blank') return;
+    // Skip if modifier key held (new tab)
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    // Skip if link is inside a form
+    if (link.closest('form')) return;
+    showPageLoading('Loading\u2026');
+  });
+
+  // Hide overlay when page finishes loading (covers back/forward too)
+  window.addEventListener('pageshow', hidePageLoading);
 }
 
 // ── 8. data-confirm → custom modal ───────────────────────────
@@ -351,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initProductViewToggle();
   initStockPreview();
   initFormLoadingState();
+  initNavigationLoading();
   initCustomConfirmTriggers();
   initRowNavigation();
   initAlertBell();

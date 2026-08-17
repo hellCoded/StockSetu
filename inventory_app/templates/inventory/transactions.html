@@ -3,6 +3,53 @@
 {% block title %}Transaction History - StockSetu{% endblock %}
 
 {% block content %}
+<!-- Skeleton Loader -->
+<div class="skeleton-container" id="tx-skeleton">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+    <div>
+      <div class="skeleton skeleton-title" style="width:240px"></div>
+      <div class="skeleton skeleton-text-sm" style="width:320px"></div>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <div class="skeleton skeleton-btn"></div>
+      <div class="skeleton skeleton-btn"></div>
+    </div>
+  </div>
+  <div class="skeleton skeleton-toolbar">
+    <div class="skeleton skeleton-text" style="flex:2"></div>
+    <div class="skeleton skeleton-text" style="flex:1"></div>
+    <div class="skeleton skeleton-btn" style="width:80px"></div>
+  </div>
+  <div class="card">
+    <table class="skeleton-table">
+      <thead><tr>
+        <th><div class="skeleton skeleton-text-sm" style="width:100px"></div></th>
+        <th><div class="skeleton skeleton-text-sm" style="width:90px"></div></th>
+        <th><div class="skeleton skeleton-text-sm" style="width:70px"></div></th>
+        <th><div class="skeleton skeleton-text-sm" style="width:55px"></div></th>
+        <th><div class="skeleton skeleton-text-sm" style="width:65px"></div></th>
+        <th><div class="skeleton skeleton-text-sm" style="width:55px"></div></th>
+        <th><div class="skeleton skeleton-text-sm" style="width:120px"></div></th>
+      </tr></thead>
+      <tbody class="skeleton-stagger">
+        {% for _ in range(10) %}
+        <tr>
+          <td><div class="skeleton skeleton-text" style="width:110px"></div></td>
+          <td><div class="skeleton skeleton-text" style="width:{{ range(80,140)|random }}px"></div></td>
+          <td><div class="skeleton skeleton-badge"></div></td>
+          <td><div class="skeleton skeleton-text" style="width:30px"></div></td>
+          <td><div class="skeleton skeleton-text-sm" style="width:35px"></div></td>
+          <td><div class="skeleton skeleton-text" style="width:35px"></div></td>
+          <td><div class="skeleton skeleton-text-sm" style="width:100px"></div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Real Content -->
+<div class="tx-real-content" style="display:none">
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
   <div>
     <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Inventory Transaction Log</h1>
@@ -102,4 +149,20 @@
     </table>
   </div>
 </div>
+</div><!-- /tx-real-content -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var skel = document.getElementById('tx-skeleton');
+  var real = document.querySelector('.tx-real-content');
+  if (!skel || !real) return;
+  setTimeout(function() {
+    skel.style.display = 'none';
+    real.style.display = 'block';
+    real.classList.add('loaded');
+  }, 350);
+});
+</script>
 {% endblock %}

@@ -260,6 +260,40 @@
 
     <!-- Items Grid (2 Columns on wide screen, 1 Column on tablet/mobile) -->
     <div class="bsi-items-grid" id="items-container">
+      <!-- Skeleton for review cards -->
+      <div class="skeleton-container" id="bsi-review-skeleton" style="grid-column:1/-1">
+        <div class="skeleton-toolbar" style="margin-bottom:1rem">
+          <div class="skeleton skeleton-text" style="width:140px"></div>
+          <div class="skeleton skeleton-badge"></div>
+          <div class="skeleton skeleton-badge" style="width:80px"></div>
+          <div class="skeleton skeleton-badge" style="width:80px"></div>
+          <div style="flex:1"></div>
+          <div class="skeleton skeleton-text" style="width:160px;height:36px;border-radius:var(--r-md)"></div>
+        </div>
+        <div class="skeleton-grid" style="grid-template-columns: repeat(auto-fill, minmax(420px, 1fr))">
+          {% for _ in range(6) %}
+          <div class="skeleton-card">
+            <div class="skeleton-header">
+              <div class="skeleton skeleton-icon" style="width:32px;height:32px;border-radius:8px"></div>
+              <div style="flex:1">
+                <div class="skeleton skeleton-text" style="width:70%"></div>
+                <div class="skeleton skeleton-text-sm" style="width:45%"></div>
+              </div>
+              <div class="skeleton skeleton-badge"></div>
+            </div>
+            <div class="skeleton-body">
+              <div class="skeleton skeleton-text" style="width:90%"></div>
+              <div class="skeleton skeleton-text" style="width:60%"></div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <div class="skeleton skeleton-text" style="width:80px;height:32px;border-radius:var(--r-sm)"></div>
+                <div class="skeleton skeleton-text" style="width:80px;height:32px;border-radius:var(--r-sm)"></div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <!-- /skeleton -->
       {% for item in items %}
       <div class="map-item-card" data-idx="{{ loop.index0 }}" data-new="{{ '1' if item.is_new else '0' }}" data-name="{{ item.item_name|lower }}">
         <input type="hidden" name="item_name[]" value="{{ item.item_name }}">
@@ -386,6 +420,12 @@
 
   <script>
   (function() {
+    // Hide review skeleton after brief shimmer
+    var revSkel = document.getElementById('bsi-review-skeleton');
+    if (revSkel) {
+      setTimeout(function() { revSkel.style.display = 'none'; }, 300);
+    }
+
     var cards = Array.prototype.slice.call(document.querySelectorAll('.map-item-card'));
     var productNames = {{ product_names|tojson }};
     var cntAll = document.getElementById('cnt-all');
