@@ -437,7 +437,7 @@
 }
 .q-cart-overlay.show { display: block; opacity: 1; }
 
-/* ─── POS Extended: Line Discount / Free / Charges / Split ─── */
+/* ─── POS Extended: Line Discount / Free / Charges ─── */
 .q-cart-row-disc { display: flex; align-items: center; gap: 0.2rem; margin-top: 0.2rem; }
 .q-cart-row-disc label { font-size: 0.55rem; font-weight: 700; color: var(--text-faint); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
 .q-cart-row-disc input { width: 42px; padding: 0.1rem 0.2rem; font-size: 0.62rem; text-align: right; border: 1px solid #e5e7eb; border-radius: 5px; background: #fff; transition: border-color 0.15s; }
@@ -446,16 +446,6 @@
 .q-cart-row-disc .free-btn:hover { border-color: #86efac; }
 .q-cart-row-disc .free-btn.active { background: #dcfce7; color: #166534; border-color: #86efac; }
 
-.q-split-section { padding: 0.4rem 0.85rem; border-top: 1px dashed #e5e7eb; display: none; }
-.q-split-section.open { display: block; }
-.q-split-row { display: flex; gap: 0.3rem; margin-bottom: 0.3rem; align-items: center; }
-.q-split-row select, .q-split-row input { font-size: 0.7rem; padding: 0.2rem 0.3rem; border: 1px solid #e5e7eb; border-radius: 5px; background: #fff; }
-.q-split-row select { width: 68px; }
-.q-split-row input[type="number"] { width: 68px; text-align: right; }
-.q-split-row input[type="text"] { flex: 1; }
-.q-split-row select:focus, .q-split-row input:focus { border-color: #818cf8; outline: none; }
-.q-split-add { font-size: 0.6rem; color: var(--primary); cursor: pointer; font-weight: 700; margin-top: 0.15rem; display: inline-block; transition: color 0.12s; }
-.q-split-add:hover { color: #4338ca; text-decoration: underline; }
 
 .q-charges-row { display: flex; gap: 0.3rem; margin-bottom: 0.3rem; align-items: center; }
 .q-charges-row label { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); min-width: 56px; }
@@ -619,13 +609,6 @@
               <label>Packing</label>
               <input type="number" id="packing_charge" name="packing_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
             </div>
-          </div>
-
-          <!-- Split Payment (visible for CASH/UPI/CARD) -->
-          <div class="q-split-section" id="split-section">
-            <div class="q-cart-label">Split Payment</div>
-            <div id="split-rows"></div>
-            <span class="q-split-add" id="add-split">+ Add payment</span>
           </div>
 
           <!-- Due Date (visible for CREDIT) -->
@@ -958,51 +941,16 @@
   });
 
   /* ── Payment Method ── */
-  const splitSection = document.getElementById('split-section');
   const dueDateRow = document.getElementById('due-date-row');
-  const splitRowsEl = document.getElementById('split-rows');
-  let splitPayments = [];
 
   function updatePaymentUI() {
     const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
     if (method === 'CREDIT') {
-      splitSection.classList.remove('open');
       dueDateRow.classList.add('show');
     } else {
       dueDateRow.classList.remove('show');
-      // Show split for CASH/UPI/CARD
-      splitSection.classList.add('open');
     }
   }
-
-  function renderSplitRows() {
-    splitRowsEl.innerHTML = '';
-    splitPayments.forEach((sp, i) => {
-      const row = document.createElement('div');
-      row.className = 'q-split-row';
-      row.innerHTML =
-        '<select name="split_method[]" onchange="window.__posSplitMethod(' + i + ', this.value)">' +
-          '<option value="CASH"' + (sp.method === 'CASH' ? ' selected' : '') + '>Cash</option>' +
-          '<option value="UPI"' + (sp.method === 'UPI' ? ' selected' : '') + '>UPI</option>' +
-          '<option value="CARD"' + (sp.method === 'CARD' ? ' selected' : '') + '>Card</option>' +
-          '<option value="CREDIT"' + (sp.method === 'CREDIT' ? ' selected' : '') + '>Credit</option>' +
-        '</select>' +
-        '<input type="number" name="split_amount[]" value="' + sp.amount + '" min="0" step="0.01" placeholder="Amount" onchange="window.__posSplitAmount(' + i + ', this.value)">' +
-        '<input type="text" name="split_reference[]" value="' + (sp.reference || '') + '" placeholder="Ref/UPI ID">' +
-        '<button type="button" class="trash-btn" onclick="window.__posSplitRemove(' + i + ')" style="font-size:0.65rem;"><i class="fa-solid fa-xmark"></i></button>';
-      splitRowsEl.appendChild(row);
-    });
-  }
-
-  window.__posSplitMethod = function(i, val) { splitPayments[i].method = val; renderSplitRows(); };
-  window.__posSplitAmount = function(i, val) { splitPayments[i].amount = parseFloat(val) || 0; };
-  window.__posSplitRemove = function(i) { splitPayments.splice(i, 1); renderSplitRows(); };
-
-  document.getElementById('add-split').addEventListener('click', function() {
-    const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
-    splitPayments.push({ method: method, amount: 0, reference: '' });
-    renderSplitRows();
-  });
 
   document.querySelectorAll('.q-pay-opt input[name="payment_method"]').forEach(radio => {
     radio.addEventListener('change', () => {
