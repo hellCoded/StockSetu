@@ -36,28 +36,32 @@
 
   <!-- Real Content -->
   <div class="dash-real-content fade-in" style="display:none">
-  <div class="dash-head">
+  <div class="dash-head" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
     <div>
-      <h1 class="dash-head-title">Inventory Overview</h1>
-      <p class="dash-head-sub">Real-time inventory levels, critical stock alerts, and recent activity</p>
+      <h1 class="dash-head-title" style="font-size: 1.5rem; font-weight: 800; color: var(--color-on-surface, #0f172a); font-family: var(--font-display, inherit); margin: 0; line-height: 1.2;">
+        Inventory Overview
+      </h1>
+      <p class="dash-head-sub" style="color: var(--color-on-surface-variant, #64748b); font-size: 0.85rem; margin: 0.25rem 0 0 0;">
+        Real-time inventory levels, critical stock alerts, and recent warehouse activity
+      </p>
     </div>
-    <div class="dash-head-actions">
-      <a href="{{ url_for('products.export_pdf') }}" class="btn btn-secondary btn-sm no-print" title="Export Full Catalog to PDF">
-        <i class="fa-solid fa-file-pdf" style="color: #dc2626;"></i> Export PDF
+    <div class="dash-head-actions" style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+      <a href="{{ url_for('products.export_pdf') }}" class="btn btn-secondary no-print" title="Export Full Catalog to PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
+        <i class="fa-solid fa-file-pdf" style="color: #dc2626; margin-right: 0.35rem;"></i> Export PDF
       </a>
-      <a href="{{ url_for('products.export_excel') }}" class="btn btn-secondary btn-sm no-print" title="Export Inventory to Excel">
-        <i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Export Excel
+      <a href="{{ url_for('products.export_excel') }}" class="btn btn-secondary no-print" title="Export Inventory to Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
+        <i class="fa-solid fa-file-excel" style="color: #107c41; margin-right: 0.35rem;"></i> Export Excel
       </a>
       {% if current_user.role in ['admin', 'inventory_manager'] %}
-        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print">
-          <i class="fa-solid fa-plus"></i> Add Product
+        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; box-shadow: 0 4px 12px rgba(11, 61, 110, 0.2);">
+          <i class="fa-solid fa-plus" style="margin-right: 0.35rem;"></i> Add Product
         </a>
       {% endif %}
     </div>
   </div>
 
   <!-- KPI Metrics Grid -->
-  <div class="kpi-grid">
+  <div class="kpi-grid" style="margin-bottom: 1.25rem;">
     <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
       <div class="kpi-card kpi-products">
         <div class="kpi-icon"><i class="fa-solid fa-box"></i></div>
@@ -73,7 +77,7 @@
         <div class="kpi-icon"><i class="fa-solid fa-cubes"></i></div>
         <div class="kpi-body">
           <div class="kpi-value" data-counter="{{ metrics.total_quantity }}">{{ "{:,.0f}".format(metrics.total_quantity) }}</div>
-          <div class="kpi-label">Total Inventory Units</div>
+          <div class="kpi-label">Total Units</div>
         </div>
       </div>
     </a>
@@ -109,24 +113,24 @@
     </a>
   </div>
 
-  <!-- Quick Actions -->
-  <div class="dash-quick-actions" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.25rem;">
-    <a href="{{ url_for('billing.pos') }}" class="btn btn-primary" style="justify-content:center;">
-      <i class="fa-solid fa-cart-shopping"></i> New Bill
+  <!-- Quick Actions Hub -->
+  <div class="dash-quick-actions" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;margin-bottom:1.25rem;">
+    <a href="{{ url_for('billing.pos') }}" class="btn btn-primary" style="justify-content:center; padding: 0.65rem 1rem; box-shadow: 0 4px 12px rgba(11, 61, 110, 0.2);">
+      <i class="fa-solid fa-cart-shopping" style="margin-right: 0.4rem;"></i> New POS Bill
     </a>
-    <a href="{{ url_for('inventory.stock_in') }}" class="btn btn-secondary" style="justify-content:center;">
-      <i class="fa-solid fa-arrow-down"></i> Stock In
+    <a href="{{ url_for('inventory.stock_in') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
+      <i class="fa-solid fa-arrow-down" style="margin-right: 0.4rem; color: #10b981;"></i> Stock In
     </a>
-    <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-secondary" style="justify-content:center;">
-      <i class="fa-solid fa-arrow-up"></i> Stock Out
+    <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
+      <i class="fa-solid fa-arrow-up" style="margin-right: 0.4rem; color: #ef4444;"></i> Stock Out
     </a>
     {% if current_user.role in ['admin', 'inventory_manager'] %}
-      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary" style="justify-content:center;">
-        <i class="fa-solid fa-file-import"></i> Bulk Stock In
+      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
+        <i class="fa-solid fa-file-import" style="margin-right: 0.4rem; color: #3b82f6;"></i> Bulk Stock In
       </a>
     {% endif %}
-    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary" style="justify-content:center;">
-      <i class="fa-solid fa-receipt"></i> Recent Bills
+    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
+      <i class="fa-solid fa-receipt" style="margin-right: 0.4rem; color: #8b5cf6;"></i> Recent Bills
     </a>
   </div>
 
@@ -231,33 +235,37 @@
           {% if metrics.recent_transactions %}
             {% for tx in metrics.recent_transactions %}
               <tr data-tx-type="{{ tx.transaction_type }}">
-                <td>{{ format_datetime(tx.created_at) }}</td>
+                <td style="font-size: 0.83rem; color: var(--color-on-surface-variant, #64748b); white-space: nowrap;">{{ format_datetime(tx.created_at) }}</td>
                 <td>
-                  <a href="{{ url_for('products.view_product', product_name=tx.product_name) }}" class="dash-product-link">
+                  <a href="{{ url_for('products.view_product', product_name=tx.product_name) }}" class="dash-product-link" style="font-weight: 600; font-size: 0.92rem; color: var(--color-primary, #0b3d6e);">
                     {{ tx.product_name }}
                   </a>
                 </td>
                 <td>
                   {% if tx.transaction_type == 'STOCK_IN' %}
-                    <span class="badge badge-success"><i class="fa-solid fa-plus"></i> STOCK IN</span>
+                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-plus"></i> STOCK IN</span>
                   {% elif tx.transaction_type == 'STOCK_OUT' %}
-                    <span class="badge badge-danger"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
+                    <span class="badge badge-danger" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
                   {% elif tx.transaction_type == 'ADJUSTMENT' %}
-                    <span class="badge badge-warning"><i class="fa-solid fa-sliders"></i> ADJUST</span>
+                    <span class="badge badge-warning" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-sliders"></i> ADJUST</span>
                   {% elif tx.transaction_type == 'INITIAL_STOCK' %}
-                    <span class="badge badge-info"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
+                    <span class="badge badge-info" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
                   {% elif tx.transaction_type == 'PRODUCT_RENAME' %}
-                    <span class="badge badge-secondary"><i class="fa-solid fa-pen"></i> RENAME</span>
+                    <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-pen"></i> RENAME</span>
                   {% else %}
-                    <span class="badge badge-secondary">{{ tx.transaction_type }}</span>
+                    <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;">{{ tx.transaction_type }}</span>
                   {% endif %}
                 </td>
-                <td class="dash-qty">
+                <td class="dash-qty" style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.9rem; {% if tx.transaction_type == 'STOCK_IN' %}color: #10b981;{% elif tx.transaction_type == 'STOCK_OUT' %}color: #ef4444;{% endif %}">
                   {% if tx.transaction_type == 'STOCK_OUT' %}-{% elif tx.transaction_type == 'STOCK_IN' %}+{% endif %}{{ tx.quantity }}
                 </td>
-                <td>{{ tx.new_quantity }}</td>
-                <td class="dash-reason">{{ tx.reason }}</td>
-                <td class="dash-user"><i class="fa-solid fa-user" style="font-size: 0.75rem; color: var(--text-muted);"></i> {{ tx.performed_by }}</td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;">{{ tx.new_quantity }}</td>
+                <td class="dash-reason" style="font-size: 0.83rem; color: var(--color-on-surface-variant, #64748b);">{{ tx.reason }}</td>
+                <td class="dash-user" style="font-size: 0.82rem; white-space: nowrap;">
+                  <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: var(--color-surface-container, #e2e8f0); padding: 0.2rem 0.55rem; border-radius: 9999px; font-weight: 500;">
+                    <i class="fa-solid fa-user" style="font-size: 0.68rem; color: var(--color-primary, #0b3d6e);"></i> {{ tx.performed_by }}
+                  </span>
+                </td>
               </tr>
             {% endfor %}
           {% else %}

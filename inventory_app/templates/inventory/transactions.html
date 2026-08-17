@@ -50,105 +50,167 @@
 
 <!-- Real Content -->
 <div class="tx-real-content fade-in" style="display:none">
-<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-  <div>
-    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Inventory Transaction Log</h1>
-    <p style="color: var(--text-muted); font-size: 0.9rem;">Complete history of all inventory movements</p>
-  </div>
-  <div style="display: flex; gap: 0.75rem; align-items: center;">
-    <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to PDF">
-      <i class="fa-solid fa-file-pdf" style="color: #dc2626;"></i> Export PDF
-    </a>
-    <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to Excel">
-      <i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Export Excel
-    </a>
-  </div>
-</div>
-
-<!-- Filter Bar -->
-<form method="GET" action="{{ url_for('inventory.view_transactions') }}" class="filter-bar">
-  <div class="filter-item" style="flex: 2;">
-    <input type="text" name="product_name" class="form-control" placeholder="Filter by product name..." value="{{ current_product }}">
-  </div>
-
-  <div class="filter-item">
-    <select name="type" class="form-select">
-      <option value="">All Transaction Types</option>
-      <option value="STOCK_IN" {% if current_type == 'STOCK_IN' %}selected{% endif %}>STOCK IN</option>
-      <option value="STOCK_OUT" {% if current_type == 'STOCK_OUT' %}selected{% endif %}>STOCK OUT</option>
-      <option value="ADJUSTMENT" {% if current_type == 'ADJUSTMENT' %}selected{% endif %}>ADJUSTMENT</option>
-      <option value="INITIAL_STOCK" {% if current_type == 'INITIAL_STOCK' %}selected{% endif %}>INITIAL STOCK</option>
-      <option value="PRODUCT_RENAME" {% if current_type == 'PRODUCT_RENAME' %}selected{% endif %}>PRODUCT RENAME</option>
-    </select>
+  <!-- Page Header & Actions -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--color-on-surface, #0f172a); font-family: var(--font-display, inherit); margin: 0; line-height: 1.2;">
+        Inventory Transaction Log
+      </h1>
+      <p style="color: var(--color-on-surface-variant, #64748b); font-size: 0.85rem; margin: 0.25rem 0 0 0;">
+        Complete chronological ledger of all stock ins, stock outs, and quantity adjustments
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+      <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
+        <i class="fa-solid fa-file-pdf" style="color: #dc2626; margin-right: 0.35rem;"></i> Export PDF
+      </a>
+      <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
+        <i class="fa-solid fa-file-excel" style="color: #107c41; margin-right: 0.35rem;"></i> Export Excel
+      </a>
+    </div>
   </div>
 
-  <div class="filter-item" style="flex: 0 0 auto;">
-    <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-filter"></i> Filter</button>
-    <a href="{{ url_for('inventory.view_transactions') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
-  </div>
-</form>
+  <!-- KPI Summary Banner -->
+  {% set in_count = namespace(val=0) %}
+  {% set out_count = namespace(val=0) %}
+  {% set adj_count = namespace(val=0) %}
+  {% for tx in transactions %}
+    {% if tx.transaction_type == 'STOCK_IN' %}{% set in_count.val = in_count.val + 1 %}{% endif %}
+    {% if tx.transaction_type == 'STOCK_OUT' %}{% set out_count.val = out_count.val + 1 %}{% endif %}
+    {% if tx.transaction_type == 'ADJUSTMENT' %}{% set adj_count.val = adj_count.val + 1 %}{% endif %}
+  {% endfor %}
 
-<div class="card">
-  <div class="table-responsive">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Date & Time</th>
-          <th>Product Name</th>
-          <th>Type</th>
-          <th>Quantity</th>
-          <th>Previous Qty</th>
-          <th>New Qty</th>
-          <th>Reason / Performed By</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% if transactions %}
-          {% for tx in transactions %}
+  <div class="tx-kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
+    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-primary, #0b3d6e); display: flex; align-items: center; gap: 0.85rem;">
+      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-primary-light, rgba(11,61,110,0.1)); display: flex; align-items: center; justify-content: center; color: var(--color-primary, #0b3d6e); font-size: 1.1rem;">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+      </div>
+      <div>
+        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Total Logged</div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: var(--color-on-surface, #0f172a);">{{ transactions|length }}</div>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-success, #10b981); display: flex; align-items: center; gap: 0.85rem;">
+      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-success-bg, #dcfce7); display: flex; align-items: center; justify-content: center; color: var(--color-success, #10b981); font-size: 1.1rem;">
+        <i class="fa-solid fa-arrow-down"></i>
+      </div>
+      <div>
+        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Stock In Events</div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: #166534;">{{ in_count.val }}</div>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-danger, #ef4444); display: flex; align-items: center; gap: 0.85rem;">
+      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-danger-bg, #fee2e2); display: flex; align-items: center; justify-content: center; color: var(--color-danger, #ef4444); font-size: 1.1rem;">
+        <i class="fa-solid fa-arrow-up"></i>
+      </div>
+      <div>
+        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Stock Out Events</div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: #991b1b;">{{ out_count.val }}</div>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-warning, #f59e0b); display: flex; align-items: center; gap: 0.85rem;">
+      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-warning-bg, #fef9c3); display: flex; align-items: center; justify-content: center; color: var(--color-warning, #f59e0b); font-size: 1.1rem;">
+        <i class="fa-solid fa-sliders"></i>
+      </div>
+      <div>
+        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Adjustments</div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: #92400e;">{{ adj_count.val }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <form method="GET" action="{{ url_for('inventory.view_transactions') }}" class="filter-bar" style="margin-bottom: 1rem;">
+    <div class="filter-item" style="flex: 2; min-width: 220px;">
+      <input type="text" name="product_name" class="form-control" placeholder="Search product name..." value="{{ current_product }}">
+    </div>
+
+    <div class="filter-item">
+      <select name="type" class="form-select">
+        <option value="">All Transaction Types</option>
+        <option value="STOCK_IN" {% if current_type == 'STOCK_IN' %}selected{% endif %}>STOCK IN</option>
+        <option value="STOCK_OUT" {% if current_type == 'STOCK_OUT' %}selected{% endif %}>STOCK OUT</option>
+        <option value="ADJUSTMENT" {% if current_type == 'ADJUSTMENT' %}selected{% endif %}>ADJUSTMENT</option>
+        <option value="INITIAL_STOCK" {% if current_type == 'INITIAL_STOCK' %}selected{% endif %}>INITIAL STOCK</option>
+        <option value="PRODUCT_RENAME" {% if current_type == 'PRODUCT_RENAME' %}selected{% endif %}>PRODUCT RENAME</option>
+      </select>
+    </div>
+
+    <div class="filter-item" style="flex: 0 0 auto; display: flex; gap: 0.4rem;">
+      <button type="submit" class="btn btn-secondary" style="font-size: 0.82rem;"><i class="fa-solid fa-filter"></i> Filter</button>
+      <a href="{{ url_for('inventory.view_transactions') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
+    </div>
+  </form>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="data-table clickable-rows">
+        <thead>
+          <tr>
+            <th><i class="fa-solid fa-clock"></i> Date & Time</th>
+            <th><i class="fa-solid fa-box"></i> Product Name</th>
+            <th><i class="fa-solid fa-arrow-right-arrow-left"></i> Type</th>
+            <th><i class="fa-solid fa-hashtag"></i> Quantity Changed</th>
+            <th><i class="fa-solid fa-clock-rotate-left"></i> Previous</th>
+            <th><i class="fa-solid fa-layer-group"></i> New Qty</th>
+            <th><i class="fa-solid fa-note-sticky"></i> Reason / Operator</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if transactions %}
+            {% for tx in transactions %}
+              <tr>
+                <td style="font-size: 0.83rem; color: var(--color-on-surface-variant, #64748b); white-space: nowrap;">{{ format_datetime(tx.created_at) }}</td>
+                <td>
+                  <a href="{{ url_for('products.view_product', product_name=tx.product_name) }}" style="font-weight: 600; font-size: 0.92rem; color: var(--color-primary, #0b3d6e);">
+                    {{ tx.product_name }}
+                  </a>
+                </td>
+                <td>
+                  {% if tx.transaction_type == 'STOCK_IN' %}
+                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-plus"></i> STOCK IN</span>
+                  {% elif tx.transaction_type == 'STOCK_OUT' %}
+                    <span class="badge badge-danger" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
+                  {% elif tx.transaction_type == 'ADJUSTMENT' %}
+                    <span class="badge badge-warning" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-sliders"></i> ADJUST</span>
+                  {% elif tx.transaction_type == 'INITIAL_STOCK' %}
+                    <span class="badge badge-info" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
+                  {% elif tx.transaction_type == 'PRODUCT_RENAME' %}
+                    <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-pen"></i> RENAME</span>
+                  {% else %}
+                    <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;">{{ tx.transaction_type }}</span>
+                  {% endif %}
+                </td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.9rem; {% if tx.transaction_type == 'STOCK_IN' %}color: #10b981;{% elif tx.transaction_type == 'STOCK_OUT' %}color: #ef4444;{% endif %}">
+                  {% if tx.transaction_type == 'STOCK_OUT' %}-{% elif tx.transaction_type == 'STOCK_IN' %}+{% endif %}{{ tx.quantity }}
+                </td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: var(--color-on-surface-variant, #64748b);">{{ tx.previous_quantity }}</td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.88rem;">{{ tx.new_quantity }}</td>
+                <td>
+                  <div style="color: var(--color-on-surface, #0f172a); font-size: 0.83rem;">{{ tx.reason }}</div>
+                  <div style="margin-top: 0.2rem;">
+                    <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: var(--color-surface-container, #e2e8f0); padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.76rem; font-weight: 500;">
+                      <i class="fa-solid fa-user" style="font-size: 0.65rem; color: var(--color-primary, #0b3d6e);"></i> {{ tx.performed_by }}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
             <tr>
-              <td>{{ format_datetime(tx.created_at) }}</td>
-              <td>
-                <a href="{{ url_for('products.view_product', product_name=tx.product_name) }}" style="font-weight: 600;">
-                  {{ tx.product_name }}
-                </a>
-              </td>
-              <td>
-                {% if tx.transaction_type == 'STOCK_IN' %}
-                  <span class="badge badge-success"><i class="fa-solid fa-plus"></i> STOCK IN</span>
-                {% elif tx.transaction_type == 'STOCK_OUT' %}
-                  <span class="badge badge-danger"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
-                {% elif tx.transaction_type == 'ADJUSTMENT' %}
-                  <span class="badge badge-warning"><i class="fa-solid fa-sliders"></i> ADJUST</span>
-                {% elif tx.transaction_type == 'INITIAL_STOCK' %}
-                  <span class="badge badge-info"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
-                {% elif tx.transaction_type == 'PRODUCT_RENAME' %}
-                  <span class="badge badge-secondary"><i class="fa-solid fa-pen"></i> RENAME</span>
-                {% endif %}
-              </td>
-              <td style="font-weight: 600;">
-                {% if tx.transaction_type == 'STOCK_OUT' %}-{% elif tx.transaction_type == 'STOCK_IN' %}+{% endif %}{{ tx.quantity }}
-              </td>
-              <td>{{ tx.previous_quantity }}</td>
-              <td style="font-weight: 600;">{{ tx.new_quantity }}</td>
-              <td>
-                <div style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">{{ tx.reason }}</div>
-                <div style="font-size: 0.8rem; color: var(--text-faint); margin-top: 0.15rem;">
-                  <i class="fa-solid fa-user" style="font-size: 0.72rem;"></i> {{ tx.performed_by }}
-                </div>
+              <td colspan="7" style="text-align: center; color: var(--color-on-surface-variant, #64748b); padding: 3rem;">
+                <i class="fa-solid fa-clock-rotate-left" style="font-size: 2.2rem; margin-bottom: 0.5rem; display: block; opacity: 0.5;"></i>
+                No transaction history found matching your filters.
               </td>
             </tr>
-          {% endfor %}
-        {% else %}
-          <tr>
-            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem;">
-              No transaction history found.
-            </td>
-          </tr>
-        {% endif %}
-      </tbody>
-    </table>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
 </div><!-- /tx-real-content -->
 {% endblock %}
 
