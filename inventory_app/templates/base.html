@@ -116,83 +116,109 @@
         });
       }
 
-      // Arc-style auto-hiding sidebar (desktop)
+      // ── Modern Hovering & Pinned Sidebar System (Desktop) ──
       var mqDesktop = window.matchMedia('(min-width: 769px)');
       var body = document.body;
       var hoverTimer = null;
 
-      function setSidebarHidden(hide) {
-        body.classList.remove('sidebar-hover-open');
-        body.classList.toggle('sidebar-hidden', !!hide);
-        try { localStorage.setItem('sidebar-hidden', hide ? '1' : '0'); } catch(e) {}
+      function getSidebarMode() {
+        try {
+          return localStorage.getItem('sidebar-mode') || 'hover';
+        } catch(e) {
+          return 'hover';
+        }
       }
 
-      function showHoverPeek() {
-        if (!body.classList.contains('sidebar-hidden')) return;
+      function applySidebarMode(mode) {
+        if (mode === 'hover') {
+          body.classList.add('sidebar-hover-mode');
+        } else {
+          body.classList.remove('sidebar-hover-mode', 'sidebar-hover-active');
+        }
+        try { localStorage.setItem('sidebar-mode', mode); } catch(e) {}
+        updateToggleBtn(mode);
+      }
+
+      function updateToggleBtn(mode) {
+        var deskToggle = document.getElementById('desk-sidebar-toggle');
+        if (deskToggle) {
+          if (mode === 'hover') {
+            deskToggle.setAttribute('title', 'Pin Sidebar (Ctrl+S)');
+            deskToggle.classList.remove('active');
+          } else {
+            deskToggle.setAttribute('title', 'Unpin Sidebar to Hover Mode (Ctrl+S)');
+            deskToggle.classList.add('active');
+          }
+        }
+      }
+
+      function showHoverSidebar() {
+        if (!body.classList.contains('sidebar-hover-mode')) return;
         clearTimeout(hoverTimer);
-        body.classList.add('sidebar-hover-open');
+        body.classList.add('sidebar-hover-active');
       }
 
-      function hideHoverPeekWithDelay(delayMs) {
-        if (!body.classList.contains('sidebar-hover-open')) return;
+      function hideHoverSidebarWithDelay(delayMs) {
+        if (!body.classList.contains('sidebar-hover-mode')) return;
         clearTimeout(hoverTimer);
         hoverTimer = setTimeout(function() {
-          body.classList.remove('sidebar-hover-open');
+          body.classList.remove('sidebar-hover-active');
         }, delayMs || 250);
       }
 
       if (mqDesktop.matches && sidebar) {
-        var savedHidden;
-        try { savedHidden = localStorage.getItem('sidebar-hidden'); } catch(e) {}
-        if (savedHidden === '1') body.classList.add('sidebar-hidden');
+        var initialMode = getSidebarMode();
+        applySidebarMode(initialMode);
 
-        // Edge hover triggers smooth overlay peek
+        // Edge and tab hover triggers smooth floating slide-in
         document.addEventListener('mousemove', function(e) {
-          if (body.classList.contains('sidebar-hidden')) {
-            if (e.clientX <= 24) {
-              showHoverPeek();
-            } else if (e.clientX > 260 && body.classList.contains('sidebar-hover-open')) {
-              hideHoverPeekWithDelay(150);
+          if (body.classList.contains('sidebar-hover-mode')) {
+            if (e.clientX <= 28) {
+              showHoverSidebar();
+            } else if (e.clientX > 260 && body.classList.contains('sidebar-hover-active')) {
+              hideHoverSidebarWithDelay(150);
             }
           }
         });
 
         sidebar.addEventListener('mouseenter', function() {
-          if (body.classList.contains('sidebar-hidden')) {
-            showHoverPeek();
+          if (body.classList.contains('sidebar-hover-mode')) {
+            showHoverSidebar();
           }
         });
 
         sidebar.addEventListener('mouseleave', function() {
-          if (body.classList.contains('sidebar-hidden')) {
-            hideHoverPeekWithDelay(250);
+          if (body.classList.contains('sidebar-hover-mode')) {
+            hideHoverSidebarWithDelay(250);
           }
         });
 
         var hoverZone = document.getElementById('sidebar-hover-zone');
         if (hoverZone) {
-          hoverZone.addEventListener('mouseenter', showHoverPeek);
+          hoverZone.addEventListener('mouseenter', showHoverSidebar);
         }
 
         var revealTab = document.getElementById('sidebar-reveal-tab');
         if (revealTab) {
-          revealTab.addEventListener('mouseenter', showHoverPeek);
+          revealTab.addEventListener('mouseenter', showHoverSidebar);
           revealTab.addEventListener('click', function() {
-            setSidebarHidden(false);
+            applySidebarMode('pinned');
           });
         }
 
         var deskToggle = document.getElementById('desk-sidebar-toggle');
         if (deskToggle) {
           deskToggle.addEventListener('click', function() {
-            setSidebarHidden(!body.classList.contains('sidebar-hidden'));
+            var current = body.classList.contains('sidebar-hover-mode') ? 'hover' : 'pinned';
+            applySidebarMode(current === 'hover' ? 'pinned' : 'hover');
           });
         }
 
         document.addEventListener('keydown', function(e) {
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            setSidebarHidden(!body.classList.contains('sidebar-hidden'));
+            var current = body.classList.contains('sidebar-hover-mode') ? 'hover' : 'pinned';
+            applySidebarMode(current === 'hover' ? 'pinned' : 'hover');
           }
         });
       }
