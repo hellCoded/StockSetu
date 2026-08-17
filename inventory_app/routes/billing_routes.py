@@ -144,19 +144,17 @@ def list_bills():
 @billing_bp.route('/billing/bills/<bill_id>')
 @login_required
 def view_bill(bill_id):
-    from inventory_app.services.billing_service import get_bill_by_id, get_bill_payments, get_bill_audit_history
+    from inventory_app.services.billing_service import get_bill_by_id, get_bill_audit_history
     bill = get_bill_by_id(bill_id)
     if not bill:
         flash("Bill not found.", "warning")
         return redirect(url_for('billing.list_bills'))
     format_type = request.args.get('format', 'standard')
-    payments = get_bill_payments(bill_id)
     audit_history = get_bill_audit_history(bill.get("bill_number", ""))
     return render_template(
         'billing/bill_detail.html',
         bill=bill,
         format_type=format_type,
-        payments=payments,
         audit_history=audit_history,
     )
 

@@ -221,41 +221,6 @@ def test_record_partial_payment_updates_bill(staff_client, mock_mongo):
     assert updated["amount_due"] > 0
 
 
-def test_bill_detail_shows_payment_ledger(staff_client, mock_mongo):
-    db = mock_mongo['inventory_test_db']
-    bill_id = _create_bill(db, staff_client, "Ledger Test")
-    bill = db.invoices.find_one({"_id": __import__("bson").ObjectId(bill_id)})
-    grand_total = bill["grand_total"]
-
-    staff_client.post(f'/billing/bills/{bill_id}/pay', data={
-        'csrf_token': 'x',
-        'amount': str(grand_total),
-        'method': 'CARD',
-        'reference': 'CARD-REF-123',
-    }, follow_redirects=True)
-
-    detail = staff_client.get(f'/billing/bills/{bill_id}')
-    assert detail.status_code == 200
-    assert b"Payment Ledger" in detail.data
-    assert b"CARD-REF-123" in detail.data
-    assert b"CARD" in detail.data
-
-
-def test_payment_ledger_shows_after_partial(staff_client, mock_mongo):
-    db = mock_mongo['inventory_test_db']
-    bill_id = _create_bill(db, staff_client, "Partial Ledger")
-    bill = db.invoices.find_one({"_id": __import__("bson").ObjectId(bill_id)})
-    third = round(bill["grand_total"] / 3, 2)
-
-    staff_client.post(f'/billing/bills/{bill_id}/pay', data={
-        'csrf_token': 'x', 'amount': str(third), 'method': 'CASH',
-    }, follow_redirects=True)
-
-    detail = staff_client.get(f'/billing/bills/{bill_id}')
-    assert detail.status_code == 200
-    assert b"PARTIAL" in detail.data
-    assert b"Payment Ledger" in detail.data
-
 
 def test_cannot_overpay_bill(staff_client, mock_mongo):
     db = mock_mongo['inventory_test_db']
