@@ -49,7 +49,7 @@
 </div>
 
 <!-- Real Content -->
-<div class="tx-real-content" style="display:none">
+<div class="tx-real-content fade-in" style="display:none">
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
   <div>
     <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Inventory Transaction Log</h1>
@@ -157,8 +157,12 @@
 document.addEventListener('DOMContentLoaded', function() {
   var skel = document.getElementById('tx-skeleton');
   var real = document.querySelector('.tx-real-content');
-  if (skel) skel.style.display = 'none';
-  if (real) { real.style.display = 'block'; real.classList.add('loaded'); }
+  var elapsed = Date.now() - performance.timing.navigationStart;
+  var delay = Math.max(0, 300 - elapsed);
+  setTimeout(function() {
+    if (skel) { skel.classList.add('hiding'); setTimeout(function() { skel.style.display = 'none'; }, 300); }
+    if (real) { real.style.display = ''; requestAnimationFrame(function() { real.classList.add('visible'); }); }
+  }, delay);
 });
 </script>
 {% endblock %}

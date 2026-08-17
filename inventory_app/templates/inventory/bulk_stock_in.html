@@ -467,9 +467,14 @@
 
   <script>
   (function() {
-    // Hide review skeleton immediately
+    // Fade out review skeleton after minimum display time
     var revSkel = document.getElementById('bsi-review-skeleton');
-    if (revSkel) revSkel.style.display = 'none';
+    if (revSkel) {
+      setTimeout(function() {
+        revSkel.classList.add('hiding');
+        setTimeout(function() { revSkel.style.display = 'none'; }, 300);
+      }, 300);
+    }
 
     var cards = Array.prototype.slice.call(document.querySelectorAll('.map-item-card'));
     var productNames = {{ product_names|tojson }};

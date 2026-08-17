@@ -127,7 +127,23 @@
 .skeleton-stagger > *:nth-child(6) { animation-delay: 0.25s; }
 
 /* ── Hide skeleton when real content loads ── */
+.skeleton-container {
+  transition: opacity 0.3s ease;
+}
+.skeleton-container.hiding {
+  opacity: 0;
+  pointer-events: none;
+}
 .loaded .skeleton-container { display: none; }
+
+/* Generic fade-in class for real content */
+.fade-in {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+}
 
 /* ── Page-level loading overlay ── */
 .page-loading-overlay {
