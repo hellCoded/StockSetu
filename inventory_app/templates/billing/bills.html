@@ -156,8 +156,8 @@
               {{ format_currency(bill.grand_total) }}
             </div>
             {% if refund_count > 0 %}
-              <div style="font-size: 0.62rem; color: #dc2626; font-weight: 600; margin-top: 0.1rem; background:#fef2f2; padding:0.05rem 0.25rem; border-radius:3px; display:inline-block;">
-                <i class="fa-solid fa-rotate-left" style="font-size: 0.55rem;"></i> {{ format_currency(ns_orig.refunded_amt) }} returned
+              <div style="font-size: 0.6rem; color: #dc2626; font-weight: 600; margin-top: 0.15rem;">
+                -{{ format_currency(ns_orig.refunded_amt) }} returned
               </div>
             {% endif %}
           </td>
@@ -179,22 +179,22 @@
               <div style="font-weight: 700; color: #5b21b6; font-size: 0.85rem;">
                 {{ format_currency(paid) }}
               </div>
-              <div style="font-size: 0.62rem; color: #5b21b6; font-weight: 600; margin-top: 0.15rem; background:#f5f3ff; padding:0.1rem 0.3rem; border-radius:3px; display:inline-block;">
-                <i class="fa-solid fa-rotate-left" style="font-size: 0.55rem;"></i> refunded
+              <div style="font-size: 0.6rem; color: #5b21b6; font-weight: 600; margin-top: 0.15rem;">
+                refunded
               </div>
             {% elif due > 0 %}
               <div style="font-weight: 800; color: #dc2626; font-size: 0.88rem; font-family: var(--font-mono);">
                 {{ format_currency(due) }}
               </div>
-              <div style="font-size: 0.62rem; color: #dc2626; font-weight: 600; margin-top: 0.15rem; background:#fef2f2; padding:0.1rem 0.3rem; border-radius:3px; display:inline-block;">
-                <i class="fa-solid fa-triangle-exclamation" style="font-size: 0.55rem;"></i> pending
+              <div style="font-size: 0.6rem; color: #dc2626; font-weight: 600; margin-top: 0.15rem;">
+                pending
               </div>
             {% else %}
               <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
                 {{ format_currency(0) }}
               </div>
-              <div style="font-size: 0.62rem; color: #166534; font-weight: 600; margin-top: 0.15rem; background:#dcfce7; padding:0.1rem 0.3rem; border-radius:3px; display:inline-block;">
-                <i class="fa-solid fa-circle-check" style="font-size: 0.55rem;"></i> settled
+              <div style="font-size: 0.6rem; color: #166534; font-weight: 600; margin-top: 0.15rem;">
+                settled
               </div>
             {% endif %}
           </td>
@@ -234,22 +234,22 @@
                 {{ format_currency(ns.due) }}
               </span>
               <br>
-              <span style="font-size: 0.62rem; color: #dc2626; font-weight: 600; background:#fef2f2; padding:0.1rem 0.3rem; border-radius:3px; display:inline-block; margin-top:0.15rem;">
-                <i class="fa-solid fa-triangle-exclamation" style="font-size: 0.55rem;"></i> outstanding
+              <span style="font-size: 0.6rem; color: #dc2626; font-weight: 600;">
+                outstanding
               </span>
             {% else %}
               <span style="color: #166534; font-weight: 700; font-size: 0.88rem;">
                 {{ format_currency(0) }}
               </span>
               <br>
-              <span style="font-size: 0.62rem; color: #166534; font-weight: 600; background:#dcfce7; padding:0.1rem 0.3rem; border-radius:3px; display:inline-block; margin-top:0.15rem;">
+              <span style="font-size: 0.6rem; color: #166534; font-weight: 600;">
                 <i class="fa-solid fa-circle-check"></i> All settled
               </span>
             {% endif %}
           </td>
           <td colspan="2" style="padding: 0.875rem 1rem;">
             {% if ns.refunded > 0 %}
-              <span style="color: #5b21b6; font-weight: 600; font-size: 0.78rem; background:#f5f3ff; padding:0.15rem 0.4rem; border-radius:4px; display:inline-block;">
+              <span style="color: #5b21b6; font-weight: 600; font-size: 0.78rem;">
                 <i class="fa-solid fa-rotate-left"></i> {{ format_currency(ns.refunded) }} refunded
               </span>
             {% endif %}
