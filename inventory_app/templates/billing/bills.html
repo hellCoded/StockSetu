@@ -144,7 +144,7 @@
             {% elif ps == 'DUE' %}
               <span style="background:#fef2f2; color:#dc2626; font-size:0.72rem; padding:0.18rem 0.5rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-triangle-exclamation" style="font-size:0.65rem;"></i> DUE</span>
             {% elif ps == 'REFUNDED' %}
-              <span style="background:#f5f3ff; color:#5b21b6; font-size:0.72rem; padding:0.18rem 0.5rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-rotate-left" style="font-size:0.65rem;"></i> REFUNDED</span>
+              <span style="background:#5b21b6; color:#ffffff; font-size:0.72rem; padding:0.18rem 0.5rem; border-radius:4px; font-weight:700;"><i class="fa-solid fa-rotate-left" style="font-size:0.65rem;"></i> REFUNDED</span>
             {% else %}
               <span style="background:#f1f5f9; color:#475569; font-size:0.72rem; padding:0.18rem 0.5rem; border-radius:4px; font-weight:700;">{{ ps }}</span>
             {% endif %}
@@ -156,8 +156,8 @@
               {{ format_currency(bill.grand_total) }}
             </div>
             {% if refund_count > 0 %}
-              <div style="font-size: 0.62rem; color: #dc2626; font-weight: 600; margin-top: 0.1rem;">
-                <i class="fa-solid fa-rotate-left" style="font-size: 0.55rem;"></i> {{ format_currency(ns_orig.refunded_amt) }} refunded
+              <div style="font-size: 0.62rem; color: #dc2626; font-weight: 600; margin-top: 0.1rem; background:#fef2f2; padding:0.05rem 0.25rem; border-radius:3px; display:inline-block;">
+                <i class="fa-solid fa-rotate-left" style="font-size: 0.55rem;"></i> {{ format_currency(ns_orig.refunded_amt) }} returned
               </div>
             {% endif %}
           </td>
