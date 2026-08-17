@@ -827,14 +827,18 @@
   color: var(--color-on-surface-variant);
 }
 
-/* Mobile Toggle */
+/* Mobile Cart Toggle */
 .q-cart-overlay {
   display: none;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
   z-index: 90;
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.q-cart-overlay.show { display: block; opacity: 1; }
+
 .q-cart-toggle-btn {
   display: none;
   position: fixed;
@@ -874,16 +878,18 @@
   .q-pos-cart {
     position: fixed;
     top: 0;
-    right: -100%;
+    right: 0;
+    transform: translate3d(100%, 0, 0);
     width: 360px;
     max-width: 92vw;
     height: 100vh;
     max-height: 100vh;
     border-radius: 0;
     z-index: 100;
-    transition: right 0.3s var(--ease);
+    will-change: transform;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
   }
-  .q-pos-cart.open { right: 0; }
+  .q-pos-cart.open { transform: translate3d(0, 0, 0); }
   .q-cart-overlay.show { display: block; }
   .q-cart-toggle-btn { display: flex; }
 }
