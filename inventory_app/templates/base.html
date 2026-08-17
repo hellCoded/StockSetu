@@ -127,18 +127,6 @@
         try { savedHidden = localStorage.getItem('sidebar-hidden'); } catch(e) {}
         if (savedHidden === '1') body.classList.add('sidebar-hidden');
 
-        document.addEventListener('mousemove', function(e) {
-          if (e.clientX <= 40 && body.classList.contains('sidebar-hidden')) {
-            setSidebarHidden(false);
-          }
-        });
-
-        sidebar.addEventListener('mouseleave', function() {
-          if (mqDesktop.matches && !body.classList.contains('sidebar-hidden')) {
-            setSidebarHidden(true);
-          }
-        });
-
         var deskToggle = document.getElementById('desk-sidebar-toggle');
         if (deskToggle) {
           deskToggle.addEventListener('click', function() {
