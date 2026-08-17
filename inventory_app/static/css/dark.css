@@ -1,84 +1,231 @@
 /* ============================================================
-   Dark Mode — CSS custom properties override
+   StockSetu — Ultra-Refined Dark Mode Theme
+   High-Contrast Obsidian & Deep Slate Palette
    ============================================================ */
-[data-theme="dark"] {
-  --color-background: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-container: #1e293b;
-  --color-surface-container-high: #334155;
-  --color-surface-container-highest: #334155;
-  --color-on-surface: #f1f5f9;
-  --color-on-surface-variant: #94a3b8;
-  --color-outline: #475569;
-  --color-outline-variant: #334155;
-  
-  --color-success-bg: #064e3b;
-  --color-success-text: #6ee7b7;
-  --color-warning-bg: #78350f;
-  --color-warning-text: #fcd34d;
-  --color-danger-bg: #7f1d1d;
-  --color-danger-text: #fca5a5;
-  --color-info-bg: #3b0764;
-  --color-info-text: #c4b5fd;
 
-  --text-main: #f1f5f9;
+[data-theme="dark"] {
+  /* Core Canvas & Surfaces */
+  --color-background: #090d16;
+  --color-surface: #111827;
+  --color-surface-dim: #070b14;
+  --color-surface-bright: #1f293d;
+  --color-surface-container: #131d2e;
+  --color-surface-container-high: #1c283d;
+  --color-surface-container-highest: #28374f;
+
+  /* Typography & Contrasts */
+  --color-on-surface: #f8fafc;
+  --color-on-surface-variant: #94a3b8;
+  --color-on-background: #f8fafc;
+  --color-outline: #334155;
+  --color-outline-variant: #1e293b;
+
+  /* Radiant Accents & Brand */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-light: rgba(59, 130, 246, 0.16);
+  --color-primary-glow: rgba(59, 130, 246, 0.28);
+  --color-primary-fixed: #1e3a8a;
+  --color-primary-fixed-dim: #172554;
+
+  --color-accent: #f43f5e;
+  --color-accent-hover: #fb7185;
+  --color-accent-light: rgba(244, 63, 94, 0.16);
+  --color-accent-fixed: #881337;
+  --color-accent-fixed-dim: #4c0519;
+
+  /* Vibrant Status Colors */
+  --color-success: #10b981;
+  --color-success-bg: rgba(16, 185, 129, 0.14);
+  --color-success-text: #34d399;
+  
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.14);
+  --color-warning-text: #fbbf24;
+  
+  --color-danger: #ef4444;
+  --color-danger-bg: rgba(239, 68, 68, 0.14);
+  --color-danger-text: #f87171;
+  
+  --color-info: #6366f1;
+  --color-info-bg: rgba(99, 102, 241, 0.14);
+  --color-info-text: #a5b4fc;
+
+  /* Aliases */
+  --bg-app: var(--color-background);
+  --bg-card: var(--color-surface);
+  --bg-card-border: var(--color-outline-variant);
+  --text-main: #f8fafc;
   --text-sub: #94a3b8;
   --text-muted: #94a3b8;
   --text-faint: #64748b;
-  --text-sidebar: rgba(255,255,255,0.7);
-  --shadow-xs: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+  --text-sidebar: rgba(255, 255, 255, 0.7);
+  --text-sidebar-active: #ffffff;
+  
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.7);
 }
 
+/* Base Body & Layout */
 [data-theme="dark"] body {
   background: var(--color-background);
   color: var(--color-on-surface);
 }
 
+/* Sidebar & Navigation */
 [data-theme="dark"] .sidebar {
-  background: #020617;
+  background: #070b14;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
 }
 
+[data-theme="dark"] .navbar,
+[data-theme="dark"] .topbar,
+[data-theme="dark"] .top-navbar {
+  background: #0d1322;
+  border-bottom-color: var(--color-outline-variant);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Cards & Containers */
 [data-theme="dark"] .card,
 [data-theme="dark"] .kpi-card,
-[data-theme="dark"] .skeleton-card {
+[data-theme="dark"] .dash-kpi-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .skeleton-card,
+[data-theme="dark"] .product-card,
+[data-theme="dark"] .pos-product-card,
+[data-theme="dark"] .pos-cart-panel,
+[data-theme="dark"] .pos-sidebar,
+[data-theme="dark"] .category-silo-card,
+[data-theme="dark"] .filter-bar,
+[data-theme="dark"] .um-role-option,
+[data-theme="dark"] .um-request-card,
+[data-theme="dark"] .um-pill {
   background: var(--color-surface);
   border-color: var(--color-outline-variant);
   color: var(--color-on-surface);
+  box-shadow: var(--shadow-sm);
 }
 
+[data-theme="dark"] .product-card:hover,
+[data-theme="dark"] .pos-product-card:not(.disabled):hover {
+  border-color: #3b82f6;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.15);
+}
+
+/* Tables */
 [data-theme="dark"] table {
   color: var(--color-on-surface);
 }
 
 [data-theme="dark"] th {
-  background: var(--color-surface-container);
+  background: #0c1220;
   color: var(--color-on-surface-variant);
+  border-bottom-color: var(--color-outline-variant);
 }
 
 [data-theme="dark"] td {
-  border-color: var(--color-outline-variant);
+  border-bottom-color: var(--color-outline-variant);
+  color: #cbd5e1;
 }
 
 [data-theme="dark"] tr:hover td {
-  background: var(--color-surface-container);
+  background: rgba(30, 41, 59, 0.6);
 }
 
+/* Forms & Inputs */
 [data-theme="dark"] .form-control,
 [data-theme="dark"] .form-select,
 [data-theme="dark"] input,
 [data-theme="dark"] textarea,
 [data-theme="dark"] select {
-  background: var(--color-surface-container);
+  background: #0f172a;
   border-color: var(--color-outline);
   color: var(--color-on-surface);
 }
 
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+  background: #111c30;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .form-control::placeholder,
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #64748b;
+}
+
+/* Buttons */
+[data-theme="dark"] .btn-secondary {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #28374f;
+  border-color: #475569;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45);
+}
+
+/* Badges */
+[data-theme="dark"] .badge-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+[data-theme="dark"] .badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+[data-theme="dark"] .badge-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+[data-theme="dark"] .badge-info {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(165, 180, 252, 0.3);
+}
+
+[data-theme="dark"] .badge-secondary {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  border: 1px solid rgba(203, 213, 225, 0.2);
+}
+
+/* Modals & Dropdowns */
 [data-theme="dark"] .modal-content {
-  background: var(--color-surface-container);
+  background: var(--color-surface);
+  border-color: var(--color-outline-variant);
   color: var(--color-on-surface);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
 }
 
 [data-theme="dark"] .modal-header {
@@ -89,18 +236,10 @@
   border-top-color: var(--color-outline-variant);
 }
 
-[data-theme="dark"] .alert {
-  border-color: var(--color-outline);
-}
-
-[data-theme="dark"] .toast {
-  background: var(--color-surface-container);
-  color: var(--color-on-surface);
-}
-
 [data-theme="dark"] .dropdown-menu {
-  background: var(--color-surface-container);
+  background: var(--color-surface);
   border-color: var(--color-outline-variant);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .dropdown-item {
@@ -108,61 +247,29 @@
 }
 
 [data-theme="dark"] .dropdown-item:hover {
-  background: var(--color-outline-variant);
+  background: var(--color-surface-container-high);
+  color: #ffffff;
 }
 
-[data-theme="dark"] .navbar,
-[data-theme="dark"] .topbar,
-[data-theme="dark"] .top-navbar {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
+[data-theme="dark"] .toast {
+  background: #111827;
+  border-color: #334155;
+  color: var(--color-on-surface);
 }
 
+/* Skeletons */
 [data-theme="dark"] .skeleton {
-  background: linear-gradient(90deg, var(--color-surface-container) 25%, var(--color-outline-variant) 50%, var(--color-surface-container) 75%);
+  background: linear-gradient(90deg, #111827 25%, #1e293b 50%, #111827 75%);
   background-size: 200% 100%;
 }
 
-[data-theme="dark"] .filter-bar {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
-}
-
+/* User Management Hero */
 [data-theme="dark"] .um-hero {
-  background: linear-gradient(135deg, #020617 0%, #1e1b4b 55%, #312e81 100%);
+  background: linear-gradient(135deg, #020617 0%, #0f172a 55%, #1e1b4b 100%);
 }
 
-[data-theme="dark"] .um-pill {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
-}
-
-[data-theme="dark"] .um-role-option {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
-}
-
-[data-theme="dark"] .um-request-card {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
-}
-
-[data-theme="dark"] .pos-product-card {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
-}
-
-[data-theme="dark"] .pos-cart-row {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
-}
-
-[data-theme="dark"] .invoice-sheet {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
-}
-
-[data-theme="dark"] .category-silo-card {
-  background: var(--color-surface-container);
-  border-color: var(--color-outline-variant);
+/* Silo Gauges */
+[data-theme="dark"] .silo-gauge {
+  background: #1e293b;
+  border-color: #334155;
 }

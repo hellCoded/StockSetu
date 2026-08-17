@@ -23,8 +23,12 @@ def test_stock_out_success(staff_client, manager_client):
         'product_name': 'Copper Wire',
         'category': 'Electrical',
         'unit': 'meters',
-        'quantity': '100',
         'price': '2.50'
+    }, follow_redirects=True)
+    manager_client.post('/inventory/stock-in', data={
+        'product_name': 'Copper Wire',
+        'quantity': '95',
+        'reason': 'Batch restock'
     }, follow_redirects=True)
     
     response = staff_client.post('/inventory/stock-out', data={
@@ -85,7 +89,7 @@ def test_status_badge_transitions(manager_client, staff_client):
         'product_name': 'Status Widget',
         'category': 'Testing',
         'unit': 'pcs',
-        'quantity': '20',
+        'quantity': '5',
         'price': '5.00'
     }, follow_redirects=True)
     

@@ -1,149 +1,1021 @@
 {% extends "base.html" %}
 
-{% block title %}Bulk Stock In - StockSetu{% endblock %}
+{% block title %}Bulk Stock In & Bill Ingestion - StockSetu{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ============================================================
+   STOCKSETU BULK STOCK IN & INGESTION DESIGN SYSTEM
+   ============================================================ */
+
+.bsi-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.25rem 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Hero Header ── */
+.bsi-hero {
+  background: linear-gradient(135deg, #0b2545 0%, #134074 55%, #0077b6 100%);
+  border-radius: var(--r-xl, 14px);
+  padding: 1.25rem 1.5rem;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  box-shadow: 0 8px 24px rgba(11, 37, 69, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+.bsi-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.bsi-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  z-index: 2;
+}
+.bsi-hero-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+  flex-shrink: 0;
+}
+.bsi-hero-titles h1 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+.bsi-hero-titles p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.15rem 0 0;
+}
+.bsi-hero-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+.bsi-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.75);
+}
+.bsi-step-badge.active {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #0b2545;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.bsi-step-badge.done {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #a7f3d0;
+}
+
+/* ── Upload Screen Layout ── */
+.bsi-upload-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .bsi-upload-grid { grid-template-columns: 1fr; }
+}
+
+.bsi-card {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-radius: var(--r-lg, 12px);
+  padding: 1.25rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+/* ── Modern Dropzone ── */
+.bsi-dropzone {
+  border: 2px dashed var(--color-primary-light, #bae6fd);
+  background: var(--color-surface-container, #f8fafc);
+  border-radius: var(--r-lg, 12px);
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+}
+.bsi-dropzone:hover,
+.bsi-dropzone.drag-over {
+  border-color: var(--color-primary, #0284c7);
+  background: rgba(2, 132, 199, 0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.12);
+}
+.bsi-dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 5;
+}
+#bsi-idle-view, #bsi-idle-view * {
+  pointer-events: none;
+}
+.bsi-drop-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(14, 165, 233, 0.2));
+  color: var(--color-primary, #0284c7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  transition: transform 0.2s;
+}
+.bsi-dropzone:hover .bsi-drop-circle {
+  transform: scale(1.08);
+}
+.bsi-drop-text h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-on-surface, #0f172a);
+}
+.bsi-drop-text p {
+  font-size: 0.8rem;
+  color: var(--color-on-surface-variant, #64748b);
+  margin: 0.25rem 0 0;
+}
+.bsi-drop-text span.browse-link {
+  color: var(--color-primary, #0284c7);
+  font-weight: 700;
+  text-decoration: underline;
+}
+.bsi-format-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.bsi-format-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--r-xs, 4px);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-outline-variant, #cbd5e1);
+  color: var(--color-on-surface-variant, #475569);
+}
+.bsi-format-tag.pdf { color: #e11d48; border-color: #fecdd3; background: #fff1f2; }
+.bsi-format-tag.excel { color: #059669; border-color: #a7f3d0; background: #ecfdf5; }
+.bsi-format-tag.ai { color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; }
+
+/* Selected File Preview Box */
+.bsi-file-preview {
+  display: none;
+  width: 100%;
+  background: var(--color-surface, #ffffff);
+  border: 1.5px solid var(--color-primary, #0284c7);
+  border-radius: var(--r-md, 8px);
+  padding: 0.85rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
+  position: relative;
+  z-index: 6;
+}
+.bsi-file-preview.show { display: flex; }
+.bsi-file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.bsi-file-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(2, 132, 199, 0.1);
+  color: var(--color-primary, #0284c7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.bsi-file-meta {
+  min-width: 0;
+}
+.bsi-file-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-on-surface, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+.bsi-file-sub {
+  font-size: 0.72rem;
+  color: var(--color-on-surface-variant, #64748b);
+  margin: 0.1rem 0 0;
+}
+.bsi-file-remove {
+  background: transparent;
+  border: none;
+  color: var(--color-on-surface-variant, #94a3b8);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.bsi-file-remove:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.bsi-submit-wrap {
+  margin-top: 1rem;
+}
+.bsi-cta-btn {
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(135deg, var(--color-primary, #0b3d6e), #0284c7);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--r-md, 8px);
+  font-size: 0.92rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+  transition: all 0.2s ease;
+}
+.bsi-cta-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+}
+.bsi-cta-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Sidebar Feature Cards ── */
+.bsi-guide-heading {
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0 0 0.85rem;
+  color: var(--color-on-surface, #0f172a);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.bsi-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.bsi-feature-box {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--color-surface-container, #f8fafc);
+  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-radius: var(--r-md, 8px);
+}
+.bsi-feat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.bsi-feat-icon.blue { background: #e0f2fe; color: #0284c7; }
+.bsi-feat-icon.emerald { background: #d1fae5; color: #059669; }
+.bsi-feat-icon.purple { background: #ede9fe; color: #7c3aed; }
+.bsi-feat-text h5 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-on-surface, #0f172a);
+}
+.bsi-feat-text p {
+  font-size: 0.72rem;
+  color: var(--color-on-surface-variant, #64748b);
+  margin: 0.15rem 0 0;
+  line-height: 1.35;
+}
+
+/* ── STEP 2: RECONCILIATION COMMAND CENTER ── */
+
+/* KPI Metric HUD */
+.bsi-kpi-hud {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+@media (max-width: 768px) {
+  .bsi-kpi-hud { grid-template-columns: repeat(2, 1fr); }
+}
+.bsi-kpi-pill {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-radius: var(--r-md, 8px);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+  transition: transform 0.15s;
+}
+.bsi-kpi-pill:hover { transform: translateY(-1px); }
+.bsi-kpi-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.bsi-kpi-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-on-surface-variant, #64748b);
+}
+.bsi-kpi-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  line-height: 1;
+  color: var(--color-on-surface, #0f172a);
+}
+.bsi-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+.bsi-kpi-pill.all .bsi-kpi-icon { background: #e0f2fe; color: #0284c7; }
+.bsi-kpi-pill.matched .bsi-kpi-icon { background: #dcfce7; color: #16a34a; }
+.bsi-kpi-pill.new .bsi-kpi-icon { background: #e0e7ff; color: #4f46e5; }
+.bsi-kpi-pill.skipped .bsi-kpi-icon { background: #f1f5f9; color: #64748b; }
+
+/* Filter & Command Toolbar */
+.bsi-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-radius: var(--r-md, 8px);
+  padding: 0.6rem 0.85rem;
+}
+.bsi-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.bsi-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm, 6px);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-on-surface-variant, #64748b);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s;
+}
+.bsi-tab-btn:hover {
+  background: var(--color-surface-container, #f1f5f9);
+  color: var(--color-on-surface, #0f172a);
+}
+.bsi-tab-btn.active {
+  background: var(--color-primary-light, #e0f2fe);
+  border-color: var(--color-primary, #0284c7);
+  color: var(--color-primary, #0284c7);
+}
+.bsi-tab-btn .badge-count {
+  font-size: 0.68rem;
+  font-family: var(--font-mono, monospace);
+  padding: 0.05rem 0.35rem;
+  border-radius: 9999px;
+  background: rgba(0,0,0,0.06);
+}
+.bsi-tab-btn.active .badge-count {
+  background: var(--color-primary, #0284c7);
+  color: #ffffff;
+}
+
+.bsi-search-box {
+  position: relative;
+  min-width: 240px;
+  max-width: 320px;
+  flex: 1;
+}
+.bsi-search-box i {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: var(--color-on-surface-variant, #94a3b8);
+  pointer-events: none;
+}
+.bsi-search-input {
+  width: 100%;
+  height: 32px;
+  padding-left: 1.85rem !important;
+  font-size: 0.76rem !important;
+  border-radius: var(--r-sm, 6px);
+}
+
+.bsi-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.bsi-mini-btn {
+  background: var(--color-surface-container, #f8fafc);
+  border: 1px solid var(--color-outline-variant, #cbd5e1);
+  border-radius: var(--r-sm, 6px);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-on-surface-variant, #475569);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.15s;
+}
+.bsi-mini-btn:hover {
+  background: var(--color-surface, #ffffff);
+  border-color: var(--color-primary, #0284c7);
+  color: var(--color-primary, #0284c7);
+}
+
+/* ── Interactive Reconciliation Ledger Table / Cards ── */
+.bsi-ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.bsi-row {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-radius: var(--r-md, 8px);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.bsi-row:hover {
+  border-color: var(--color-primary, #0284c7);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.04);
+}
+.bsi-row.is-skipped {
+  opacity: 0.6;
+  background: var(--color-surface-container, #f8fafc);
+  border-style: dashed;
+}
+.bsi-row-main {
+  display: grid;
+  grid-template-columns: 36px 1.4fr 1.6fr auto;
+  gap: 0.85rem;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .bsi-row-main {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+.bsi-row-idx {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-surface-container, #f1f5f9);
+  color: var(--color-on-surface-variant, #64748b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: var(--font-mono, monospace);
+}
+
+/* Left Extracted Bill Item Box */
+.bsi-item-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.bsi-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+.bsi-item-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--color-on-surface, #0f172a);
+  margin: 0;
+}
+.bsi-status-pill {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.bsi-status-pill.match { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.bsi-status-pill.new { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+.bsi-status-pill.skip { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+.bsi-item-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  color: var(--color-on-surface-variant, #64748b);
+}
+.bsi-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--color-surface-container, #f8fafc);
+  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-radius: var(--r-xs, 4px);
+  padding: 0.1rem 0.35rem;
+  font-size: 0.68rem;
+}
+.bsi-meta-chip.qty {
+  font-weight: 800;
+  font-family: var(--font-mono, monospace);
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+/* Middle Target Catalog Mapping Box */
+.bsi-target-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  position: relative;
+  min-width: 0;
+}
+.bsi-ac-box {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.bsi-ac-input {
+  width: 100%;
+  height: 32px;
+  font-size: 0.78rem !important;
+  border-radius: var(--r-sm, 6px);
+  padding-left: 1.8rem !important;
+}
+.bsi-ac-icon {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  color: var(--color-on-surface-variant, #94a3b8);
+  pointer-events: none;
+}
+.bsi-ac-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-outline-variant, #cbd5e1);
+  border-radius: var(--r-md, 8px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  z-index: 50;
+  display: none;
+}
+.bsi-ac-menu.open { display: block; }
+.bsi-ac-opt {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+  color: var(--color-on-surface, #0f172a);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-outline-variant, #f1f5f9);
+}
+.bsi-ac-opt:hover, .bsi-ac-opt.selected {
+  background: var(--color-primary-light, #e0f2fe);
+  color: var(--color-primary, #0284c7);
+}
+.bsi-ac-opt-create {
+  color: var(--color-primary, #0284c7);
+  font-weight: 700;
+  background: #f0f9ff;
+}
+
+/* Right Row Toggle Action */
+.bsi-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.bsi-skip-toggle {
+  height: 32px;
+  padding: 0 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: var(--r-sm, 6px);
+  border: 1px solid var(--color-outline-variant, #cbd5e1);
+  background: var(--color-surface, #ffffff);
+  color: var(--color-on-surface-variant, #475569);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.15s;
+}
+.bsi-skip-toggle:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+.bsi-row.is-skipped .bsi-skip-toggle {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
+}
+
+/* Expandable New Product Configuration Drawer */
+.bsi-new-drawer {
+  background: var(--color-surface-container, #f8fafc);
+  border: 1px dashed var(--color-outline-variant, #cbd5e1);
+  border-radius: var(--r-sm, 6px);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.bsi-new-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #4338ca;
+}
+.bsi-new-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.45rem;
+}
+.bsi-field-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.bsi-field-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-on-surface-variant, #64748b);
+  text-transform: uppercase;
+}
+.bsi-field-input {
+  height: 28px !important;
+  font-size: 0.74rem !important;
+  padding: 0 0.45rem !important;
+  border-radius: var(--r-xs, 4px);
+}
+
+/* ── Sticky Bottom Floating Action Bar ── */
+.bsi-dock {
+  position: sticky;
+  bottom: 1rem;
+  background: rgba(11, 37, 69, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--r-lg, 12px);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 80;
+  color: #ffffff;
+}
+.bsi-dock-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 260px;
+}
+.bsi-dock-icon {
+  font-size: 1.25rem;
+  color: #38bdf8;
+}
+.bsi-dock-status {
+  display: flex;
+  flex-direction: column;
+}
+.bsi-dock-count {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+.bsi-dock-sub {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+.bsi-dock-reason {
+  min-width: 200px;
+  max-width: 280px;
+}
+.bsi-dock-reason input {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff !important;
+  height: 32px;
+  font-size: 0.74rem !important;
+  border-radius: var(--r-sm, 6px);
+}
+.bsi-dock-reason input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+.bsi-dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.bsi-dock-confirm {
+  height: 38px;
+  padding: 0 1.25rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--r-md, 8px);
+  font-size: 0.86rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+  transition: all 0.2s;
+}
+.bsi-dock-confirm:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+}
+.bsi-dock-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Processing Overlay Modal ── */
+.bsi-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 37, 69, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.bsi-overlay.show { display: flex; }
+.bsi-modal-box {
+  background: var(--color-surface, #ffffff);
+  border-radius: var(--r-xl, 14px);
+  padding: 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.bsi-spinner-ring {
+  width: 56px;
+  height: 56px;
+  border: 4px solid var(--color-primary-light, #e0f2fe);
+  border-top-color: var(--color-primary, #0284c7);
+  border-radius: 50%;
+  animation: bsi-spin 0.8s linear infinite;
+}
+@keyframes bsi-spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="bsi-container">
-  <!-- Interactive Spinner Overlay -->
-  <div id="bsi-spinner-overlay" class="bsi-spinner-overlay" aria-hidden="true" style="display:none;">
-    <div class="bsi-spinner-modal">
-      <div class="bsi-spinner-ring-wrap">
-        <div class="bsi-spinner-ring"></div>
-        <div class="bsi-spinner-core-icon">
-          <i class="fa-solid fa-file-invoice" id="bsi-spinner-icon"></i>
-        </div>
-      </div>
-      <h3 class="bsi-spinner-title" id="bsi-spinner-title">Processing Supplier Bill...</h3>
-      <p class="bsi-spinner-subtitle" id="bsi-spinner-sub">Extracting line items and matching inventory</p>
-      
-      <div class="bsi-spinner-progress-bar">
-        <div class="bsi-spinner-progress-fill" id="bsi-spinner-bar"></div>
+<div class="bsi-shell">
+
+  <!-- Processing Spinner Overlay -->
+  <div id="bsi-overlay" class="bsi-overlay" aria-hidden="true">
+    <div class="bsi-modal-box">
+      <div class="bsi-spinner-ring"></div>
+      <div>
+        <h3 id="bsi-overlay-title" style="margin:0; font-size:1.1rem; font-weight:800; color:var(--color-on-surface);">Parsing Supplier Bill...</h3>
+        <p id="bsi-overlay-sub" style="margin:0.25rem 0 0; font-size:0.78rem; color:var(--color-on-surface-variant);">Extracting tables, lines, HSN, and reconciling catalog</p>
       </div>
     </div>
   </div>
 
-  <!-- Stepper Bar -->
-  <div class="bsi-stepper-wrap">
-    <div class="bsi-steps">
-      <div class="bsi-step {% if step == 'upload' %}bsi-step-active{% elif step == 'map' %}bsi-step-done{% endif %}">
-        <div class="bsi-step-dot">
-          {% if step == 'map' %}
-            <i class="fa-solid fa-check"></i>
-          {% else %}
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-          {% endif %}
-        </div>
-        <div class="bsi-step-text">
-          <span class="bsi-step-num">Step 1</span>
-          <strong>Upload Bill</strong>
-          <small>PDF or Excel Invoice</small>
-        </div>
+  <!-- Hero Header -->
+  <div class="bsi-hero">
+    <div class="bsi-hero-left">
+      <div class="bsi-hero-icon">
+        <i class="fa-solid fa-receipt"></i>
       </div>
-      <div class="bsi-step-line {% if step == 'map' %}bsi-step-line-active{% endif %}"></div>
-      <div class="bsi-step {% if step == 'map' %}bsi-step-active{% endif %}">
-        <div class="bsi-step-dot">
-          <i class="fa-solid fa-list-check"></i>
-        </div>
-        <div class="bsi-step-text">
-          <span class="bsi-step-num">Step 2</span>
-          <strong>Review &amp; Stock In</strong>
-          <small>Match items &amp; reconcile</small>
-        </div>
+      <div class="bsi-hero-titles">
+        <h1>Bulk Stock In &amp; Bill Reconciliation</h1>
+        <p>Ingest supplier invoices (PDF, Excel, CSV) &middot; Auto fuzzy-match &middot; Instant catalog onboarding</p>
+      </div>
+    </div>
+    <div class="bsi-hero-steps">
+      <div class="bsi-step-badge {% if step == 'upload' %}active{% else %}done{% endif %}">
+        <i class="fa-solid {% if step == 'map' %}fa-check{% else %}fa-cloud-arrow-up{% endif %}"></i>
+        <span>1. Ingest Bill</span>
+      </div>
+      <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; color:rgba(255,255,255,0.4);"></i>
+      <div class="bsi-step-badge {% if step == 'map' %}active{% endif %}">
+        <i class="fa-solid fa-table-list"></i>
+        <span>2. Review &amp; Stock In</span>
       </div>
     </div>
   </div>
 
 {% if step == 'upload' %}
-  <!-- STEP 1: UPLOAD -->
-  <div class="bsi-upload-layout">
-    <!-- Left Column: Dropzone & Upload Action -->
-    <div class="bsi-upload-main">
-      <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="upload-form">
+  <!-- ==========================================
+       STEP 1: UPLOAD BILL SCREEN
+       ========================================== -->
+  <div class="bsi-upload-grid">
+    <!-- Left: Dropzone Upload Form -->
+    <div class="bsi-card">
+      <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="bsi-upload-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-        <div class="bsi-card file-picker" id="file-picker">
-          <input type="file" name="bill_file" id="file-input" accept=".pdf,.xlsx,.xls" aria-label="Upload supplier bill file">
+        <div class="bsi-dropzone" id="bsi-dropzone">
+          <input type="file" name="bill_file" id="bsi-file-input" accept=".pdf,.xlsx,.xls,.csv" aria-label="Upload supplier invoice">
           
-          <label for="file-input" class="file-picker-idle" id="picker-idle">
-            <div class="fp-glow-circle">
-              <i class="fa-solid fa-file-invoice-dollar fp-icon"></i>
+          <div id="bsi-idle-view" style="display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
+            <div class="bsi-drop-circle">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
             </div>
-            <div class="fp-text-group">
-              <h3 class="fp-title">Drop your supplier invoice or bill here</h3>
-              <p class="fp-subtitle">or <span class="fp-browse-link">browse from your computer</span></p>
+            <div class="bsi-drop-text">
+              <h3>Drop supplier invoice or purchase bill here</h3>
+              <p>or <span class="browse-link">browse files on your device</span></p>
             </div>
-            <div class="fp-badges">
-              <span class="fp-badge"><i class="fa-solid fa-file-pdf"></i> PDF</span>
-              <span class="fp-badge"><i class="fa-solid fa-file-excel"></i> Excel (XLSX, XLS)</span>
-              <span class="fp-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto Line-Item Extraction</span>
+            <div class="bsi-format-tags">
+              <span class="bsi-format-tag pdf"><i class="fa-solid fa-file-pdf"></i> PDF Invoice</span>
+              <span class="bsi-format-tag excel"><i class="fa-solid fa-file-excel"></i> Excel (XLSX, XLS)</span>
+              <span class="bsi-format-tag"><i class="fa-solid fa-file-csv"></i> CSV Sheet</span>
+              <span class="bsi-format-tag ai"><i class="fa-solid fa-wand-magic-sparkles"></i> AI OCR</span>
             </div>
-          </label>
+          </div>
 
-          <div class="file-picker-selected" id="picker-selected" style="display:none;">
-            <div class="fs-icon-wrap" id="file-icon-box">
-              <i class="fa-solid fa-file-lines"></i>
-            </div>
-            <div class="fs-meta-wrap">
-              <div class="fs-header-row">
-                <span class="fs-badge-ready"><i class="fa-solid fa-circle-check"></i> File Ready</span>
-                <span class="fs-type-tag" id="file-type">Spreadsheet</span>
+          <div class="bsi-file-preview" id="bsi-file-preview">
+            <div class="bsi-file-info">
+              <div class="bsi-file-icon" id="bsi-file-icon">
+                <i class="fa-solid fa-file-lines"></i>
               </div>
-              <h4 class="fs-filename" id="file-name">invoice_document.pdf</h4>
-              <p class="fs-size" id="file-size">1.2 MB</p>
+              <div class="bsi-file-meta">
+                <h4 class="bsi-file-name" id="bsi-file-name">invoice.pdf</h4>
+                <p class="bsi-file-sub" id="bsi-file-size">1.2 MB &middot; Ready for extraction</p>
+              </div>
             </div>
-            <button type="button" class="fs-remove-btn" id="remove-file" title="Change file" aria-label="Remove selected file">
+            <button type="button" class="bsi-file-remove" id="bsi-remove-btn" title="Choose another file">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         </div>
 
-        <div class="bsi-upload-actions">
-          <div class="bsi-ready-msg" id="ready-indicator" style="display:none;">
-            <i class="fa-solid fa-circle-info"></i>
-            <span>Ready! Click continue to extract line items, quantities, and map with inventory.</span>
-          </div>
-          <button type="submit" class="btn btn-primary bsi-submit-btn" id="submit-btn" disabled>
-            <span>Continue to Review</span>
-            <i class="fa-solid fa-arrow-right"></i>
+        <div class="bsi-submit-wrap">
+          <button type="submit" class="bsi-cta-btn" id="bsi-upload-submit" disabled>
+            <i class="fa-solid fa-bolt"></i>
+            <span>Parse &amp; Reconcile Invoice Items</span>
           </button>
         </div>
       </form>
     </div>
 
-    <!-- Right Column: Guide & Quick Help -->
-    <div class="bsi-upload-sidebar">
-      <div class="bsi-card bsi-guide-card">
-        <h4 class="guide-heading"><i class="fa-solid fa-bolt"></i> How Bulk Stock In Works</h4>
-        
-        <div class="guide-steps-list">
-          <div class="guide-step-item">
-            <div class="guide-step-num">1</div>
-            <div class="guide-step-content">
-              <strong>Upload Bill File</strong>
-              <p>Upload any standard PDF supplier bill, GST tax invoice, or Excel spreadsheet.</p>
-            </div>
-          </div>
-
-          <div class="guide-step-item">
-            <div class="guide-step-num">2</div>
-            <div class="guide-step-content">
-              <strong>Automated Parsing &amp; Fuzzy Matching</strong>
-              <p>Items, quantities, and rates are extracted and matched against existing inventory names.</p>
-            </div>
-          </div>
-
-          <div class="guide-step-item">
-            <div class="guide-step-num">3</div>
-            <div class="guide-step-content">
-              <strong>Review &amp; Stock In With 1-Click</strong>
-              <p>Easily confirm matches, auto-create any new products, and record inventory stock transactions.</p>
-            </div>
+    <!-- Right: Informational Capability Cards -->
+    <div class="bsi-card">
+      <h4 class="bsi-guide-heading"><i class="fa-solid fa-shield-halved" style="color:var(--color-primary);"></i> Smart Ingestion Protocol</h4>
+      
+      <div class="bsi-features-list">
+        <div class="bsi-feature-box">
+          <div class="bsi-feat-icon blue"><i class="fa-solid fa-table"></i></div>
+          <div class="bsi-feat-text">
+            <h5>Automated Table &amp; OCR Parsing</h5>
+            <p>Extracts line item descriptions, invoice quantities, HSN codes, and unit rates without manual data entry.</p>
           </div>
         </div>
 
-        <div class="guide-tip-box">
-          <i class="fa-solid fa-lightbulb"></i>
-          <span><strong>Tip:</strong> If an item is brand new, fill its category and unit right on the review screen.</span>
+        <div class="bsi-feature-box">
+          <div class="bsi-feat-icon emerald"><i class="fa-solid fa-link"></i></div>
+          <div class="bsi-feat-text">
+            <h5>Fuzzy Inventory Matching</h5>
+            <p>Matches invoice names against your current database with confidence scores to prevent duplicate stock records.</p>
+          </div>
+        </div>
+
+        <div class="bsi-feature-box">
+          <div class="bsi-feat-icon purple"><i class="fa-solid fa-plus-circle"></i></div>
+          <div class="bsi-feat-text">
+            <h5>1-Click New Product Creation</h5>
+            <p>Unmatched lines can be instantly registered with categories, tax rates, and units directly on the review screen.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -151,315 +1023,318 @@
 
   <script>
   (function() {
-    var fi = document.getElementById('file-input');
-    var idle = document.getElementById('picker-idle');
-    var sel = document.getElementById('picker-selected');
-    var fn = document.getElementById('file-name');
-    var fs = document.getElementById('file-size');
-    var iconBox = document.getElementById('file-icon-box');
-    var rb = document.getElementById('remove-file');
-    var sb = document.getElementById('submit-btn');
-    var picker = document.getElementById('file-picker');
-    var ri = document.getElementById('ready-indicator');
+    var fi = document.getElementById('bsi-file-input');
+    var dz = document.getElementById('bsi-dropzone');
+    var idle = document.getElementById('bsi-idle-view');
+    var preview = document.getElementById('bsi-file-preview');
+    var fname = document.getElementById('bsi-file-name');
+    var fsize = document.getElementById('bsi-file-size');
+    var ficon = document.getElementById('bsi-file-icon');
+    var removeBtn = document.getElementById('bsi-remove-btn');
+    var submitBtn = document.getElementById('bsi-upload-submit');
+    var form = document.getElementById('bsi-upload-form');
 
-    if (!fi) return;
-
-    function fmt(b) { return b < 1024 ? b+' B' : b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB'; }
-
-    function show(f) {
-      fn.textContent = f.name;
-      fs.textContent = fmt(f.size);
-      var ext = f.name.split('.').pop().toLowerCase();
-      var isPdf = (ext === 'pdf');
-      var isExcel = (ext === 'xlsx' || ext === 'xls');
-      document.getElementById('file-type').textContent = isPdf ? 'PDF Invoice' : isExcel ? 'Excel Sheet' : 'Bill Document';
-      iconBox.className = 'fs-icon-wrap' + (isPdf ? ' pdf' : ' excel');
-      iconBox.querySelector('i').className = isPdf ? 'fa-solid fa-file-pdf' : isExcel ? 'fa-solid fa-file-excel' : 'fa-solid fa-file-lines';
-      idle.style.display = 'none';
-      sel.style.display = 'flex';
-      picker.classList.add('selected');
-      sb.disabled = false;
-      if (ri) ri.style.display = 'flex';
+    function formatSize(bytes) {
+      if (!bytes) return '0 B';
+      var k = 1024, dm = 1;
+      var sizes = ['B', 'KB', 'MB', 'GB'];
+      var i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
-    function clear() {
+    function showFile(file) {
+      if (!file) return;
+      fname.textContent = file.name;
+      fsize.textContent = formatSize(file.size) + ' · Ready for extraction';
+      
+      var ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'pdf') {
+        ficon.innerHTML = '<i class="fa-solid fa-file-pdf" style="color:#e11d48;"></i>';
+      } else if (ext === 'xlsx' || ext === 'xls') {
+        ficon.innerHTML = '<i class="fa-solid fa-file-excel" style="color:#059669;"></i>';
+      } else {
+        ficon.innerHTML = '<i class="fa-solid fa-file-lines" style="color:#0284c7;"></i>';
+      }
+
+      idle.style.display = 'none';
+      preview.classList.add('show');
+      submitBtn.disabled = false;
+    }
+
+    function clearFile() {
       fi.value = '';
+      preview.classList.remove('show');
       idle.style.display = 'flex';
-      sel.style.display = 'none';
-      picker.classList.remove('selected');
-      sb.disabled = true;
-      if (ri) ri.style.display = 'none';
+      submitBtn.disabled = true;
+    }
+
+    function handleFiles(files) {
+      if (!files || !files.length) return;
+      var file = files[0];
+      try {
+        if (window.DataTransfer) {
+          var dt = new DataTransfer();
+          for (var i = 0; i < files.length; i++) {
+            dt.items.add(files[i]);
+          }
+          fi.files = dt.files;
+        } else {
+          fi.files = files;
+        }
+      } catch (err) {
+        try {
+          fi.files = files;
+        } catch (e) {}
+      }
+      showFile(file);
     }
 
     fi.addEventListener('change', function() {
-      if (fi.files.length > 0) show(fi.files[0]);
+      if (fi.files && fi.files.length) {
+        showFile(fi.files[0]);
+      }
     });
 
-    rb.addEventListener('click', function(e) {
-      e.preventDefault();
+    removeBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      clear();
+      e.preventDefault();
+      clearFile();
     });
 
-    ['dragenter', 'dragover'].forEach(function(evt) {
-      picker.addEventListener(evt, function(e) {
+    // Prevent default drag-drop across window
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(ev) {
+      window.addEventListener(ev, function(e) {
+        if (e.target !== dz && e.target !== fi) {
+          e.preventDefault();
+        }
+      }, false);
+    });
+
+    // Drag-drop directly on dropzone and file input
+    [dz, fi].forEach(function(el) {
+      ['dragenter', 'dragover'].forEach(function(ev) {
+        el.addEventListener(ev, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dz.classList.add('drag-over');
+        }, false);
+      });
+
+      ['dragleave', 'dragend'].forEach(function(ev) {
+        el.addEventListener(ev, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dz.classList.remove('drag-over');
+        }, false);
+      });
+
+      el.addEventListener('drop', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        picker.classList.add('drag-over');
-      });
+        dz.classList.remove('drag-over');
+        var dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length) {
+          handleFiles(dt.files);
+        }
+      }, false);
     });
-    ['dragleave', 'drop'].forEach(function(evt) {
-      picker.addEventListener(evt, function(e) {
+
+    form.addEventListener('submit', function(e) {
+      if (!fi.files || !fi.files.length) {
         e.preventDefault();
-        e.stopPropagation();
-        picker.classList.remove('drag-over');
-      });
-    });
-    picker.addEventListener('drop', function(e) {
-      if (e.dataTransfer && e.dataTransfer.files.length) {
-        fi.files = e.dataTransfer.files;
-        show(e.dataTransfer.files[0]);
+        return;
       }
-    });
-
-    document.getElementById('upload-form').addEventListener('submit', function(e) {
-      if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); return; }
-      
-      var overlay = document.getElementById('bsi-spinner-overlay');
-      var title = document.getElementById('bsi-spinner-title');
-      var sub = document.getElementById('bsi-spinner-sub');
-      var icon = document.getElementById('bsi-spinner-icon');
-
-      if (overlay) {
-        overlay.style.display = 'flex';
-        requestAnimationFrame(function() {
-          overlay.classList.add('show');
-        });
-
-        if (title) title.textContent = 'Extracting Line Items...';
-        if (sub) sub.textContent = 'Reading supplier invoice and analyzing tables...';
-        if (icon) icon.className = 'fa-solid fa-file-invoice';
-
-        var steps = [
-          { t: 'Extracting Line Items...', s: 'Reading supplier invoice and analyzing tables...', delay: 0 },
-          { t: 'Parsing Item Details...', s: 'Extracting product names, quantities, and GST rates...', delay: 1200 },
-          { t: 'Fuzzy Matching Inventory...', s: 'Comparing bill line items with existing catalog...', delay: 2400 },
-          { t: 'Rendering Review Workspace...', s: 'Almost ready! Building reconciliation view...', delay: 3600 }
-        ];
-
-        steps.forEach(function(step) {
-          setTimeout(function() {
-            if (title) title.textContent = step.t;
-            if (sub) sub.textContent = step.s;
-          }, step.delay);
-        });
-      }
-
-      sb.disabled = true;
-      sb.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Bill...';
+      var overlay = document.getElementById('bsi-overlay');
+      if (overlay) overlay.classList.add('show');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Ingesting Bill...';
     });
   })();
   </script>
 
 {% elif step == 'map' %}
-  <!-- STEP 2: REVIEW & MAP -->
-  <form method="POST" action="{{ url_for('inventory.bulk_stock_in_confirm') }}" id="map-form" class="bsi-map-form">
+  <!-- ==========================================
+       STEP 2: RECONCILE & STOCK IN SCREEN
+       ========================================== -->
+  <form method="POST" action="{{ url_for('inventory.bulk_stock_in_confirm') }}" id="bsi-map-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_value or csrf_token() }}">
 
-    <!-- Top Floating Toolbar / Summary Card -->
-    <div class="bsi-review-toolbar">
-      <div class="toolbar-left">
-        <div class="toolbar-title-wrap">
-          <h2 class="toolbar-title"><i class="fa-solid fa-table-list"></i> Parsed Bill Items</h2>
-          <span class="toolbar-count-badge" id="total-count-badge">{{ items|length }} found</span>
+    <!-- KPI Metric Summary HUD -->
+    <div class="bsi-kpi-hud">
+      <div class="bsi-kpi-pill all">
+        <div class="bsi-kpi-left">
+          <span class="bsi-kpi-title">Detected Lines</span>
+          <span class="bsi-kpi-val" id="hud-total">{{ items|length }}</span>
         </div>
-        
-        <!-- Filter Tabs -->
-        <div class="bsi-filter-tabs">
-          <button type="button" class="filter-tab active" data-filter="all">All (<span id="cnt-all">{{ items|length }}</span>)</button>
-          <button type="button" class="filter-tab" data-filter="matched"><i class="dot dot-match"></i> Matched (<span id="cnt-matched">0</span>)</button>
-          <button type="button" class="filter-tab" data-filter="new"><i class="dot dot-new"></i> New (<span id="cnt-new">0</span>)</button>
-          <button type="button" class="filter-tab" data-filter="skipped"><i class="dot dot-skipped"></i> Skipped (<span id="cnt-skipped">0</span>)</button>
-        </div>
+        <div class="bsi-kpi-icon"><i class="fa-solid fa-list-ol"></i></div>
       </div>
-
-      <div class="toolbar-right">
-        <!-- Live Search Bar -->
-        <div class="review-search-wrap">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="review-item-search" class="form-control review-search-input" placeholder="Filter items...">
+      <div class="bsi-kpi-pill matched">
+        <div class="bsi-kpi-left">
+          <span class="bsi-kpi-title">Auto-Matched</span>
+          <span class="bsi-kpi-val" id="hud-matched">0</span>
         </div>
-
-        <!-- Reference & Action -->
-        <div class="toolbar-action-group">
-          <div class="reason-input-wrap">
-            <input type="text" id="reason" name="reason" class="form-control reason-input" value="Bulk import from supplier bill" placeholder="Reference / PO #">
-          </div>
-          <button type="submit" class="btn btn-primary btn-confirm-stock" id="confirm-btn">
-            <i class="fa-solid fa-check"></i> Confirm &amp; Stock In
-          </button>
-          <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary btn-back-upload" title="Upload a different bill">
-            <i class="fa-solid fa-arrow-rotate-left"></i> Re-upload
-          </a>
+        <div class="bsi-kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+      </div>
+      <div class="bsi-kpi-pill new">
+        <div class="bsi-kpi-left">
+          <span class="bsi-kpi-title">New Catalog Items</span>
+          <span class="bsi-kpi-val" id="hud-new">0</span>
         </div>
+        <div class="bsi-kpi-icon"><i class="fa-solid fa-plus"></i></div>
+      </div>
+      <div class="bsi-kpi-pill skipped">
+        <div class="bsi-kpi-left">
+          <span class="bsi-kpi-title">Skipped Lines</span>
+          <span class="bsi-kpi-val" id="hud-skipped">0</span>
+        </div>
+        <div class="bsi-kpi-icon"><i class="fa-solid fa-ban"></i></div>
       </div>
     </div>
 
-    <!-- Items Grid (2 Columns on wide screen, 1 Column on tablet/mobile) -->
-    <div class="bsi-items-grid" id="items-container">
-      <!-- Skeleton for review cards -->
-      <div class="skeleton-container" id="bsi-review-skeleton" style="grid-column:1/-1">
-        <div class="skeleton-toolbar" style="margin-bottom:1rem">
-          <div class="skeleton skeleton-text" style="width:140px"></div>
-          <div class="skeleton skeleton-badge"></div>
-          <div class="skeleton skeleton-badge" style="width:80px"></div>
-          <div class="skeleton skeleton-badge" style="width:80px"></div>
-          <div style="flex:1"></div>
-          <div class="skeleton skeleton-text" style="width:160px;height:36px;border-radius:var(--r-md)"></div>
-        </div>
-        <div class="skeleton-grid" style="grid-template-columns: repeat(auto-fill, minmax(420px, 1fr))">
-          {% for _ in range(6) %}
-          <div class="skeleton-card">
-            <div class="skeleton-header">
-              <div class="skeleton skeleton-icon" style="width:32px;height:32px;border-radius:8px"></div>
-              <div style="flex:1">
-                <div class="skeleton skeleton-text" style="width:70%"></div>
-                <div class="skeleton skeleton-text-sm" style="width:45%"></div>
-              </div>
-              <div class="skeleton skeleton-badge"></div>
-            </div>
-            <div class="skeleton-body">
-              <div class="skeleton skeleton-text" style="width:90%"></div>
-              <div class="skeleton skeleton-text" style="width:60%"></div>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <div class="skeleton skeleton-text" style="width:80px;height:32px;border-radius:var(--r-sm)"></div>
-                <div class="skeleton skeleton-text" style="width:80px;height:32px;border-radius:var(--r-sm)"></div>
-              </div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
+    <!-- Filter & Search Toolbar -->
+    <div class="bsi-toolbar">
+      <div class="bsi-filter-group">
+        <button type="button" class="bsi-tab-btn active" data-filter="all">
+          All <span class="badge-count" id="tab-cnt-all">{{ items|length }}</span>
+        </button>
+        <button type="button" class="bsi-tab-btn" data-filter="matched">
+          <i class="fa-solid fa-link" style="font-size:0.65rem; color:#16a34a;"></i> Matched <span class="badge-count" id="tab-cnt-matched">0</span>
+        </button>
+        <button type="button" class="bsi-tab-btn" data-filter="new">
+          <i class="fa-solid fa-sparkles" style="font-size:0.65rem; color:#4f46e5;"></i> New <span class="badge-count" id="tab-cnt-new">0</span>
+        </button>
+        <button type="button" class="bsi-tab-btn" data-filter="skipped">
+          <i class="fa-solid fa-ban" style="font-size:0.65rem; color:#64748b;"></i> Skipped <span class="badge-count" id="tab-cnt-skipped">0</span>
+        </button>
       </div>
-      <!-- /skeleton -->
+
+      <div class="bsi-search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="bsi-live-search" class="form-control bsi-search-input" placeholder="Search line items, HSN, catalog match...">
+      </div>
+
+      <div class="bsi-bulk-actions">
+        <button type="button" class="bsi-mini-btn" id="btn-include-all" title="Include all items in stock in"><i class="fa-solid fa-check-double"></i> Stock All</button>
+        <button type="button" class="bsi-mini-btn" id="btn-skip-all" title="Exclude all items"><i class="fa-solid fa-ban"></i> Skip All</button>
+        <a href="{{ url_for('inventory.bulk_stock_in') }}" class="bsi-mini-btn" title="Upload different invoice"><i class="fa-solid fa-arrow-rotate-left"></i> Re-upload</a>
+      </div>
+    </div>
+
+    <!-- Reconciliation Items Ledger -->
+    <div class="bsi-ledger" id="bsi-ledger-container">
       {% for item in items %}
-      <div class="map-item-card" data-idx="{{ loop.index0 }}" data-new="{{ '1' if item.is_new else '0' }}" data-name="{{ item.item_name|lower }}">
+      <div class="bsi-row" data-idx="{{ loop.index0 }}" data-new="{{ '1' if item.is_new else '0' }}" data-name="{{ item.item_name|lower }}" data-hsn="{{ item.hsn_code|default('', true)|lower }}">
         <input type="hidden" name="item_name[]" value="{{ item.item_name }}">
         <input type="hidden" name="item_qty[]" value="{{ item.quantity }}">
         <input type="hidden" name="item_unit[]" value="{{ item.unit|default('', true) }}">
         <input type="hidden" name="item_hsn[]" value="{{ item.hsn_code|default('', true) }}">
 
-        <!-- Card Header -->
-        <div class="mic-header">
-          <div class="mic-index">{{ loop.index }}</div>
-          <div class="mic-title-box">
-            <h4 class="mic-name" title="{{ item.item_name }}">{{ item.item_name }}</h4>
-            <div class="mic-pills">
-              <span class="mic-pill qty-pill"><i class="fa-solid fa-boxes-stacked"></i> Qty: <strong>{{ item.quantity }}</strong></span>
-              {% if item.unit %}<span class="mic-pill"><i class="fa-solid fa-scale-balanced"></i> {{ item.unit }}</span>{% endif %}
-              {% if item.hsn_code %}<span class="mic-pill"><i class="fa-solid fa-barcode"></i> HSN: {{ item.hsn_code }}</span>{% endif %}
+        <div class="bsi-row-main">
+          <!-- Column 1: Index Number -->
+          <div class="bsi-row-idx">{{ loop.index }}</div>
+
+          <!-- Column 2: Extracted Invoice Item Info -->
+          <div class="bsi-item-meta">
+            <div class="bsi-item-title-row">
+              <h4 class="bsi-item-name" title="{{ item.item_name }}">{{ item.item_name }}</h4>
+              {% if item.is_new %}
+                <span class="bsi-status-pill new"><i class="fa-solid fa-sparkles"></i> New Item</span>
+              {% else %}
+                <span class="bsi-status-pill match"><i class="fa-solid fa-check"></i> {{ item.match_score|default(100) }}% Match</span>
+              {% endif %}
+            </div>
+            <div class="bsi-item-badges">
+              <span class="bsi-meta-chip qty"><i class="fa-solid fa-boxes-stacked"></i> Qty: {{ item.quantity }}</span>
+              {% if item.unit %}<span class="bsi-meta-chip"><i class="fa-solid fa-scale-balanced"></i> {{ item.unit }}</span>{% endif %}
+              {% if item.hsn_code %}<span class="bsi-meta-chip" style="font-family:var(--font-mono, monospace);"><i class="fa-solid fa-barcode"></i> HSN {{ item.hsn_code }}</span>{% endif %}
+              {% if item.price %}<span class="bsi-meta-chip" style="font-family:var(--font-mono, monospace);">&#8377;{{ '%.2f'|format(item.price) }}</span>{% endif %}
             </div>
           </div>
-          <div class="mic-status-badge">
+
+          <!-- Column 3: Target Catalog Mapping Selector -->
+          <div class="bsi-target-wrap">
             {% if item.is_new %}
-              <span class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</span>
+              <input type="hidden" name="mapping[]" value="__new__" class="mapping-val" id="map-val-{{ loop.index0 }}">
+              <div class="bsi-ac-box">
+                <i class="fa-solid fa-plus-circle bsi-ac-icon" style="color:#4f46e5;"></i>
+                <input type="text" class="form-control bsi-ac-input ac-input" data-idx="{{ loop.index0 }}" placeholder="Auto-creating new product in catalog (Type to remap)..." autocomplete="off">
+                <div class="bsi-ac-menu" data-idx="{{ loop.index0 }}"></div>
+              </div>
             {% else %}
-              <span class="badge badge-match" title="Matched to: {{ item.matched_name }}"><i class="fa-solid fa-check"></i> MATCHED</span>
+              <input type="hidden" name="mapping[]" value="{{ item.matched_name }}" class="mapping-val" id="map-val-{{ loop.index0 }}">
+              <div class="bsi-ac-box">
+                <i class="fa-solid fa-link bsi-ac-icon" style="color:#16a34a;"></i>
+                <input type="text" class="form-control bsi-ac-input ac-input" data-idx="{{ loop.index0 }}" value="{{ item.matched_name }}" placeholder="Search and select existing product..." autocomplete="off">
+                <div class="bsi-ac-menu" data-idx="{{ loop.index0 }}"></div>
+              </div>
             {% endif %}
+          </div>
+
+          <!-- Column 4: Row Action Toggle -->
+          <div class="bsi-row-actions">
+            <button type="button" class="bsi-skip-toggle" data-idx="{{ loop.index0 }}" title="Toggle inclusion in stock in">
+              <i class="fa-solid fa-ban"></i> <span>Skip</span>
+            </button>
           </div>
         </div>
 
-        <!-- Card Body -->
-        <div class="mic-body">
-          {% if item.is_new %}
-            <input type="hidden" name="mapping[]" value="__new__" class="mapping-val">
-            
-            <div class="new-product-section" style="display:block;">
-              <div class="npf-helper-text">
-                <i class="fa-solid fa-sparkles"></i>
-                <span>Item not in inventory — fill details to auto-create:</span>
-              </div>
-              <div class="npf-row">
-                <div class="npf-col">
-                  <label class="npf-label">Category <span class="req">*</span></label>
-                  <input type="text" name="new_category[]" class="form-control npf-input" placeholder="e.g., Fasteners" value="{{ item.category|default('', true) }}" required>
-                </div>
-                <div class="npf-col">
-                  <label class="npf-label">Unit <span class="req">*</span></label>
-                  <input type="text" name="new_unit[]" class="form-control npf-input" value="{{ item.unit|default('PCS', true) }}" placeholder="e.g., PCS" required>
-                </div>
-                <div class="npf-col">
-                  <label class="npf-label">Price (&#8377;)</label>
-                  <input type="number" name="new_price[]" class="form-control npf-input" step="0.01" min="0" placeholder="0.00" value="{{ item.price|default('', true) }}">
-                </div>
-                <div class="npf-col">
-                  <label class="npf-label">GST Rate (%)</label>
-                  <input type="number" name="new_gst[]" class="form-control npf-input" step="0.1" min="0" max="28" placeholder="18" value="{{ item.gst_rate|default('', true) }}">
-                </div>
-              </div>
-              <div class="npf-row" style="margin-top: 0.35rem;">
-                <div class="npf-col" style="flex: 1;">
-                  <label class="npf-label">Description (Optional)</label>
-                  <input type="text" name="new_desc[]" class="form-control npf-input" placeholder="Supplier notes or specs" value="{{ item.description|default('', true) }}">
-                </div>
-                <div class="npf-col" style="max-width: 120px;">
-                  <label class="npf-label">HSN Code</label>
-                  <input type="text" name="new_hsn[]" class="form-control npf-input" value="{{ item.hsn_code|default('', true) }}" placeholder="e.g., 7318">
-                </div>
-              </div>
+        <!-- Inline New Product Details Drawer (Shown when mapped as __new__) -->
+        <div class="bsi-new-drawer" id="new-drawer-{{ loop.index0 }}" style="display: {{ 'flex' if item.is_new else 'none' }};">
+          <div class="bsi-new-drawer-head">
+            <span><i class="fa-solid fa-sparkles"></i> Specify New Catalog Product Specs:</span>
+            <span style="font-size:0.65rem; color:var(--color-on-surface-variant);">Will be created automatically during stock in</span>
+          </div>
+          <div class="bsi-new-grid">
+            <div class="bsi-field-box">
+              <span class="bsi-field-label">Category *</span>
+              <input type="text" name="new_category[]" class="form-control bsi-field-input" value="{{ item.category|default('', true) }}" placeholder="e.g. Hardware" {% if item.is_new %}required{% endif %}>
             </div>
-
-            <!-- Toggle to remap if existing -->
-            <div class="remap-container">
-              <label class="remap-toggle-label">
-                <input type="checkbox" class="remap-check" data-idx="{{ loop.index0 }}">
-                <span>Exists under different name? Remap to existing product</span>
-              </label>
-              <div class="remap-search-wrap" style="display:none;" data-idx="{{ loop.index0 }}">
-                <div class="ac-wrap">
-                  <i class="fa-solid fa-magnifying-glass ac-icon"></i>
-                  <input type="text" class="ac-input form-control" placeholder="Search inventory products..." data-idx="{{ loop.index0 }}" autocomplete="off">
-                  <div class="ac-list" data-idx="{{ loop.index0 }}"></div>
-                </div>
-              </div>
+            <div class="bsi-field-box">
+              <span class="bsi-field-label">Unit *</span>
+              <input type="text" name="new_unit[]" class="form-control bsi-field-input" value="{{ item.unit|default('PCS', true) }}" placeholder="e.g. PCS" {% if item.is_new %}required{% endif %}>
             </div>
-
-          {% else %}
-            <!-- Auto Matched Row -->
-            <div class="matched-box">
-              <div class="matched-info">
-                <span class="matched-icon"><i class="fa-solid fa-link"></i></span>
-                <div class="matched-text-wrap">
-                  <span class="matched-sub">Stock Into Existing Product</span>
-                  <strong class="matched-name">{{ item.matched_name }}</strong>
-                </div>
-              </div>
-
-              <div class="matched-action-wrap">
-                <div class="ac-wrap">
-                  <i class="fa-solid fa-magnifying-glass ac-icon"></i>
-                  <input type="text" class="ac-input form-control" placeholder="Change product..." value="{{ item.matched_name }}" data-idx="{{ loop.index0 }}" autocomplete="off">
-                  <input type="hidden" name="mapping[]" value="{{ item.matched_name }}" class="mapping-val">
-                  <div class="ac-list" data-idx="{{ loop.index0 }}"></div>
-                </div>
-                <button type="button" class="btn-toggle-skip" title="Skip this item from stock in" data-idx="{{ loop.index0 }}">
-                  <i class="fa-solid fa-ban"></i> Skip
-                </button>
-              </div>
+            <div class="bsi-field-box">
+              <span class="bsi-field-label">Unit Price (&#8377;)</span>
+              <input type="number" name="new_price[]" class="form-control bsi-field-input" step="0.01" min="0" placeholder="0.00" value="{{ item.price|default('', true) }}" style="font-family:var(--font-mono, monospace);">
             </div>
-          {% endif %}
+            <div class="bsi-field-box">
+              <span class="bsi-field-label">GST Rate (%)</span>
+              <input type="number" name="new_gst[]" class="form-control bsi-field-input" step="0.1" min="0" max="28" placeholder="18" value="{{ item.gst_rate|default('', true) }}" style="font-family:var(--font-mono, monospace);">
+            </div>
+            <div class="bsi-field-box">
+              <span class="bsi-field-label">HSN Code</span>
+              <input type="text" name="new_hsn[]" class="form-control bsi-field-input" value="{{ item.hsn_code|default('', true) }}" placeholder="e.g. 7318" style="font-family:var(--font-mono, monospace);">
+            </div>
+            <div class="bsi-field-box" style="grid-column: span 2;">
+              <span class="bsi-field-label">Description (Optional)</span>
+              <input type="text" name="new_desc[]" class="form-control bsi-field-input" value="{{ item.description|default('', true) }}" placeholder="Specifications, brand, or notes">
+            </div>
+          </div>
         </div>
       </div>
       {% endfor %}
     </div>
 
-    <!-- Floating Bottom Action Bar -->
-    <div class="bsi-bottom-floating-bar">
-      <div class="bf-info">
-        <span id="floating-summary-text">Items ready to stock in</span>
+    <!-- Sticky Floating Action Dock -->
+    <div class="bsi-dock">
+      <div class="bsi-dock-left">
+        <div class="bsi-dock-icon">
+          <i class="fa-solid fa-boxes-packing"></i>
+        </div>
+        <div class="bsi-dock-status">
+          <span class="bsi-dock-count" id="dock-summary-text">{{ items|length }} items ready to stock in</span>
+          <span class="bsi-dock-sub">Real-time inventory ledger update with audit logging</span>
+        </div>
       </div>
-      <div class="bf-actions">
-        <button type="submit" class="btn btn-primary" id="floating-confirm-btn">
-          <i class="fa-solid fa-check"></i> Confirm &amp; Stock In
+
+      <div class="bsi-dock-reason">
+        <input type="text" id="reason" name="reason" class="form-control" value="Bulk import from supplier bill" placeholder="Reference Note / PO #">
+      </div>
+
+      <div class="bsi-dock-actions">
+        <button type="submit" class="bsi-dock-confirm" id="bsi-confirm-btn">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>Confirm &amp; Stock In</span>
         </button>
       </div>
     </div>
@@ -467,1277 +1342,246 @@
 
   <script>
   (function() {
-    var cards = Array.prototype.slice.call(document.querySelectorAll('.map-item-card'));
-
-    // Fade out review skeleton after minimum display time, then show cards
-    var revSkel = document.getElementById('bsi-review-skeleton');
-    if (revSkel) {
-      setTimeout(function() {
-        revSkel.classList.add('hiding');
-        // Show cards with staggered fade-in
-        cards.forEach(function(card, i) {
-          setTimeout(function() { card.classList.add('card-visible'); }, i * 40);
-        });
-        setTimeout(function() { revSkel.style.display = 'none'; }, 300);
-      }, 300);
-    } else {
-      // No skeleton — show cards immediately
-      cards.forEach(function(card) { card.classList.add('card-visible'); });
-    }
     var productNames = {{ product_names|tojson }};
-    var cntAll = document.getElementById('cnt-all');
-    var cntMatched = document.getElementById('cnt-matched');
-    var cntNew = document.getElementById('cnt-new');
-    var cntSkipped = document.getElementById('cnt-skipped');
-    var confirmBtn = document.getElementById('confirm-btn');
-    var floatConfirmBtn = document.getElementById('floating-confirm-btn');
-    var floatSummary = document.getElementById('floating-summary-text');
-    var searchInput = document.getElementById('review-item-search');
-    var filterTabs = document.querySelectorAll('.filter-tab');
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.bsi-row'));
+    var hudTotal = document.getElementById('hud-total');
+    var hudMatched = document.getElementById('hud-matched');
+    var hudNew = document.getElementById('hud-new');
+    var hudSkipped = document.getElementById('hud-skipped');
+    var tabCntAll = document.getElementById('tab-cnt-all');
+    var tabCntMatched = document.getElementById('tab-cnt-matched');
+    var tabCntNew = document.getElementById('tab-cnt-new');
+    var tabCntSkipped = document.getElementById('tab-cnt-skipped');
+    var dockSummary = document.getElementById('dock-summary-text');
+    var confirmBtn = document.getElementById('bsi-confirm-btn');
+    var liveSearch = document.getElementById('bsi-live-search');
+    var tabButtons = document.querySelectorAll('.bsi-tab-btn');
     var activeFilter = 'all';
 
-    function updateSummary() {
-      var mapped = 0, newItems = 0, skipped = 0;
-      cards.forEach(function(card) {
-        var mappingVal = card.querySelector('.mapping-val');
-        if (!mappingVal) return;
-        if (mappingVal.value === '__new__') { newItems++; return; }
-        if (mappingVal.value === '') { skipped++; return; }
-        mapped++;
+    function recalculate() {
+      var total = rows.length;
+      var matched = 0, newItems = 0, skipped = 0;
+
+      rows.forEach(function(r) {
+        var isSkip = r.classList.contains('is-skipped');
+        var mapVal = r.querySelector('.mapping-val').value;
+        if (isSkip || !mapVal) {
+          skipped++;
+        } else if (mapVal === '__new__') {
+          newItems++;
+        } else {
+          matched++;
+        }
       });
 
-      if (cntAll) cntAll.textContent = cards.length;
-      if (cntMatched) cntMatched.textContent = mapped;
-      if (cntNew) cntNew.textContent = newItems;
-      if (cntSkipped) cntSkipped.textContent = skipped;
+      if (hudTotal) hudTotal.textContent = total;
+      if (hudMatched) hudMatched.textContent = matched;
+      if (hudNew) hudNew.textContent = newItems;
+      if (hudSkipped) hudSkipped.textContent = skipped;
 
-      var totalActive = mapped + newItems;
-      var summaryMsg = totalActive + ' ready (' + mapped + ' matched, ' + newItems + ' new, ' + skipped + ' skipped)';
-      if (floatSummary) floatSummary.textContent = summaryMsg;
+      if (tabCntAll) tabCntAll.textContent = total;
+      if (tabCntMatched) tabCntMatched.textContent = matched;
+      if (tabCntNew) tabCntNew.textContent = newItems;
+      if (tabCntSkipped) tabCntSkipped.textContent = skipped;
 
-      var disabled = (totalActive === 0);
-      if (confirmBtn) confirmBtn.disabled = disabled;
-      if (floatConfirmBtn) floatConfirmBtn.disabled = disabled;
+      var activeCount = total - skipped;
+      if (dockSummary) {
+        dockSummary.textContent = activeCount + ' items ready to stock in (' + newItems + ' new, ' + matched + ' matched)';
+      }
+      if (confirmBtn) {
+        confirmBtn.disabled = activeCount === 0;
+      }
     }
 
-    function filterCards() {
-      var q = searchInput ? searchInput.value.toLowerCase().trim() : '';
-      cards.forEach(function(card) {
-        var isNew = card.getAttribute('data-new') === '1';
-        var mappingVal = card.querySelector('.mapping-val') ? card.querySelector('.mapping-val').value : '';
-        var isSkipped = (mappingVal === '');
-        var isMatched = (!isNew && !isSkipped);
-
+    function applyFilterAndSearch() {
+      var query = (liveSearch ? liveSearch.value : '').toLowerCase().trim();
+      
+      rows.forEach(function(r) {
+        var isSkip = r.classList.contains('is-skipped');
+        var isNew = r.dataset.new === '1';
+        var name = r.dataset.name || '';
+        var hsn = r.dataset.hsn || '';
+        var mapVal = (r.querySelector('.mapping-val').value || '').toLowerCase();
+        
         var matchesTab = false;
         if (activeFilter === 'all') matchesTab = true;
-        else if (activeFilter === 'matched') matchesTab = isMatched;
-        else if (activeFilter === 'new') matchesTab = isNew;
-        else if (activeFilter === 'skipped') matchesTab = isSkipped;
+        else if (activeFilter === 'matched') matchesTab = !isSkip && mapVal !== '__new__' && mapVal !== '';
+        else if (activeFilter === 'new') matchesTab = !isSkip && mapVal === '__new__';
+        else if (activeFilter === 'skipped') matchesTab = isSkip || mapVal === '';
 
         var matchesSearch = true;
-        if (q) {
-          var name = card.getAttribute('data-name') || '';
-          matchesSearch = name.indexOf(q) !== -1;
+        if (query) {
+          matchesSearch = name.indexOf(query) !== -1 || hsn.indexOf(query) !== -1 || mapVal.indexOf(query) !== -1;
         }
 
-        if (matchesTab && matchesSearch) {
-          card.style.display = '';
-        } else {
-          card.style.display = 'none';
-        }
+        r.style.display = (matchesTab && matchesSearch) ? 'flex' : 'none';
       });
     }
 
-    // Filter tab clicks
-    filterTabs.forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        filterTabs.forEach(function(t) { t.classList.remove('active'); });
-        tab.classList.add('active');
-        activeFilter = tab.getAttribute('data-filter');
-        filterCards();
+    // Filter tab buttons
+    tabButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        tabButtons.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        applyFilterAndSearch();
       });
     });
 
-    // Search input
-    if (searchInput) {
-      searchInput.addEventListener('input', function() {
-        filterCards();
+    // Live search input
+    if (liveSearch) {
+      liveSearch.addEventListener('input', applyFilterAndSearch);
+    }
+
+    // Skip Toggles
+    rows.forEach(function(r) {
+      var skipBtn = r.querySelector('.bsi-skip-toggle');
+      var mapValEl = r.querySelector('.mapping-val');
+      var originalVal = mapValEl.value;
+
+      skipBtn.addEventListener('click', function() {
+        var isCurrentlySkipped = r.classList.contains('is-skipped');
+        if (isCurrentlySkipped) {
+          r.classList.remove('is-skipped');
+          skipBtn.innerHTML = '<i class="fa-solid fa-ban"></i> <span>Skip</span>';
+          mapValEl.value = r.dataset.cachedMapping || (r.dataset.new === '1' ? '__new__' : originalVal);
+        } else {
+          r.classList.add('is-skipped');
+          skipBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Include</span>';
+          r.dataset.cachedMapping = mapValEl.value;
+          mapValEl.value = '';
+        }
+        recalculate();
+        applyFilterAndSearch();
+      });
+    });
+
+    // Bulk action buttons
+    var btnIncludeAll = document.getElementById('btn-include-all');
+    var btnSkipAll = document.getElementById('btn-skip-all');
+
+    if (btnIncludeAll) {
+      btnIncludeAll.addEventListener('click', function() {
+        rows.forEach(function(r) {
+          r.classList.remove('is-skipped');
+          var skipBtn = r.querySelector('.bsi-skip-toggle');
+          skipBtn.innerHTML = '<i class="fa-solid fa-ban"></i> <span>Skip</span>';
+          var mapValEl = r.querySelector('.mapping-val');
+          if (!mapValEl.value) {
+            mapValEl.value = r.dataset.cachedMapping || (r.dataset.new === '1' ? '__new__' : r.dataset.name);
+          }
+        });
+        recalculate();
+        applyFilterAndSearch();
       });
     }
 
-    function highlightMatch(text, query) {
-      if (!query) return text;
-      var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-      return text.replace(re, '<span class="ac-match">$1</span>');
+    if (btnSkipAll) {
+      btnSkipAll.addEventListener('click', function() {
+        rows.forEach(function(r) {
+          r.classList.add('is-skipped');
+          var skipBtn = r.querySelector('.bsi-skip-toggle');
+          skipBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Include</span>';
+          var mapValEl = r.querySelector('.mapping-val');
+          if (mapValEl.value) r.dataset.cachedMapping = mapValEl.value;
+          mapValEl.value = '';
+        });
+        recalculate();
+        applyFilterAndSearch();
+      });
     }
 
-    function filterProducts(query) {
-      var q = query.toLowerCase().trim();
-      if (!q) return productNames.slice(0, 20);
-      return productNames.filter(function(name) {
-        return name.toLowerCase().indexOf(q) !== -1;
-      }).slice(0, 20);
-    }
+    // Autocomplete combobox for matching target
+    document.querySelectorAll('.ac-input').forEach(function(input) {
+      var idx = input.dataset.idx;
+      var menu = document.querySelector('.bsi-ac-menu[data-idx="' + idx + '"]');
+      var mapValEl = document.getElementById('map-val-' + idx) || document.querySelector('.bsi-row[data-idx="' + idx + '"] .mapping-val');
+      var drawer = document.getElementById('new-drawer-' + idx);
+      var row = document.querySelector('.bsi-row[data-idx="' + idx + '"]');
 
-    function setupAutocomplete(input, hiddenVal, card) {
-      var list = input.parentElement.querySelector('.ac-list');
-      var activeIdx = -1;
+      function buildMenu(q) {
+        if (!menu) return;
+        menu.innerHTML = '';
+        var search = (q || '').toLowerCase();
+        
+        // Option 1: Create New Item
+        var optNew = document.createElement('div');
+        optNew.className = 'bsi-ac-opt bsi-ac-opt-create';
+        optNew.innerHTML = '<span><i class="fa-solid fa-sparkles"></i> + Create As New Product</span>';
+        optNew.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          mapValEl.value = '__new__';
+          input.value = '';
+          input.placeholder = 'Auto-creating new product in catalog...';
+          row.dataset.new = '1';
+          if (drawer) drawer.style.display = 'flex';
+          menu.classList.remove('open');
+          recalculate();
+        });
+        menu.appendChild(optNew);
 
-      function render(query) {
-        var matches = filterProducts(query);
-        if (matches.length === 0) {
-          list.innerHTML = '<div class="ac-empty">No matching products found</div>';
-        } else {
-          list.innerHTML = matches.map(function(name, i) {
-            return '<div class="ac-item" data-val="' + name.replace(/"/g, '&quot;') + '" data-i="' + i + '">' + highlightMatch(name, query) + '</div>';
-          }).join('');
-        }
-        list.classList.add('open');
-        activeIdx = -1;
+        var matches = productNames.filter(function(p) {
+          return !search || p.toLowerCase().indexOf(search) !== -1;
+        }).slice(0, 15);
+
+        matches.forEach(function(p) {
+          var opt = document.createElement('div');
+          opt.className = 'bsi-ac-opt';
+          opt.innerHTML = '<span>' + p + '</span><span style="font-size:0.65rem; color:#64748b;">Existing Catalog</span>';
+          opt.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            mapValEl.value = p;
+            input.value = p;
+            row.dataset.new = '0';
+            if (drawer) drawer.style.display = 'none';
+            menu.classList.remove('open');
+            recalculate();
+          });
+          menu.appendChild(opt);
+        });
+
+        menu.classList.add('open');
       }
 
-      function selectVal(val) {
-        input.value = val;
-        hiddenVal.value = val;
-        list.classList.remove('open');
-        var matchedNameEl = card.querySelector('.matched-name');
-        if (matchedNameEl) matchedNameEl.textContent = val;
-        updateSummary();
-        filterCards();
-      }
+      input.addEventListener('focus', function() {
+        buildMenu(input.value);
+      });
 
       input.addEventListener('input', function() {
-        hiddenVal.value = input.value;
-        render(input.value);
-        updateSummary();
+        buildMenu(input.value);
       });
 
-      input.addEventListener('focus', function() { render(input.value); });
-
-      input.addEventListener('keydown', function(e) {
-        var items = list.querySelectorAll('.ac-item');
-        if (!items.length) return;
-        if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, items.length - 1); setActive(items); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); setActive(items); }
-        else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0) selectVal(items[activeIdx].getAttribute('data-val')); }
-        else if (e.key === 'Escape') { list.classList.remove('open'); }
+      input.addEventListener('blur', function() {
+        setTimeout(function() {
+          if (menu) menu.classList.remove('open');
+        }, 200);
       });
-
-      function setActive(items) {
-        items.forEach(function(el, i) { el.classList.toggle('active', i === activeIdx); });
-        if (activeIdx >= 0 && items[activeIdx]) items[activeIdx].scrollIntoView({ block: 'nearest' });
-      }
-
-      list.addEventListener('mousedown', function(e) {
-        var item = e.target.closest('.ac-item');
-        if (item) selectVal(item.getAttribute('data-val'));
-      });
-
-      document.addEventListener('click', function(e) {
-        if (!input.parentElement.contains(e.target)) list.classList.remove('open');
-      });
-    }
-
-    cards.forEach(function(card) {
-      var mappingVal = card.querySelector('.mapping-val');
-      var acInput = card.querySelector('.ac-input');
-
-      if (acInput && mappingVal) {
-        setupAutocomplete(acInput, mappingVal, card);
-      }
-
-      var remapCheck = card.querySelector('.remap-check');
-      var remapSearchWrap = card.querySelector('.remap-search-wrap');
-      var newForm = card.querySelector('.new-product-section');
-      var badge = card.querySelector('.badge');
-
-      if (remapCheck && remapSearchWrap) {
-        remapCheck.addEventListener('change', function() {
-          var inputs = newForm ? newForm.querySelectorAll('input') : [];
-          if (remapCheck.checked) {
-            mappingVal.value = '';
-            remapSearchWrap.style.display = 'block';
-            if (newForm) newForm.style.display = 'none';
-            inputs.forEach(function(inp) { inp.setAttribute('disabled', 'disabled'); });
-            card.setAttribute('data-new', '0');
-            if (badge) {
-              badge.className = 'badge badge-match';
-              badge.innerHTML = '<i class="fa-solid fa-check"></i> REMAP';
-            }
-          } else {
-            mappingVal.value = '__new__';
-            remapSearchWrap.style.display = 'none';
-            if (newForm) newForm.style.display = 'block';
-            inputs.forEach(function(inp) { inp.removeAttribute('disabled'); });
-            card.setAttribute('data-new', '1');
-            if (badge) {
-              badge.className = 'badge badge-new';
-              badge.innerHTML = '<i class="fa-solid fa-sparkles"></i> NEW';
-            }
-          }
-          updateSummary();
-          filterCards();
-        });
-      }
-
-      var skipBtn = card.querySelector('.btn-toggle-skip');
-      if (skipBtn) {
-        skipBtn.addEventListener('click', function() {
-          var isSkipped = (mappingVal.value === '');
-          if (isSkipped) {
-            mappingVal.value = acInput ? acInput.value : card.getAttribute('data-name');
-            skipBtn.innerHTML = '<i class="fa-solid fa-ban"></i> Skip';
-            skipBtn.classList.remove('btn-skipped-state');
-            card.classList.remove('card-is-skipped');
-          } else {
-            mappingVal.value = '';
-            skipBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Include';
-            skipBtn.classList.add('btn-skipped-state');
-            card.classList.add('card-is-skipped');
-          }
-          updateSummary();
-          filterCards();
-        });
-      }
     });
 
-    updateSummary();
-
-    // Confirm & Stock In Submit Spinner
-    var mapForm = document.getElementById('map-form');
-    var confirmBtn = document.getElementById('confirm-btn');
-    if (mapForm && confirmBtn) {
-      mapForm.addEventListener('submit', function() {
-        var overlay = document.getElementById('bsi-spinner-overlay');
-        var title = document.getElementById('bsi-spinner-title');
-        var sub = document.getElementById('bsi-spinner-sub');
-        var icon = document.getElementById('bsi-spinner-icon');
-
+    // Form submit overlay
+    var form = document.getElementById('bsi-map-form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        var overlay = document.getElementById('bsi-overlay');
+        var oTitle = document.getElementById('bsi-overlay-title');
+        var oSub = document.getElementById('bsi-overlay-sub');
         if (overlay) {
-          overlay.style.display = 'flex';
-          requestAnimationFrame(function() {
-            overlay.classList.add('show');
-          });
-
-          if (title) title.textContent = 'Processing Bulk Stock In...';
-          if (sub) sub.textContent = 'Recording stock-in transactions and updating inventory...';
-          if (icon) icon.className = 'fa-solid fa-boxes-stacked';
+          if (oTitle) oTitle.textContent = 'Updating Inventory Records...';
+          if (oSub) oSub.textContent = 'Inserting stock batches, recording transactions, and registering products';
+          overlay.classList.add('show');
         }
-
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Stocking In...';
+        if (confirmBtn) {
+          confirmBtn.disabled = true;
+          confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Stocking In...';
+        }
       });
     }
+
+    // Initial calculation
+    recalculate();
   })();
   </script>
 {% endif %}
+
 </div>
-
-<!-- STYLESHEET FOR BULK STOCK IN -->
-<style>
-  /* Base Layout Container */
-  .bsi-container {
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  /* -------------------------------------------------------------
-     STEPPER COMPONENT (COMPACT & CLEAN)
-     ------------------------------------------------------------- */
-  .bsi-stepper-wrap {
-    width: 100%;
-  }
-  .bsi-steps {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.65rem 1.25rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--r-lg);
-    box-shadow: var(--shadow-xs);
-  }
-  .bsi-step {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-  }
-  .bsi-step-dot {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    color: var(--color-on-surface-variant);
-    background: var(--color-surface-container);
-    border: 1.5px solid var(--color-outline-variant);
-    transition: background 0.25s var(--ease), border-color 0.25s var(--ease), color 0.25s var(--ease), box-shadow 0.25s var(--ease);
-  }
-  .bsi-step-active .bsi-step-dot {
-    background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
-    border-color: transparent;
-    color: #ffffff;
-    box-shadow: 0 3px 10px rgba(11, 61, 110, 0.3);
-  }
-  .bsi-step-done .bsi-step-dot {
-    background: var(--color-success);
-    border-color: transparent;
-    color: #ffffff;
-  }
-  .bsi-step-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.15;
-  }
-  .bsi-step-num {
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--color-on-surface-variant);
-  }
-  .bsi-step-text strong {
-    font-size: 0.85rem;
-    color: var(--color-on-surface);
-  }
-  .bsi-step-text small {
-    font-size: 0.68rem;
-    color: var(--color-on-surface-variant);
-  }
-  .bsi-step-active .bsi-step-text strong {
-    color: var(--color-primary);
-  }
-  .bsi-step-line {
-    flex: 1;
-    height: 2px;
-    border-radius: 2px;
-    min-width: 20px;
-    background: linear-gradient(90deg, var(--color-outline-variant), var(--color-surface-container));
-  }
-  .bsi-step-line.bsi-step-line-active {
-    background: var(--color-success);
-  }
-
-  /* -------------------------------------------------------------
-     UPLOAD STEP (2-COLUMN FULL-WIDTH LAYOUT)
-     ------------------------------------------------------------- */
-  .bsi-upload-layout {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 1.25rem;
-    align-items: start;
-  }
-  .bsi-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--r-lg);
-    padding: 1.25rem;
-    box-shadow: var(--shadow-xs);
-  }
-  
-  /* Dropzone */
-  .file-picker {
-    position: relative;
-    border: 2px dashed var(--color-outline);
-    border-radius: var(--r-lg);
-    background: linear-gradient(180deg, var(--color-surface-container), var(--color-surface));
-    cursor: pointer;
-    min-height: 220px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: border-color 0.2s var(--ease), background 0.2s var(--ease), transform 0.2s var(--ease);
-  }
-  .file-picker:hover {
-    border-color: var(--color-primary);
-    background: var(--color-primary-light);
-    transform: translateY(-1px);
-  }
-  .file-picker.drag-over {
-    border-color: var(--color-accent);
-    background: var(--color-accent-light);
-    box-shadow: 0 0 0 3px var(--color-accent-light);
-  }
-  .file-picker input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 5;
-  }
-  .file-picker-idle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.85rem;
-    padding: 1.5rem 1.25rem;
-    text-align: center;
-    width: 100%;
-  }
-  .fp-glow-circle {
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-surface-container-high), var(--color-primary-fixed));
-    border: 1px solid var(--color-primary-fixed-dim);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .fp-icon {
-    font-size: 1.5rem;
-    color: var(--color-primary);
-  }
-  .fp-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--color-on-surface);
-    margin: 0;
-  }
-  .fp-subtitle {
-    font-size: 0.82rem;
-    color: var(--color-on-surface-variant);
-    margin: 0.2rem 0 0;
-  }
-  .fp-browse-link {
-    font-weight: 600;
-    color: var(--color-primary);
-    text-decoration: underline;
-  }
-  .fp-badges {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.25rem;
-  }
-  .fp-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--color-on-surface-variant);
-    background: var(--color-surface-container);
-    border: 1px solid var(--color-outline-variant);
-    padding: 0.25rem 0.65rem;
-    border-radius: 999px;
-  }
-  .fp-badge i { color: var(--color-primary); }
-
-  /* Selected File Box */
-  .file-picker-selected {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.25rem;
-    width: 100%;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
-    border: 1.5px solid var(--color-success);
-    border-radius: var(--r-lg);
-  }
-  .fs-icon-wrap {
-    width: 46px;
-    height: 46px;
-    border-radius: 10px;
-    flex-shrink: 0;
-    background: var(--color-success);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-  }
-  .fs-icon-wrap.pdf { background: var(--color-danger); }
-  .fs-meta-wrap { flex: 1; min-width: 0; }
-  .fs-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem; }
-  .fs-badge-ready {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--color-success-text);
-    background: var(--color-success-bg);
-    padding: 0.1rem 0.45rem;
-    border-radius: 999px;
-  }
-  .fs-type-tag { font-size: 0.7rem; color: var(--color-on-surface-variant); }
-  .fs-filename {
-    font-size: 0.92rem;
-    font-weight: 700;
-    color: var(--color-on-surface);
-    margin: 0;
-    word-break: break-all;
-  }
-  .fs-size { font-size: 0.75rem; color: var(--color-on-surface-variant); margin: 0.15rem 0 0; }
-  .fs-remove-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--color-outline-variant);
-    background: var(--color-surface);
-    color: var(--color-on-surface-variant);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-    flex-shrink: 0;
-    z-index: 10;
-  }
-  .fs-remove-btn:hover {
-    background: var(--color-danger-bg);
-    border-color: var(--color-danger);
-    color: var(--color-danger);
-  }
-
-  .bsi-upload-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-    margin-top: 1rem;
-  }
-  .bsi-ready-msg {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 0.85rem;
-    background: var(--color-surface-container);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--r-md);
-    font-size: 0.8rem;
-    color: var(--color-on-surface);
-  }
-  .bsi-ready-msg i { color: var(--color-primary); }
-  .bsi-submit-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    font-size: 0.92rem;
-    font-weight: 600;
-    border-radius: var(--r-md);
-  }
-  .bsi-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* Upload Sidebar Guide */
-  .bsi-guide-card {
-    background: var(--color-surface);
-  }
-  .guide-heading {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--color-on-surface);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-  .guide-heading i { color: var(--color-warning); }
-  .guide-steps-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-  .guide-step-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.65rem;
-  }
-  .guide-step-num {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    color: #ffffff;
-    font-size: 0.7rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-  }
-  .guide-step-content strong {
-    font-size: 0.82rem;
-    color: var(--color-on-surface);
-    display: block;
-    margin-bottom: 0.1rem;
-  }
-  .guide-step-content p {
-    font-size: 0.74rem;
-    color: var(--color-on-surface-variant);
-    margin: 0;
-    line-height: 1.35;
-  }
-  .guide-tip-box {
-    padding: 0.65rem 0.85rem;
-    background: var(--color-surface-container);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--r-sm);
-    font-size: 0.75rem;
-    color: var(--color-on-surface-variant);
-    display: flex;
-    gap: 0.5rem;
-    align-items: flex-start;
-    line-height: 1.35;
-  }
-  .guide-tip-box i { color: var(--color-warning); font-size: 0.85rem; margin-top: 0.1rem; }
-
-  /* -------------------------------------------------------------
-     REVIEW / MAP STEP (DASHBOARD-GRADE FULL-WIDTH VIEW)
-     ------------------------------------------------------------- */
-  .bsi-map-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    width: 100%;
-  }
-
-  /* Top Toolbar */
-  .bsi-review-toolbar {
-    background: var(--color-surface);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--r-lg);
-    padding: 0.75rem 1.25rem;
-    box-shadow: var(--shadow-xs);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-    position: sticky;
-    top: 72px;
-    z-index: 40;
-    backdrop-filter: blur(8px);
-  }
-  .toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  .toolbar-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .toolbar-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--color-on-surface);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-  .toolbar-title i { color: var(--color-primary); }
-  .toolbar-count-badge {
-    font-size: 0.72rem;
-    font-weight: 700;
-    background: var(--color-primary);
-    color: #ffffff;
-    padding: 0.15rem 0.55rem;
-    border-radius: 999px;
-  }
-
-  /* Filter Tabs */
-  .bsi-filter-tabs {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: var(--color-surface-container);
-    padding: 0.2rem;
-    border-radius: var(--r-md);
-    border: 1px solid var(--color-outline-variant);
-  }
-  .filter-tab {
-    border: none;
-    background: transparent;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--color-on-surface-variant);
-    padding: 0.35rem 0.7rem;
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    transition: all 0.15s;
-  }
-  .filter-tab:hover {
-    color: var(--color-on-surface);
-  }
-  .filter-tab.active {
-    background: var(--color-surface);
-    color: var(--color-primary);
-    box-shadow: var(--shadow-xs);
-  }
-  .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .dot-match { background: var(--color-success); }
-  .dot-new { background: var(--color-warning); }
-  .dot-skipped { background: var(--color-outline); }
-
-  /* Toolbar Right */
-  .toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    flex-wrap: wrap;
-  }
-  .review-search-wrap {
-    position: relative;
-    width: 190px;
-  }
-  .search-icon {
-    position: absolute;
-    left: 0.65rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-on-surface-variant);
-    font-size: 0.75rem;
-    pointer-events: none;
-  }
-  .review-search-input {
-    padding-left: 1.85rem !important;
-    font-size: 0.8rem !important;
-    height: 36px;
-    border-radius: var(--r-sm);
-  }
-  .toolbar-action-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .reason-input {
-    height: 36px;
-    font-size: 0.8rem !important;
-    border-radius: var(--r-sm);
-    width: 180px;
-  }
-  .btn-confirm-stock {
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 0 1rem;
-    border-radius: var(--r-sm);
-    white-space: nowrap;
-  }
-  .btn-back-upload {
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.78rem;
-    padding: 0 0.75rem;
-    border-radius: var(--r-sm);
-  }
-
-  /* -------------------------------------------------------------
-     ITEMS GRID (2 COLUMNS RESPONSIVE)
-     ------------------------------------------------------------- */
-  .bsi-items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
-    gap: 0.75rem;
-    width: 100%;
-    position: relative;
-  }
-  .bsi-items-grid .skeleton-container {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    background: var(--color-background, #f8f9fa);
-    border-radius: var(--r-md);
-    padding: 1rem;
-  }
-  .bsi-items-grid .map-item-card {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  .bsi-items-grid .map-item-card.card-visible {
-    opacity: 1;
-  }
-
-  /* Single Item Card */
-  .map-item-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow-xs);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: border-color 0.2s;
-  }
-  .map-item-card:hover {
-    border-color: var(--color-primary);
-  }
-  .map-item-card.card-is-skipped {
-    opacity: 0.55;
-    background: var(--color-surface-container);
-  }
-
-  /* Card Header */
-  .mic-header {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.6rem 0.9rem;
-    background: var(--color-surface-container);
-    border-bottom: 1px solid var(--color-outline-variant);
-  }
-  .mic-index {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    color: #ffffff;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .mic-title-box {
-    flex: 1;
-    min-width: 0;
-  }
-  .mic-name {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: var(--color-on-surface);
-    margin: 0 0 0.15rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .mic-pills {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    flex-wrap: wrap;
-  }
-  .mic-pill {
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: var(--color-on-surface-variant);
-    background: var(--color-surface);
-    border: 1px solid var(--color-outline-variant);
-    padding: 0.1rem 0.45rem;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-  .qty-pill {
-    color: var(--color-primary);
-    border-color: var(--color-primary-fixed-dim);
-    background: var(--color-primary-fixed);
-    font-weight: 600;
-  }
-  .qty-pill strong { color: var(--color-primary); }
-
-  .badge {
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    white-space: nowrap;
-  }
-  .badge-match {
-    background: var(--color-success-bg);
-    color: var(--color-success-text);
-    border: 1px solid var(--color-success);
-  }
-  .badge-new {
-    background: var(--color-warning-bg);
-    color: var(--color-warning-text);
-    border: 1px solid var(--color-warning);
-  }
-
-  /* Card Body */
-  .mic-body {
-    padding: 0.75rem 0.9rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  /* Matched Box */
-  .matched-box {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    background: var(--color-surface-container);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--r-sm);
-    padding: 0.6rem 0.8rem;
-  }
-  .matched-info {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-  }
-  .matched-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--color-success-bg);
-    color: var(--color-success-text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    flex-shrink: 0;
-  }
-  .matched-text-wrap {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-  .matched-sub {
-    font-size: 0.65rem;
-    color: var(--color-on-surface-variant);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-  .matched-name {
-    font-size: 0.85rem;
-    color: var(--color-on-surface);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .matched-action-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-  }
-
-  .btn-toggle-skip {
-    border: 1px solid var(--color-outline-variant);
-    background: var(--color-surface);
-    color: var(--color-on-surface-variant);
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 0.35rem 0.65rem;
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn-toggle-skip:hover {
-    border-color: var(--color-danger);
-    color: var(--color-danger);
-    background: var(--color-danger-bg);
-  }
-  .btn-skipped-state {
-    background: var(--color-primary-fixed) !important;
-    color: var(--color-primary) !important;
-    border-color: var(--color-primary) !important;
-  }
-
-  /* New Product Box */
-  .new-product-section {
-    background: var(--color-warning-bg);
-    border: 1px solid var(--color-warning);
-    border-radius: var(--r-sm);
-    padding: 0.7rem 0.85rem;
-  }
-  .npf-helper-text {
-    font-size: 0.74rem;
-    color: var(--color-warning-text);
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin-bottom: 0.5rem;
-  }
-  .npf-row {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .npf-col {
-    flex: 1;
-    min-width: 95px;
-  }
-  .npf-label {
-    display: block;
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: var(--color-warning-text);
-    margin-bottom: 0.15rem;
-  }
-  .npf-label .req { color: var(--color-danger); }
-  .npf-input {
-    font-size: 0.78rem !important;
-    padding: 0.3rem 0.55rem !important;
-    height: 32px !important;
-    border-radius: var(--r-xs) !important;
-    background: var(--color-surface) !important;
-  }
-
-  /* Remap Toggle */
-  .remap-container {
-    padding-top: 0.4rem;
-    border-top: 1px dashed var(--color-outline-variant);
-  }
-  .remap-toggle-label {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.74rem;
-    color: var(--color-on-surface-variant);
-    cursor: pointer;
-  }
-  .remap-toggle-label input { accent-color: var(--color-primary); }
-  .remap-search-wrap { margin-top: 0.4rem; }
-
-  /* Autocomplete Dropdown */
-  .ac-wrap {
-    position: relative;
-    flex: 1;
-  }
-  .ac-icon {
-    position: absolute;
-    left: 0.65rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-on-surface-variant);
-    font-size: 0.72rem;
-    pointer-events: none;
-  }
-  .ac-input {
-    padding-left: 1.85rem !important;
-    font-size: 0.8rem !important;
-    height: 34px;
-    border-radius: var(--r-sm);
-  }
-  .ac-list {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 100;
-    background: var(--color-surface);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--r-sm);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    margin-top: 3px;
-  }
-  .ac-list.open { display: block; }
-  .ac-item {
-    padding: 0.45rem 0.75rem;
-    cursor: pointer;
-    font-size: 0.78rem;
-    color: var(--color-on-surface);
-    border-bottom: 1px solid var(--color-outline-variant);
-    transition: background 0.15s;
-  }
-  .ac-item:last-child { border-bottom: none; }
-  .ac-item:hover, .ac-item.active {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
-  }
-  .ac-item .ac-match { font-weight: 700; color: var(--color-primary); }
-  .ac-empty {
-    padding: 0.65rem;
-    font-size: 0.75rem;
-    color: var(--color-on-surface-variant);
-    font-style: italic;
-  }
-
-  /* Sticky Bottom Summary for Mobile/Widescreen */
-  .bsi-bottom-floating-bar {
-    position: fixed;
-    bottom: 1.25rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--color-surface);
-    border: 1px solid var(--color-outline-variant);
-    border-radius: 999px;
-    padding: 0.5rem 1rem;
-    box-shadow: var(--shadow-lg);
-    display: none;
-    align-items: center;
-    gap: 1rem;
-    z-index: 50;
-    backdrop-filter: blur(10px);
-  }
-  .bf-info {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--color-on-surface);
-  }
-
-  /* -------------------------------------------------------------
-     RESPONSIVE MEDIA QUERIES
-     ------------------------------------------------------------- */
-  @media (max-width: 1080px) {
-    .bsi-upload-layout {
-      grid-template-columns: 1fr;
-    }
-    .bsi-items-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .bsi-review-toolbar {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0.75rem;
-      position: static;
-    }
-    .toolbar-left, .toolbar-right {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    .review-search-wrap, .reason-input {
-      width: 100%;
-    }
-    .toolbar-action-group {
-      flex-direction: column;
-    }
-    .toolbar-action-group .btn {
-      width: 100%;
-      justify-content: center;
-    }
-    .bsi-filter-tabs {
-      overflow-x: auto;
-      width: 100%;
-    }
-  }
-
-  /* -------------------------------------------------------------
-     PROGRESSIVE SPINNER OVERLAY COMPONENT
-     ------------------------------------------------------------- */
-  .bsi-spinner-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(11, 28, 48, 0.72);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-  }
-  .bsi-spinner-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .bsi-spinner-modal {
-    background: var(--color-surface, #ffffff);
-    border: 1px solid var(--color-outline-variant, #e2e8f0);
-    border-radius: var(--r-xl, 20px);
-    padding: 2.5rem 2.8rem;
-    text-align: center;
-    max-width: 440px;
-    width: 90%;
-    box-shadow: 0 25px 60px rgba(11, 61, 110, 0.35);
-    transform: scale(0.92);
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .bsi-spinner-overlay.show .bsi-spinner-modal {
-    transform: scale(1);
-  }
-  .bsi-spinner-ring-wrap {
-    position: relative;
-    width: 76px;
-    height: 76px;
-    margin: 0 auto 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .bsi-spinner-ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 3.5px solid rgba(11, 61, 110, 0.12);
-    border-top-color: var(--color-primary, #0b3d6e);
-    border-right-color: var(--color-accent, #e4132b);
-    animation: bsi-spin 0.85s linear infinite;
-  }
-  .bsi-spinner-core-icon {
-    font-size: 1.65rem;
-    color: var(--color-primary, #0b3d6e);
-    animation: bsi-pulse 1.8s ease-in-out infinite;
-  }
-  .bsi-spinner-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--color-on-surface, #0f172a);
-    margin-bottom: 0.35rem;
-    font-family: var(--font-display, inherit);
-  }
-  .bsi-spinner-subtitle {
-    font-size: 0.85rem;
-    color: var(--color-on-surface-variant, #64748b);
-    margin-bottom: 1.35rem;
-    line-height: 1.4;
-  }
-  .bsi-spinner-progress-bar {
-    width: 100%;
-    height: 6px;
-    background: var(--color-surface-container, #e2e8f0);
-    border-radius: 9999px;
-    overflow: hidden;
-    position: relative;
-  }
-  .bsi-spinner-progress-fill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 40%;
-    background: linear-gradient(90deg, var(--color-primary, #0b3d6e), var(--color-accent, #e4132b));
-    border-radius: 9999px;
-    animation: bsi-indeterminate 1.6s ease-in-out infinite;
-  }
-  @keyframes bsi-spin {
-    to { transform: rotate(360deg); }
-  }
-  @keyframes bsi-pulse {
-    0%, 100% { transform: scale(1); opacity: 0.85; }
-    50% { transform: scale(1.12); opacity: 1; }
-  }
-  @keyframes bsi-indeterminate {
-    0% { left: -40%; width: 40%; }
-    50% { left: 30%; width: 60%; }
-    100% { left: 100%; width: 40%; }
-  }
-</style>
 {% endblock %}

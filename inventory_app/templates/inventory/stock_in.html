@@ -3,61 +3,136 @@
 {% block title %}Stock In - StockSetu{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 1.5rem;">
-  <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm">
-    <i class="fa-solid fa-arrow-left"></i> Back to Products
-  </a>
-  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem;">Record Stock In (Inventory Addition)</h1>
-  <p style="color: var(--text-muted); font-size: 0.9rem;">Record newly received stock items into inventory</p>
-</div>
+<div class="inv-action-page">
+  <!-- Page Header -->
+  <div class="inv-action-header">
+    <div class="inv-header-text">
+      <div class="inv-badge-wrap">
+        <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm inv-back-btn">
+          <i class="fa-solid fa-arrow-left"></i> Products Catalog
+        </a>
+        <span class="badge badge-success" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">
+          <i class="fa-solid fa-arrow-trend-up"></i> Stock Addition
+        </span>
+      </div>
+      <h1 class="inv-page-title">Record Stock In</h1>
+      <p class="inv-page-sub">Receive new stock items into inventory and update warehouse quantities in real-time.</p>
+    </div>
+    <div class="inv-header-actions">
+      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-primary btn-sm" title="Upload Supplier Invoice">
+        <i class="fa-solid fa-file-invoice"></i> Bulk Stock In from Bill
+      </a>
+      <a href="{{ url_for('inventory.view_transactions', type='STOCK_IN') }}" class="btn btn-secondary btn-sm" title="View Transaction History">
+        <i class="fa-solid fa-clock-rotate-left"></i> Stock In History
+      </a>
+    </div>
+  </div>
 
-{# Embed product stock data for live preview #}
-<script type="application/json" id="stock-data-json">
-{
-  {% for p in products %}
-  {{ p.product_name | tojson }}: {
-    "quantity": {{ p.quantity | float }},
-    "unit": {{ p.unit | tojson }},
-    "minimum_stock": 5,
-    "isFloat": {{ "true" if (p.quantity | float) != (p.quantity | int) else "false" }}
-  }{% if not loop.last %},{% endif %}
-  {% endfor %}
-}
-</script>
+  {# Embed product stock data for live preview #}
+  <script type="application/json" id="stock-data-json">
+  {
+    {% for p in products %}
+    {{ p.product_name | tojson }}: {
+      "quantity": {{ p.quantity | float }},
+      "unit": {{ p.unit | tojson }},
+      "minimum_stock": 5,
+      "isFloat": {{ "true" if (p.quantity | float) != (p.quantity | int) else "false" }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  }
+  </script>
 
-<div class="card" style="max-width: 600px;">
-  <form method="POST" action="{{ url_for('inventory.stock_in') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <!-- Two-Column Layout -->
+  <div class="inv-action-grid">
+    <!-- Left: Form Card -->
+    <div class="card inv-form-card">
+      <div class="inv-card-header">
+        <div class="inv-icon-circle in-theme">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div>
+          <h3 class="inv-card-title">Stock Receipt Entry</h3>
+          <p class="inv-card-sub">Select item and enter quantity received</p>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label for="product_name" class="form-label"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 0.3rem;"></i> Select Product <span style="color: #dc2626;">*</span></label>
-      <select id="product_name" name="product_name" class="form-select" required>
-        <option value="">-- Choose Product --</option>
-        {% for p in products %}
-          <option value="{{ p.product_name }}" {% if selected_product and selected_product.product_name == p.product_name %}selected{% endif %}>
-            {{ p.product_name }} (Current: {{ p.quantity }} {{ p.unit }})
-          </option>
-        {% endfor %}
-      </select>
+      <form method="POST" action="{{ url_for('inventory.stock_in') }}" class="inv-form-body">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label for="product_name" class="form-label">
+            <i class="fa-solid fa-box" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
+          </label>
+          <select id="product_name" name="product_name" class="form-select inv-select" required>
+            <option value="">-- Choose Product to Receive --</option>
+            {% for p in products %}
+              <option value="{{ p.product_name }}" {% if selected_product and selected_product.product_name == p.product_name %}selected{% endif %}>
+                {{ p.product_name }} (Current: {{ p.quantity }} {{ p.unit }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="quantity" class="form-label">
+            <i class="fa-solid fa-plus-circle" style="color: var(--color-success, #10b981); margin-right: 0.35rem;"></i> Quantity Received <span class="req">*</span>
+          </label>
+          <div class="input-with-icon">
+            <input type="number" step="any" min="0.01" id="quantity" name="quantity" class="form-control inv-num-input" placeholder="e.g., 50" required style="font-family: 'JetBrains Mono', monospace;">
+          </div>
+        </div>
+
+        {# Live stock preview widget #}
+        <div id="stock-preview" class="stock-preview-box"></div>
+
+        <div class="form-group">
+          <label for="reason" class="form-label">
+            <i class="fa-solid fa-receipt" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Supplier Reference / PO Number
+          </label>
+          <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., PO #45091 received from ABC Suppliers">
+        </div>
+
+        <div class="inv-form-footer">
+          <button type="submit" class="btn btn-primary inv-submit-btn">
+            <i class="fa-solid fa-plus"></i> Submit Stock In
+          </button>
+          <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </a>
+        </div>
+      </form>
     </div>
 
-    <div class="form-group">
-      <label for="quantity" class="form-label"><i class="fa-solid fa-cubes" style="color: var(--primary); margin-right: 0.3rem;"></i> Quantity Received <span style="color: #dc2626;">*</span></label>
-      <input type="number" step="any" min="0.01" id="quantity" name="quantity" class="form-control" placeholder="e.g., 50" required>
+    <!-- Right: Helpful Guidelines & Direct Links -->
+    <div class="inv-sidebar-col">
+      <div class="card inv-guide-card">
+        <h4 class="inv-guide-title"><i class="fa-solid fa-shield-halved" style="color: var(--color-success, #10b981);"></i> Stock In Protocol</h4>
+        
+        <ul class="inv-guide-list">
+          <li>
+            <i class="fa-solid fa-check-double text-success"></i>
+            <div>
+              <strong>Instant Ledger Update</strong>
+              <p>Inventory level increments immediately and creates an immutable audit transaction record.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-receipt text-primary"></i>
+            <div>
+              <strong>Supplier Invoices</strong>
+              <p>Have an entire PDF or Excel invoice? Use <a href="{{ url_for('inventory.bulk_stock_in') }}">Bulk Stock In</a> to auto-parse all line items at once.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-bell text-warning"></i>
+            <div>
+              <strong>Low Stock Resolving</strong>
+              <p>If the item is flagged as low stock, receiving items will automatically clear the alert.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
-
-    {# Live stock preview widget #}
-    <div id="stock-preview"></div>
-
-    <div class="form-group">
-      <label for="reason" class="form-label"><i class="fa-solid fa-clipboard-list" style="color: var(--primary); margin-right: 0.3rem;"></i> Reason / Reference Notes</label>
-      <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., PO #45091 received">
-    </div>
-
-    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Submit Stock In</button>
-      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
-    </div>
-  </form>
+  </div>
 </div>
 {% endblock %}

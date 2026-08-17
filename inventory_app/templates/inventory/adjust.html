@@ -3,61 +3,133 @@
 {% block title %}Stock Adjustment - StockSetu{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 1.5rem;">
-  <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm">
-    <i class="fa-solid fa-arrow-left"></i> Back to Products
-  </a>
-  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem;">Manual Stock Count Adjustment</h1>
-  <p style="color: var(--text-muted); font-size: 0.9rem;">Sync system stock count with actual physical inventory. Requires a mandatory audit reason.</p>
-</div>
+<div class="inv-action-page">
+  <!-- Page Header -->
+  <div class="inv-action-header">
+    <div class="inv-header-text">
+      <div class="inv-badge-wrap">
+        <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm inv-back-btn">
+          <i class="fa-solid fa-arrow-left"></i> Products Catalog
+        </a>
+        <span class="badge badge-warning" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">
+          <i class="fa-solid fa-sliders"></i> Audit Adjustment
+        </span>
+      </div>
+      <h1 class="inv-page-title">Manual Stock Count Adjustment</h1>
+      <p class="inv-page-sub">Sync system ledger with actual physical counts. A detailed audit note is mandatory.</p>
+    </div>
+    <div class="inv-header-actions">
+      <a href="{{ url_for('inventory.view_transactions', type='ADJUSTMENT') }}" class="btn btn-secondary btn-sm" title="View Audit Logs">
+        <i class="fa-solid fa-clock-rotate-left"></i> Adjustment History
+      </a>
+    </div>
+  </div>
 
-{# Embed product stock data for live preview #}
-<script type="application/json" id="stock-data-json">
-{
-  {% for p in products %}
-  {{ p.product_name | tojson }}: {
-    "quantity": {{ p.quantity | float }},
-    "unit": {{ p.unit | tojson }},
-    "minimum_stock": 5,
-    "isFloat": {{ "true" if (p.quantity | float) != (p.quantity | int) else "false" }}
-  }{% if not loop.last %},{% endif %}
-  {% endfor %}
-}
-</script>
+  {# Embed product stock data for live preview #}
+  <script type="application/json" id="stock-data-json">
+  {
+    {% for p in products %}
+    {{ p.product_name | tojson }}: {
+      "quantity": {{ p.quantity | float }},
+      "unit": {{ p.unit | tojson }},
+      "minimum_stock": 5,
+      "isFloat": {{ "true" if (p.quantity | float) != (p.quantity | int) else "false" }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  }
+  </script>
 
-<div class="card" style="max-width: 600px;">
-  <form method="POST" action="{{ url_for('inventory.adjust_stock') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <!-- Two-Column Layout -->
+  <div class="inv-action-grid">
+    <!-- Left: Form Card -->
+    <div class="card inv-form-card">
+      <div class="inv-card-header">
+        <div class="inv-icon-circle adj-theme">
+          <i class="fa-solid fa-calculator"></i>
+        </div>
+        <div>
+          <h3 class="inv-card-title">Physical Audit Entry</h3>
+          <p class="inv-card-sub">Enter the newly verified physical inventory count</p>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label for="product_name" class="form-label"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 0.3rem;"></i> Select Product <span style="color: #dc2626;">*</span></label>
-      <select id="product_name" name="product_name" class="form-select" required>
-        <option value="">-- Choose Product --</option>
-        {% for p in products %}
-          <option value="{{ p.product_name }}" {% if selected_product and selected_product.product_name == p.product_name %}selected{% endif %}>
-            {{ p.product_name }} (Current: {{ p.quantity }} {{ p.unit }})
-          </option>
-        {% endfor %}
-      </select>
+      <form method="POST" action="{{ url_for('inventory.adjust_stock') }}" class="inv-form-body">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label for="product_name" class="form-label">
+            <i class="fa-solid fa-box" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
+          </label>
+          <select id="product_name" name="product_name" class="form-select inv-select" required>
+            <option value="">-- Choose Product to Adjust --</option>
+            {% for p in products %}
+              <option value="{{ p.product_name }}" {% if selected_product and selected_product.product_name == p.product_name %}selected{% endif %}>
+                {{ p.product_name }} (Current: {{ p.quantity }} {{ p.unit }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="target_quantity" class="form-label">
+            <i class="fa-solid fa-scale-balanced" style="color: var(--color-warning, #f59e0b); margin-right: 0.35rem;"></i> Actual Physical Stock Count <span class="req">*</span>
+          </label>
+          <div class="input-with-icon">
+            <input type="number" step="any" min="0" id="target_quantity" name="target_quantity" class="form-control inv-num-input" placeholder="Enter corrected count" required style="font-family: 'JetBrains Mono', monospace;">
+          </div>
+        </div>
+
+        {# Live stock preview widget #}
+        <div id="stock-preview" class="stock-preview-box"></div>
+
+        <div class="form-group">
+          <label for="reason" class="form-label">
+            <i class="fa-solid fa-clipboard-check" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Mandatory Audit Reason <span class="req">*</span>
+          </label>
+          <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="e.g., Annual physical audit discrepancy, damaged stock written off, sample count sync..." required></textarea>
+        </div>
+
+        <div class="inv-form-footer">
+          <button type="submit" class="btn btn-primary inv-submit-btn" data-confirm="Submit inventory adjustment?">
+            <i class="fa-solid fa-sliders"></i> Apply Adjustment
+          </button>
+          <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </a>
+        </div>
+      </form>
     </div>
 
-    <div class="form-group">
-      <label for="target_quantity" class="form-label"><i class="fa-solid fa-calculator" style="color: var(--primary); margin-right: 0.3rem;"></i> Actual Physical Stock Count <span style="color: #dc2626;">*</span></label>
-      <input type="number" step="any" min="0" id="target_quantity" name="target_quantity" class="form-control" placeholder="Enter corrected count" required>
+    <!-- Right: Audit Protocol Guidelines -->
+    <div class="inv-sidebar-col">
+      <div class="card inv-guide-card">
+        <h4 class="inv-guide-title"><i class="fa-solid fa-file-signature" style="color: var(--color-warning, #f59e0b);"></i> Audit Protocol</h4>
+        
+        <ul class="inv-guide-list">
+          <li>
+            <i class="fa-solid fa-clipboard-check text-warning"></i>
+            <div>
+              <strong>Audit Trail Recording</strong>
+              <p>Every count adjustment logs the previous quantity, target quantity, net delta, user ID, timestamp, and audit justification.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-scale-balanced text-primary"></i>
+            <div>
+              <strong>Variance Tracking</strong>
+              <p>The delta (+/-) is automatically computed so discrepancies can be monitored during quarterly accounting reviews.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+            <div>
+              <strong>Damaged / Expired Goods</strong>
+              <p>Use adjustments to record expired or damaged units with explicit notes for warehouse shrinkage tracking.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
-
-    {# Live stock preview widget #}
-    <div id="stock-preview"></div>
-
-    <div class="form-group">
-      <label for="reason" class="form-label"><i class="fa-solid fa-clipboard-check" style="color: var(--primary); margin-right: 0.3rem;"></i> Mandatory Audit Reason <span style="color: #dc2626;">*</span></label>
-      <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="e.g., Annual physical audit discrepancy, damaged stock written off, sample count sync..." required></textarea>
-    </div>
-
-    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary" data-confirm="Submit inventory adjustment?"><i class="fa-solid fa-sliders"></i> Apply Adjustment</button>
-      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
-    </div>
-  </form>
+  </div>
 </div>
 {% endblock %}

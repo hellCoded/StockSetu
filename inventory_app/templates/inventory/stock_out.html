@@ -3,62 +3,137 @@
 {% block title %}Stock Out - StockSetu{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 1.5rem;">
-  <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm">
-    <i class="fa-solid fa-arrow-left"></i> Back to Products
-  </a>
-  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem;">Record Stock Out (Inventory Removal)</h1>
-  <p style="color: var(--text-muted); font-size: 0.9rem;">Record items removed from warehouse stock. Negative inventory is strictly prevented.</p>
-</div>
+<div class="inv-action-page">
+  <!-- Page Header -->
+  <div class="inv-action-header">
+    <div class="inv-header-text">
+      <div class="inv-badge-wrap">
+        <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm inv-back-btn">
+          <i class="fa-solid fa-arrow-left"></i> Products Catalog
+        </a>
+        <span class="badge badge-danger" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">
+          <i class="fa-solid fa-arrow-trend-down"></i> Stock Deduction
+        </span>
+      </div>
+      <h1 class="inv-page-title">Record Stock Out</h1>
+      <p class="inv-page-sub">Deduct items from warehouse inventory. Negative stock balances are strictly prevented.</p>
+    </div>
+    <div class="inv-header-actions">
+      <a href="{{ url_for('billing.pos') }}" class="btn btn-primary btn-sm" title="Go to POS Billing">
+        <i class="fa-solid fa-cash-register"></i> POS Counter
+      </a>
+      <a href="{{ url_for('inventory.view_transactions', type='STOCK_OUT') }}" class="btn btn-secondary btn-sm" title="View Stock Out Log">
+        <i class="fa-solid fa-clock-rotate-left"></i> Stock Out History
+      </a>
+    </div>
+  </div>
 
-{# Embed product stock data for live preview #}
-<script type="application/json" id="stock-data-json">
-{
-  {% for p in products %}
-  {{ p.product_name | tojson }}: {
-    "quantity": {{ p.quantity | float }},
-    "unit": {{ p.unit | tojson }},
-    "minimum_stock": 5,
-    "isFloat": {{ "true" if (p.quantity | float) != (p.quantity | int) else "false" }}
-  }{% if not loop.last %},{% endif %}
-  {% endfor %}
-}
-</script>
-<script>document.body.dataset.stockMode = 'out';</script>
+  {# Embed product stock data for live preview #}
+  <script type="application/json" id="stock-data-json">
+  {
+    {% for p in products %}
+    {{ p.product_name | tojson }}: {
+      "quantity": {{ p.quantity | float }},
+      "unit": {{ p.unit | tojson }},
+      "minimum_stock": 5,
+      "isFloat": {{ "true" if (p.quantity | float) != (p.quantity | int) else "false" }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  }
+  </script>
+  <script>document.body.dataset.stockMode = 'out';</script>
 
-<div class="card" style="max-width: 600px;">
-  <form method="POST" action="{{ url_for('inventory.stock_out') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <!-- Two-Column Layout -->
+  <div class="inv-action-grid">
+    <!-- Left: Form Card -->
+    <div class="card inv-form-card">
+      <div class="inv-card-header">
+        <div class="inv-icon-circle out-theme">
+          <i class="fa-solid fa-box-open"></i>
+        </div>
+        <div>
+          <h3 class="inv-card-title">Stock Removal Entry</h3>
+          <p class="inv-card-sub">Select item and specify quantity to deduct</p>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label for="product_name" class="form-label"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 0.3rem;"></i> Select Product <span style="color: #dc2626;">*</span></label>
-      <select id="product_name" name="product_name" class="form-select" required>
-        <option value="">-- Choose Product --</option>
-        {% for p in products %}
-          <option value="{{ p.product_name }}" {% if selected_product and selected_product.product_name == p.product_name %}selected{% endif %}>
-            {{ p.product_name }} (Available: {{ p.quantity }} {{ p.unit }})
-          </option>
-        {% endfor %}
-      </select>
+      <form method="POST" action="{{ url_for('inventory.stock_out') }}" class="inv-form-body">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label for="product_name" class="form-label">
+            <i class="fa-solid fa-box" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
+          </label>
+          <select id="product_name" name="product_name" class="form-select inv-select" required>
+            <option value="">-- Choose Product to Deduct --</option>
+            {% for p in products %}
+              <option value="{{ p.product_name }}" {% if selected_product and selected_product.product_name == p.product_name %}selected{% endif %}>
+                {{ p.product_name }} (Available: {{ p.quantity }} {{ p.unit }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="quantity" class="form-label">
+            <i class="fa-solid fa-minus-circle" style="color: var(--color-danger, #ef4444); margin-right: 0.35rem;"></i> Quantity Removed <span class="req">*</span>
+          </label>
+          <div class="input-with-icon">
+            <input type="number" step="any" min="0.01" id="quantity" name="quantity" class="form-control inv-num-input" placeholder="e.g., 10" required style="font-family: 'JetBrains Mono', monospace;">
+          </div>
+        </div>
+
+        {# Live stock preview widget #}
+        <div id="stock-preview" class="stock-preview-box"></div>
+
+        <div class="form-group">
+          <label for="reason" class="form-label">
+            <i class="fa-solid fa-clipboard-list" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Order Reference / Reason
+          </label>
+          <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., Customer Order #8821 fulfilled, warehouse dispatch">
+        </div>
+
+        <div class="inv-form-footer">
+          <button type="submit" class="btn btn-danger inv-submit-btn" data-confirm="Confirm stock reduction?">
+            <i class="fa-solid fa-minus"></i> Submit Stock Out
+          </button>
+          <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </a>
+        </div>
+      </form>
     </div>
 
-    <div class="form-group">
-      <label for="quantity" class="form-label"><i class="fa-solid fa-cubes" style="color: var(--primary); margin-right: 0.3rem;"></i> Quantity Removed <span style="color: #dc2626;">*</span></label>
-      <input type="number" step="any" min="0.01" id="quantity" name="quantity" class="form-control" placeholder="e.g., 10" required>
+    <!-- Right: Safety Guardrails -->
+    <div class="inv-sidebar-col">
+      <div class="card inv-guide-card">
+        <h4 class="inv-guide-title"><i class="fa-solid fa-triangle-exclamation" style="color: var(--color-danger, #ef4444);"></i> Guardrails &amp; Rules</h4>
+        
+        <ul class="inv-guide-list">
+          <li>
+            <i class="fa-solid fa-ban text-danger"></i>
+            <div>
+              <strong>Negative Stock Blocked</strong>
+              <p>The system will reject any stock-out transaction where requested quantity exceeds on-hand balance.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+            <div>
+              <strong>Low Stock Threshold Alerts</strong>
+              <p>If remaining balance drops below the item minimum threshold, an automatic dashboard warning is triggered.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-cash-register text-primary"></i>
+            <div>
+              <strong>Sales vs Manual Deductions</strong>
+              <p>For standard counter sales with customer receipts, create a bill in the <a href="{{ url_for('billing.pos') }}">POS Counter</a>.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
-
-    {# Live stock preview widget #}
-    <div id="stock-preview"></div>
-
-    <div class="form-group">
-      <label for="reason" class="form-label"><i class="fa-solid fa-clipboard-list" style="color: var(--primary); margin-right: 0.3rem;"></i> Reason / Order Reference</label>
-      <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., Customer Order #8821 fulfilled">
-    </div>
-
-    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-danger" data-confirm="Confirm stock reduction?"><i class="fa-solid fa-minus"></i> Submit Stock Out</button>
-      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
-    </div>
-  </form>
+  </div>
 </div>
 {% endblock %}
