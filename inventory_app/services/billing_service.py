@@ -248,7 +248,7 @@ def compute_bill(customer_data: dict, items_with_products: list,
     elif total_paid > 0:
         payment_status = 'PARTIAL'
     else:
-        payment_status = 'DUE'
+        payment_status = 'PARTIAL'
 
     amount_due = _round2(grand_total - total_paid)
 
@@ -686,7 +686,7 @@ def refund_bill_lines(bill_id: str, line_indices: list, reason: str, performed_b
     elif float(bill.get("amount_paid", 0)) > 0:
         new_status = "PARTIAL"
     else:
-        new_status = "DUE"
+        new_status = "PARTIAL"
 
     db.invoices.update_one(
         {"_id": ObjectId(bill_id)},
@@ -845,7 +845,7 @@ def edit_bill(bill_id: str, new_items: list, charges: dict,
     elif existing_paid > 0:
         new_status = "PARTIAL"
     else:
-        new_status = "DUE"
+        new_status = "PARTIAL"
 
     db.invoices.update_one(
         {"_id": ObjectId(bill_id)},
@@ -1036,7 +1036,7 @@ def get_billing_summary() -> dict:
             "total_outstanding": {
                 "$sum": {
                     "$cond": [
-                        {"$in": ["$payment_status", ["DUE", "PARTIAL"]]},
+                        {"$in": ["$payment_status", ["PARTIAL"]]},
                         "$amount_due",
                         0
                     ]
@@ -1171,8 +1171,8 @@ def get_reconciliation_report() -> list:
                     "created_at": bill.get("created_at"),
                 })
 
-        # ── DUE/PARTIAL bills without payments ──
-        if bill.get("payment_status") in ("DUE", "PARTIAL"):
+        # ── PARTIAL bills without payments ──
+        if bill.get("payment_status") == "PARTIAL":
             payments = list(db.bill_payments.find({"bill_number": bill_number}))
             total_payments = sum(float(p.get("amount", 0)) for p in payments)
             if total_payments < float(bill.get("amount_paid", 0)) - 0.02:
