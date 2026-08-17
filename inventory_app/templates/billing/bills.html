@@ -51,7 +51,6 @@
           <th>Status</th>
           <th style="text-align: right;">Bill Total</th>
           <th style="text-align: right;">Paid</th>
-          <th style="text-align: right;">Balance Due</th>
           <th style="text-align: center;">Action</th>
         </tr>
       </thead>
@@ -62,8 +61,6 @@
         {% set refund_count = refunded_items | length %}
         {% set active_items = total_items - refund_count %}
         {% set paid = bill.amount_paid or bill.grand_total or 0 %}
-        {% set due = bill.amount_due or 0 %}
-        {% set paid_pct = ((paid / bill.grand_total) * 100) if bill.grand_total > 0 else 100 %}
         {# ── Calculate original total before refunds ── #}
         {% set ns_orig = namespace(orig_total=0, refunded_amt=0) %}
         {% for item in bill.line_items %}
@@ -159,40 +156,24 @@
             {% endif %}
           </td>
           
-          {# ── Amount Paid ── #}
-          <td style="text-align: right; padding-top: 0.65rem;">
-            <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
-              {{ format_currency(paid) }}
-            </div>
-            {# ── Payment progress bar ── #}
-            <div style="background: #e2e8f0; border-radius: 9999px; height: 4px; overflow: hidden; margin-top: 0.25rem; width: 70px; margin-left: auto;">
-              <div style="background: {% if paid_pct >= 100 %}#16a34a;{% elif paid_pct > 0 %}#f59e0b;{% else %}#dc2626;{% endif %}; height: 100%; width: {{ [paid_pct, 100] | min }}%; border-radius: 9999px;"></div>
-            </div>
-          </td>
-          
-          {# ── Balance Due ── #}
+          {# ── Amount Paid (current balance after refunds) ── #}
           <td style="text-align: right; padding-top: 0.65rem;">
             {% if bill.payment_status == 'REFUNDED' %}
-              <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
-                {{ format_currency(0) }}
+              <div style="font-weight: 700; color: #5b21b6; font-size: 0.85rem;">
+                {{ format_currency(bill.grand_total) }}
               </div>
               <div style="font-size: 0.6rem; color: #5b21b6; font-weight: 600; margin-top: 0.15rem;">
                 <i class="fa-solid fa-rotate-left" style="font-size: 0.55rem;"></i> refunded
               </div>
-            {% elif due > 0 %}
-              <div style="font-weight: 800; color: #dc2626; font-size: 0.88rem; font-family: var(--font-mono);">
-                {{ format_currency(due) }}
-              </div>
-              <div style="font-size: 0.6rem; color: #dc2626; font-weight: 600; margin-top: 0.15rem;">
-                pending
-              </div>
             {% else %}
               <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
-                {{ format_currency(0) }}
+                {{ format_currency(bill.grand_total) }}
               </div>
-              <div style="font-size: 0.6rem; color: #166534; font-weight: 600; margin-top: 0.15rem;">
-                settled
-              </div>
+              {% if refund_count > 0 %}
+                <div style="font-size: 0.6rem; color: #5b21b6; font-weight: 600; margin-top: 0.15rem;">
+                  {{ refund_count }} item{{ 's' if refund_count > 1 }} returned
+                </div>
+              {% endif %}
             {% endif %}
           </td>
           
@@ -206,11 +187,10 @@
         {% endfor %}
       </tbody>
       <tfoot>
-        {% set ns = namespace(total=0, paid=0, due=0, refunded=0) %}
+        {% set ns = namespace(total=0, paid=0, refunded=0) %}
         {% for b in bills %}
           {% set ns.total = ns.total + (b.grand_total or 0) %}
           {% set ns.paid = ns.paid + (b.amount_paid or b.grand_total or 0) %}
-          {% set ns.due = ns.due + (b.amount_due or 0) %}
           {% if b.payment_status == 'REFUNDED' %}
             {% set ns.refunded = ns.refunded + (b.grand_total or 0) %}
           {% endif %}
@@ -225,26 +205,7 @@
           <td style="text-align: right; font-weight: 700; color: #166534; font-size: 0.9rem; padding: 0.875rem 0.5rem;">
             {{ format_currency(ns.paid) }}
           </td>
-          <td style="text-align: right; padding: 0.875rem 0.5rem;">
-            {% if ns.due > 0 %}
-              <span style="color: #dc2626; font-weight: 800; font-family: var(--font-mono); font-size: 0.88rem;">
-                {{ format_currency(ns.due) }}
-              </span>
-              <br>
-              <span style="font-size: 0.6rem; color: #dc2626; font-weight: 600;">
-                outstanding
-              </span>
-            {% else %}
-              <span style="color: #166534; font-weight: 700; font-size: 0.88rem;">
-                {{ format_currency(0) }}
-              </span>
-              <br>
-              <span style="font-size: 0.6rem; color: #166534; font-weight: 600;">
-                <i class="fa-solid fa-circle-check"></i> All settled
-              </span>
-            {% endif %}
-          </td>
-          <td colspan="2" style="padding: 0.875rem 1rem;">
+          <td colspan="1" style="padding: 0.875rem 1rem;">
             {% if ns.refunded > 0 %}
               <span style="color: #5b21b6; font-weight: 600; font-size: 0.78rem;">
                 <i class="fa-solid fa-rotate-left"></i> {{ format_currency(ns.refunded) }} refunded
