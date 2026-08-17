@@ -147,10 +147,10 @@
             {% endif %}
           </td>
           
-          {# ── Bill Total ── #}
+          {# ── Bill Total (original amount at creation) ── #}
           <td style="text-align: right; padding-top: 0.65rem;">
             <div style="font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 0.92rem;">
-              {{ format_currency(current_grand) }}
+              {{ format_currency(bill.grand_total) }}
             </div>
             {% if refund_count > 0 %}
               <div style="font-size: 0.6rem; color: #dc2626; font-weight: 600; margin-top: 0.15rem;">
@@ -194,7 +194,7 @@
         {% for b in bills %}
           {% set _b_active = b.line_items|selectattr('is_refunded','false')|map(attribute='line_total')|sum %}
           {% set _b_grand = _b_active + (b.shipping_charge or 0) + (b.packing_charge or 0) + (b.round_off or 0) %}
-          {% set ns.total = ns.total + _b_grand %}
+          {% set ns.total = ns.total + (b.grand_total or 0) %}
           {% set ns.paid = ns.paid + _b_grand %}
           {% if b.payment_status == 'REFUNDED' %}
             {% set ns.refunded = ns.refunded + _b_grand %}
