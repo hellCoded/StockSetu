@@ -183,14 +183,32 @@ a:hover { color: var(--primary-hover); }
   display: flex; align-items: center; gap: 0.75rem;
   padding: 0.62rem 0.875rem; border-radius: var(--r-md);
   color: var(--text-sidebar); font-weight: 500; font-size: 0.875rem;
-  transition: all 0.2s ease; position: relative;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
 }
-.sidebar-link i { font-size: 0.9rem; width: 18px; text-align: center; flex-shrink: 0; transition: transform 0.25s ease; }
-.sidebar-link:hover { background: rgba(255,255,255,0.07); color: #fff; text-decoration: none; }
-.sidebar-link:hover i { transform: scale(1.1); }
+.sidebar-link i {
+  font-size: 0.92rem; width: 20px; text-align: center; flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease, text-shadow 0.2s ease;
+}
+.sidebar-link:hover {
+  background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%);
+  color: #ffffff;
+  text-decoration: none;
+  transform: translateX(4px);
+  box-shadow: inset 3.5px 0 0 var(--color-accent, #fbbf24);
+}
+.sidebar-link:hover i {
+  transform: scale(1.2);
+  color: var(--color-accent, #fbbf24);
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
+}
 .sidebar-link.active {
-  background: var(--color-primary-light); color: var(--text-sidebar-active);
-  font-weight: 600; box-shadow: inset 3px 0 0 var(--color-primary);
+  background: linear-gradient(90deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 100%);
+  color: var(--text-sidebar-active, #ffffff);
+  font-weight: 700;
+  box-shadow: inset 3.5px 0 0 var(--color-accent, #fbbf24);
+}
+.sidebar-link.active i {
+  color: var(--color-accent, #fbbf24);
 }
 
 /* ── Main Wrapper ── */
@@ -203,12 +221,23 @@ a:hover { color: var(--primary-hover); }
    ARC-STYLE AUTO-HIDING SIDEBAR (desktop)
    ============================================================ */
 .sidebar-reveal-tab { display: none; }
+.sidebar-hover-zone {
+  display: none;
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 28px;
+  z-index: 110;
+  cursor: pointer;
+}
 @media (min-width: 769px) {
   .sidebar { transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease; }
 
   body.sidebar-hidden .sidebar {
     transform: translate3d(-100%, 0, 0);
     box-shadow: none;
+  }
+  body.sidebar-hidden .sidebar-hover-zone {
+    display: block;
   }
   body.sidebar-hidden.sidebar-hover-open .sidebar {
     transform: translate3d(0, 0, 0);

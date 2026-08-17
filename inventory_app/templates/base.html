@@ -52,6 +52,7 @@
   {% if current_user.id %}
     <div class="app-container">
       <div class="sidebar-overlay" id="sidebar-overlay"></div>
+      <div class="sidebar-hover-zone" id="sidebar-hover-zone"></div>
       {% include 'components/sidebar.html' %}
       <button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="Toggle sidebar">
         <i class="fa-solid fa-bars"></i>
@@ -167,6 +168,11 @@
             hideHoverPeekWithDelay(250);
           }
         });
+
+        var hoverZone = document.getElementById('sidebar-hover-zone');
+        if (hoverZone) {
+          hoverZone.addEventListener('mouseenter', showHoverPeek);
+        }
 
         var revealTab = document.getElementById('sidebar-reveal-tab');
         if (revealTab) {
