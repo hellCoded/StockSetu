@@ -61,6 +61,9 @@
         {% set refund_count = refunded_items | length %}
         {% set active_items = total_items - refund_count %}
         {% set paid = bill.amount_paid or bill.grand_total or 0 %}
+        {# ── Calculate current total from active line items ── #}
+        {% set active_line_total = bill.line_items|selectattr('is_refunded','false')|map(attribute='line_total')|sum %}
+        {% set current_grand = active_line_total + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
         {# ── Calculate original total before refunds ── #}
         {% set ns_orig = namespace(orig_total=0, refunded_amt=0) %}
         {% for item in bill.line_items %}
@@ -147,7 +150,7 @@
           {# ── Bill Total ── #}
           <td style="text-align: right; padding-top: 0.65rem;">
             <div style="font-family: var(--font-display); font-weight: 800; color: var(--text-main); font-size: 0.92rem;">
-              {{ format_currency(bill.grand_total) }}
+              {{ format_currency(current_grand) }}
             </div>
             {% if refund_count > 0 %}
               <div style="font-size: 0.6rem; color: #dc2626; font-weight: 600; margin-top: 0.15rem;">
@@ -160,14 +163,14 @@
           <td style="text-align: right; padding-top: 0.65rem;">
             {% if bill.payment_status == 'REFUNDED' %}
               <div style="font-weight: 700; color: #5b21b6; font-size: 0.85rem;">
-                {{ format_currency(bill.grand_total) }}
+                {{ format_currency(current_grand) }}
               </div>
               <div style="font-size: 0.6rem; color: #5b21b6; font-weight: 600; margin-top: 0.15rem;">
                 <i class="fa-solid fa-rotate-left" style="font-size: 0.55rem;"></i> refunded
               </div>
             {% else %}
               <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
-                {{ format_currency(bill.grand_total) }}
+                {{ format_currency(current_grand) }}
               </div>
               {% if refund_count > 0 %}
                 <div style="font-size: 0.6rem; color: #5b21b6; font-weight: 600; margin-top: 0.15rem;">
@@ -189,10 +192,12 @@
       <tfoot>
         {% set ns = namespace(total=0, paid=0, refunded=0) %}
         {% for b in bills %}
-          {% set ns.total = ns.total + (b.grand_total or 0) %}
-          {% set ns.paid = ns.paid + (b.amount_paid or b.grand_total or 0) %}
+          {% set _b_active = b.line_items|selectattr('is_refunded','false')|map(attribute='line_total')|sum %}
+          {% set _b_grand = _b_active + (b.shipping_charge or 0) + (b.packing_charge or 0) + (b.round_off or 0) %}
+          {% set ns.total = ns.total + _b_grand %}
+          {% set ns.paid = ns.paid + _b_grand %}
           {% if b.payment_status == 'REFUNDED' %}
-            {% set ns.refunded = ns.refunded + (b.grand_total or 0) %}
+            {% set ns.refunded = ns.refunded + _b_grand %}
           {% endif %}
         {% endfor %}
         <tr style="background: var(--color-surface-container);">
