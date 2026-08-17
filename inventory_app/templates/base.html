@@ -163,7 +163,7 @@
         clearTimeout(hoverTimer);
         hoverTimer = setTimeout(function() {
           body.classList.remove('sidebar-hover-active');
-        }, delayMs || 250);
+        }, delayMs || 350);
       }
 
       if (mqDesktop.matches && sidebar) {
@@ -175,8 +175,8 @@
           if (body.classList.contains('sidebar-hover-mode')) {
             if (e.clientX <= 28) {
               showHoverSidebar();
-            } else if (e.clientX > 260 && body.classList.contains('sidebar-hover-active')) {
-              hideHoverSidebarWithDelay(150);
+            } else if (e.clientX > 270 && body.classList.contains('sidebar-hover-active')) {
+              hideHoverSidebarWithDelay(250);
             }
           }
         });
@@ -189,7 +189,7 @@
 
         sidebar.addEventListener('mouseleave', function() {
           if (body.classList.contains('sidebar-hover-mode')) {
-            hideHoverSidebarWithDelay(250);
+            hideHoverSidebarWithDelay(350);
           }
         });
 
