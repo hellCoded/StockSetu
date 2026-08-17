@@ -56,6 +56,9 @@
       <button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="Toggle sidebar">
         <i class="fa-solid fa-bars"></i>
       </button>
+      <button class="sidebar-reveal-tab" id="sidebar-reveal-tab" aria-label="Show sidebar">
+        <i class="fa-solid fa-angles-right"></i>
+      </button>
       <div class="main-wrapper">
         {% include 'components/navbar.html' %}
         <div class="content-body" id="main-content">
@@ -109,6 +112,52 @@
         overlay.addEventListener('click', function() {
           if (sidebar) sidebar.classList.remove('open');
           overlay.classList.remove('show');
+        });
+      }
+
+      // Arc-style auto-hiding sidebar (desktop)
+      var mqDesktop = window.matchMedia('(min-width: 769px)');
+      var body = document.body;
+      function setSidebarHidden(hide) {
+        body.classList.toggle('sidebar-hidden', !!hide);
+        try { localStorage.setItem('sidebar-hidden', hide ? '1' : '0'); } catch(e) {}
+      }
+      if (mqDesktop.matches && sidebar) {
+        var savedHidden;
+        try { savedHidden = localStorage.getItem('sidebar-hidden'); } catch(e) {}
+        if (savedHidden === '1') body.classList.add('sidebar-hidden');
+
+        document.addEventListener('mousemove', function(e) {
+          if (e.clientX <= 40 && body.classList.contains('sidebar-hidden')) {
+            setSidebarHidden(false);
+          }
+        });
+
+        sidebar.addEventListener('mouseleave', function() {
+          if (mqDesktop.matches && !body.classList.contains('sidebar-hidden')) {
+            setSidebarHidden(true);
+          }
+        });
+
+        var deskToggle = document.getElementById('desk-sidebar-toggle');
+        if (deskToggle) {
+          deskToggle.addEventListener('click', function() {
+            setSidebarHidden(!body.classList.contains('sidebar-hidden'));
+          });
+        }
+
+        var revealTab = document.getElementById('sidebar-reveal-tab');
+        if (revealTab) {
+          revealTab.addEventListener('click', function() {
+            setSidebarHidden(false);
+          });
+        }
+
+        document.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            setSidebarHidden(!body.classList.contains('sidebar-hidden'));
+          }
         });
       }
 

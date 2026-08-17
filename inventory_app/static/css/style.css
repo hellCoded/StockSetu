@@ -197,6 +197,42 @@ a:hover { color: var(--primary-hover); }
 }
 
 /* ============================================================
+   ARC-STYLE AUTO-HIDING SIDEBAR (desktop)
+   ============================================================ */
+.sidebar-reveal-tab { display: none; }
+@media (min-width: 769px) {
+  .sidebar { transition: transform 0.32s var(--ease); }
+  .main-wrapper { transition: margin-left 0.32s var(--ease); }
+
+  body.sidebar-hidden .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+  body.sidebar-hidden .main-wrapper { margin-left: 0; }
+
+  /* Navbar toggle (desktop) */
+  #desk-sidebar-toggle { display: flex !important; }
+
+  /* Floating reveal tab shown while the sidebar is hidden */
+  .sidebar-reveal-tab {
+    display: none;
+    position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+    z-index: 95;
+    width: 22px; height: 64px; padding: 0;
+    border: none; cursor: pointer;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.18);
+    align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    opacity: 0; transition: opacity 0.25s var(--ease), width 0.25s var(--ease);
+  }
+  .sidebar-reveal-tab:hover { opacity: 1; width: 28px; }
+  body.sidebar-hidden .sidebar-reveal-tab { display: flex; opacity: 0.7; }
+}
+
+/* ============================================================
    NAVBAR — Glassmorphism Sticky
    ============================================================ */
 .top-navbar {
