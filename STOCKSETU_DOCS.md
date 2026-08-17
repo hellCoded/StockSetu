@@ -614,7 +614,7 @@ Admin reviews → POST /users/requests/<id>/approve
 | `/billing/bills` | GET | Yes | Any | Bill history |
 | `/billing/bills/<id>` | GET | Yes | Any | Bill detail |
 | `/billing/bills/<id>/refund` | POST | Yes | admin, manager | Full refund |
-| `/billing/bills/<id>/refund-lines` | POST | Yes | admin, manager | Partial refund |
+| `/billing/bills/<id>/refund-items` | POST | Yes | admin, manager | Partial refund |
 | `/billing/bills/<id>/pay` | POST | Yes | Any | Record payment |
 | `/billing/bills/<id>/edit` | POST | Yes | admin, manager | Edit bill |
 | `/health` | GET | No | — | Health check (keep-warm) |

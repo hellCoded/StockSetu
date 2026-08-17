@@ -161,11 +161,11 @@ def refund_bill(bill_id):
     return redirect(url_for('billing.view_bill', bill_id=bill_id))
 
 
-@billing_bp.route('/billing/bills/<bill_id>/refund-lines', methods=['POST'])
+@billing_bp.route('/billing/bills/<bill_id>/refund-items', methods=['POST'])
 @login_required
 @roles_required('admin', 'inventory_manager')
 @csrf_protected
-def refund_lines(bill_id):
+def refund_items(bill_id):
     """Refund specific line(s) of a bill."""
     from inventory_app.services.billing_service import refund_bill_lines
     line_indices = request.form.getlist('line_index[]')

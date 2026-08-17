@@ -285,7 +285,7 @@
         {% if bill.payment_status == 'PARTIAL' %}
           <button onclick="document.getElementById('payModal').classList.add('active')" class="btn btn-primary btn-sm"><i class="fa-solid fa-money-bill-wave"></i> Record Payment</button>
         {% endif %}
-        <button onclick="document.getElementById('refundLineModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i> Refund Lines</button>
+        <button onclick="document.getElementById('refundItemModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i> Refund Items</button>
         <button onclick="document.getElementById('editModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen-to-square"></i> Edit Bill</button>
         <button onclick="document.getElementById('refundModal').classList.add('active')" class="btn btn-danger btn-sm"><i class="fa-solid fa-ban"></i> Full Refund</button>
       {% endif %}
@@ -721,14 +721,14 @@
 {% endif %}
 
 {% if current_user.role in ['admin', 'inventory_manager'] and bill.payment_status != 'REFUNDED' %}
-<div id="refundLineModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
+<div id="refundItemModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
   <div class="modal-card" style="max-width: 500px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
       <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #f97316;"><i class="fa-solid fa-rotate-left" style="margin-right: 0.4rem;"></i>Refund Selected Lines</h3>
-      <button class="um-modal-close" onclick="document.getElementById('refundLineModal').classList.remove('active')">&times;</button>
+      <button class="um-modal-close" onclick="document.getElementById('refundItemModal').classList.remove('active')">&times;</button>
     </div>
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Select the line(s) to refund. Stock will be restored for refunded items.</p>
-    <form action="{{ url_for('billing.refund_lines', bill_id=bill._id or bill.id) }}" method="POST">
+    <form action="{{ url_for('billing.refund_items', bill_id=bill._id or bill.id) }}" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="margin-bottom: 1rem; max-height: 250px; overflow-y: auto;">
         {% for item in bill.line_items %}
@@ -756,7 +756,7 @@
         <input type="text" name="reason" class="form-control" required placeholder="e.g. Customer return, billing error">
       </div>
       <div class="um-modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('refundLineModal').classList.remove('active')">Cancel</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('refundItemModal').classList.remove('active')">Cancel</button>
         <button type="submit" class="btn btn-danger">Confirm Line Refund</button>
       </div>
     </form>
