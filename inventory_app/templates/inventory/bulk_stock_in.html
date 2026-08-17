@@ -206,10 +206,20 @@
 
     document.getElementById('upload-form').addEventListener('submit', function(e) {
       if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); return; }
+      e.preventDefault();
       var overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(11,28,48,0.55);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;';
-      overlay.innerHTML = '<div style="background:var(--color-surface);border-radius:var(--r-xl);padding:2.5rem 3rem;text-align:center;box-shadow:0 25px 50px rgba(11,61,110,0.2);"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--color-primary);margin-bottom:0.75rem;display:block;"></i><strong style="font-size:1rem;color:var(--color-on-surface);display:block;margin-bottom:0.25rem;">Extracting line items...</strong><span style="font-size:0.82rem;color:var(--color-on-surface-variant);">This may take a few seconds</span></div>';
+      overlay.id = 'bsi-upload-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(11,28,48,0.6);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s ease;';
+      overlay.innerHTML = '<div style="background:var(--color-surface,#fff);border-radius:var(--r-xl,20px);padding:2.5rem 3rem;text-align:center;box-shadow:0 25px 50px rgba(11,61,110,0.25);transform:scale(0.95);transition:transform 0.2s ease;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--color-primary,#0b3d6e);margin-bottom:0.75rem;display:block;"></i><strong style="font-size:1rem;color:var(--color-on-surface,#0f172a);display:block;margin-bottom:0.25rem;">Extracting line items...</strong><span style="font-size:0.82rem;color:var(--color-on-surface-variant,#64748b);">This may take a few seconds</span></div>';
       document.body.appendChild(overlay);
+      // Force paint, then fade in, then submit
+      requestAnimationFrame(function() {
+        overlay.style.opacity = '1';
+        overlay.querySelector('div').style.transform = 'scale(1)';
+        setTimeout(function() {
+          document.getElementById('upload-form').submit();
+        }, 200);
+      });
     });
   })();
   </script>
@@ -693,7 +703,7 @@
     color: var(--color-on-surface-variant);
     background: var(--color-surface-container);
     border: 1.5px solid var(--color-outline-variant);
-    transition: all 0.25s var(--ease);
+    transition: background 0.25s var(--ease), border-color 0.25s var(--ease), color 0.25s var(--ease), box-shadow 0.25s var(--ease);
   }
   .bsi-step-active .bsi-step-dot {
     background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
@@ -768,7 +778,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s var(--ease);
+    transition: border-color 0.2s var(--ease), background 0.2s var(--ease), transform 0.2s var(--ease);
   }
   .file-picker:hover {
     border-color: var(--color-primary);
@@ -902,7 +912,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
     flex-shrink: 0;
     z-index: 10;
   }
