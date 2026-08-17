@@ -120,6 +120,9 @@ def bulk_stock_in():
         products = search_products(is_active=True, limit=500)
         product_names = [p['product_name'] for p in products]
 
+        # Pre-lowercase once for faster matching
+        pn_lower = [(name, name.strip().lower()) for name in product_names]
+
         for item in items:
             item_name = item['item_name'].strip()
             item_lower = item_name.lower()
@@ -127,16 +130,16 @@ def bulk_stock_in():
             matched = None
             best_score = 0
 
-            for pname in product_names:
-                pname_lower = pname.strip().lower()
-                if item_lower == pname_lower:
-                    matched = pname
+            for name, name_lower in pn_lower:
+                if item_lower == name_lower:
+                    matched = name
+                    best_score = 100
                     break
-                score = fuzz.token_sort_ratio(item_lower, pname_lower)
+                score = fuzz.token_sort_ratio(item_lower, name_lower)
                 if score > best_score:
                     best_score = score
                     if score >= 72:
-                        matched = pname
+                        matched = name
 
             item['is_new'] = matched is None
             item['matched_name'] = matched or ''

@@ -205,7 +205,11 @@
     });
 
     document.getElementById('upload-form').addEventListener('submit', function(e) {
-      if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); }
+      if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); return; }
+      var overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(11,28,48,0.55);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;';
+      overlay.innerHTML = '<div style="background:var(--color-surface);border-radius:var(--r-xl);padding:2.5rem 3rem;text-align:center;box-shadow:0 25px 50px rgba(11,61,110,0.2);"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--color-primary);margin-bottom:0.75rem;display:block;"></i><strong style="font-size:1rem;color:var(--color-on-surface);display:block;margin-bottom:0.25rem;">Extracting line items...</strong><span style="font-size:0.82rem;color:var(--color-on-surface-variant);">This may take a few seconds</span></div>';
+      document.body.appendChild(overlay);
     });
   })();
   </script>
