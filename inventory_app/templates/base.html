@@ -206,6 +206,15 @@
           });
         }
 
+        var pinToggle = document.getElementById('sidebar-pin-toggle');
+        if (pinToggle) {
+          pinToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var current = body.classList.contains('sidebar-hover-mode') ? 'hover' : 'pinned';
+            applySidebarMode(current === 'hover' ? 'pinned' : 'hover');
+          });
+        }
+
         var deskToggle = document.getElementById('desk-sidebar-toggle');
         if (deskToggle) {
           deskToggle.addEventListener('click', function() {

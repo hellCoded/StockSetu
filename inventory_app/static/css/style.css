@@ -123,18 +123,18 @@ a:hover { color: var(--primary-hover); }
 .app-container { display: flex; width: 100vw; min-height: 100vh; }
 
 /* ============================================================
-   SIDEBAR — Modern Hover & Pinned Modes
+   ARC BROWSER SIDEBAR — Glassmorphic Floating Panel
    ============================================================ */
 .sidebar {
   width: var(--sidebar-width);
-  background: rgba(11, 61, 110, 0.96);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(10, 48, 86, 0.94);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
   display: flex; flex-direction: column;
   padding: 0;
   position: fixed; height: 100vh;
   z-index: 120; overflow-y: auto; overflow-x: hidden;
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), margin 0.35s ease, border-radius 0.35s ease;
   will-change: transform;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
@@ -145,65 +145,80 @@ a:hover { color: var(--primary-hover); }
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 3px;
   background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+  border-radius: 16px 16px 0 0;
 }
 
 .sidebar-brand {
-  display: flex; align-items: center; gap: 0.75rem;
-  padding: 1.5rem 1.25rem 1.25rem;
-  border-bottom: 1px solid var(--bg-sidebar-border);
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 1.25rem 1.15rem 1.15rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sidebar-brand a {
-  display: flex; align-items: center; gap: 0.75rem;
-  text-decoration: none; color: inherit; width: 100%;
+.sidebar-pin-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+.sidebar-pin-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: scale(1.08);
+}
+body:not(.sidebar-hover-mode) .sidebar-pin-btn {
+  color: var(--color-accent, #fbbf24);
+  background: rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+body:not(.sidebar-hover-mode) .sidebar-pin-btn i {
+  transform: rotate(-45deg);
 }
 
 .sidebar-brand-icon {
-  width: 36px; height: 36px;
+  width: 34px; height: 34px;
   background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
-  border-radius: var(--r-md);
+  border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem; color: #fff; flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(11, 61, 110, 0.4);
 }
 
-.sidebar-brand span {
-  font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;
-  color: #fff; letter-spacing: -0.01em;
-}
-
 .sidebar-menu {
-  list-style: none; padding: 1rem 0.75rem;
-  display: flex; flex-direction: column; gap: 0.15rem; flex: 1;
+  list-style: none; padding: 0.85rem 0.75rem;
+  display: flex; flex-direction: column; gap: 0.2rem; flex: 1;
 }
 
 .sidebar-link {
   display: flex; align-items: center; gap: 0.75rem;
-  padding: 0.62rem 0.875rem; border-radius: var(--r-md);
+  padding: 0.62rem 0.875rem; border-radius: 10px;
   color: var(--text-sidebar); font-weight: 500; font-size: 0.875rem;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1); position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
 }
 .sidebar-link i {
   font-size: 0.92rem; width: 20px; text-align: center; flex-shrink: 0;
-  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease, text-shadow 0.25s ease;
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
 }
 .sidebar-link:hover {
-  background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%);
+  background: rgba(255, 255, 255, 0.09);
   color: #ffffff;
   text-decoration: none;
-  transform: translateX(4px);
-  box-shadow: inset 3.5px 0 0 var(--color-accent, #fbbf24);
+  transform: translateX(3px);
 }
 .sidebar-link:hover i {
-  transform: scale(1.2);
+  transform: scale(1.15);
   color: var(--color-accent, #fbbf24);
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
 }
 .sidebar-link.active {
-  background: linear-gradient(90deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 100%);
-  color: var(--text-sidebar-active, #ffffff);
-  font-weight: 700;
-  box-shadow: inset 3.5px 0 0 var(--color-accent, #fbbf24);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
 }
 .sidebar-link.active i {
   color: var(--color-accent, #fbbf24);
@@ -214,11 +229,11 @@ a:hover { color: var(--primary-hover); }
   flex: 1;
   display: flex; flex-direction: column; min-height: 100vh;
   will-change: margin-left;
-  transition: margin-left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: margin-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ============================================================
-   HOVERING & PINNED SIDEBAR MODES (desktop)
+   ARC AUTO-HIDE / HOVER & PINNED MODES
    ============================================================ */
 .sidebar-reveal-tab { display: none; }
 .sidebar-hover-zone {
@@ -231,18 +246,26 @@ a:hover { color: var(--primary-hover); }
 }
 
 @media (min-width: 769px) {
-  /* Pinned Mode */
+  /* Pinned Mode: Full height edge-to-edge docked sidebar */
   body:not(.sidebar-hover-mode) .sidebar {
     transform: translate3d(0, 0, 0);
+    margin: 0;
+    height: 100vh;
+    border-radius: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
   }
   body:not(.sidebar-hover-mode) .main-wrapper {
     margin-left: var(--sidebar-width);
   }
 
-  /* Hover Mode */
+  /* Arc Hover Mode: Floating rounded glassmorphic card */
   body.sidebar-hover-mode .sidebar {
-    transform: translate3d(-100%, 0, 0);
+    margin: 12px 0 12px 12px;
+    height: calc(100vh - 24px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    transform: translate3d(-110%, 0, 0);
     box-shadow: none;
   }
   body.sidebar-hover-mode .main-wrapper {
@@ -253,7 +276,7 @@ a:hover { color: var(--primary-hover); }
   }
   body.sidebar-hover-mode.sidebar-hover-active .sidebar {
     transform: translate3d(0, 0, 0);
-    box-shadow: 8px 0 36px rgba(0, 0, 0, 0.35);
+    box-shadow: 12px 0 42px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   }
   body.sidebar-hover-mode.sidebar-hover-active .sidebar-reveal-tab {
     opacity: 0;
@@ -263,25 +286,30 @@ a:hover { color: var(--primary-hover); }
   /* Desktop Navbar toggle */
   #desk-sidebar-toggle { display: flex !important; }
 
-  /* Floating reveal tab in hover mode */
+  /* Floating Arc reveal pill tab */
   body.sidebar-hover-mode .sidebar-reveal-tab {
     display: flex;
     position: fixed; left: 0; top: 50%; transform: translateY(-50%);
     z-index: 115;
-    width: 20px; height: 60px; padding: 0;
-    border: none; cursor: pointer;
-    background: var(--color-primary);
+    width: 14px; height: 64px; padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-left: none;
+    cursor: pointer;
+    background: rgba(11, 61, 110, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     color: #fff;
-    border-radius: 0 8px 8px 0;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 0 12px 12px 0;
+    box-shadow: 3px 3px 14px rgba(0, 0, 0, 0.25);
     align-items: center; justify-content: center;
-    font-size: 0.75rem;
-    opacity: 0.75;
-    transition: opacity 0.35s ease, width 0.35s ease;
+    font-size: 0.72rem;
+    opacity: 0.8;
+    transition: opacity 0.25s ease, width 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease;
   }
   body.sidebar-hover-mode .sidebar-reveal-tab:hover {
     opacity: 1;
-    width: 26px;
+    width: 24px;
+    background: var(--color-primary);
   }
 }
 
