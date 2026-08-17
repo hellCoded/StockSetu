@@ -475,7 +475,6 @@ body.sidebar-hidden .main-wrapper {
     0 2px 4px rgba(11, 61, 110, 0.04),
     0 4px 8px rgba(11, 61, 110, 0.04);
   margin-bottom: 1.5rem;
-  animation: cardEntrance 0.4s var(--ease) both;
   transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
   position: relative;
   transform-style: preserve-3d;
@@ -497,7 +496,6 @@ body.sidebar-hidden .main-wrapper {
     0 0 0 1px rgba(255, 255, 255, 0.5) inset;
   border-color: var(--color-primary-light);
 }
-@keyframes cardEntrance { from { opacity:0; transform:translateY(12px) translateZ(-10px); } to { opacity:1; transform:translateY(0) translateZ(0); } }
 
 .card-header {
   display: flex; align-items: center; justify-content: space-between;

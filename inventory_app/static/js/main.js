@@ -293,11 +293,11 @@ function hidePageLoading() {
   const overlay = document.getElementById('page-loading-overlay');
   if (overlay) {
     overlay.classList.remove('active');
-    setTimeout(() => overlay.remove(), 300);
+    setTimeout(() => overlay.remove(), 200);
   }
 }
 
-// Show loading overlay for any internal navigation link (only if slow)
+// Show loading overlay for any internal navigation link
 function initNavigationLoading() {
   var navTimer = null;
   document.addEventListener('click', function(e) {
@@ -309,8 +309,7 @@ function initNavigationLoading() {
         link.hasAttribute('download') || link.target === '_blank') return;
     if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
     if (link.closest('form')) return;
-    // Delay overlay — fast navigations won't flash it
-    navTimer = setTimeout(function() { showPageLoading('Loading\u2026'); }, 150);
+    navTimer = setTimeout(function() { showPageLoading('Loading\u2026'); }, 50);
   });
 
   window.addEventListener('pageshow', function() {
@@ -321,6 +320,12 @@ function initNavigationLoading() {
     clearTimeout(navTimer);
   });
 }
+
+// Remove any leftover overlay from a previous navigation (runs immediately)
+(function() {
+  var leftover = document.getElementById('page-loading-overlay');
+  if (leftover) leftover.remove();
+})();
 
 // ── 8. data-confirm → custom modal ───────────────────────────
 function initCustomConfirmTriggers() {
