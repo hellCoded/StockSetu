@@ -207,7 +207,7 @@
     <!-- Table (list) view -->
     <div class="product-view product-view-list">
       <div class="table-responsive">
-        <table class="data-table sortable clickable-rows" id="product-table">
+        <table class="data-table sortable" id="product-table">
           <thead>
             <tr>
               <th data-sort><i class="fa-solid fa-box"></i> Product Name</th>
@@ -226,9 +226,9 @@
               {% for p in products %}
                 <tr {% if not p.is_active %}style="opacity: 0.6;"{% endif %}>
                   <td>
-                    <a href="{{ url_for('products.view_product', product_name=p.product_name) }}" style="font-weight: 600; font-size: 0.92rem; color: var(--color-primary, #0b3d6e);">
+                    <span style="font-weight: 600; font-size: 0.92rem; color: var(--color-primary, #0b3d6e);">
                       {{ p.product_name }}
-                    </a>
+                    </span>
                     {% if not p.is_active %}
                       <span class="badge badge-secondary" style="font-size: 0.62rem; margin-left: 0.4rem; padding: 0.15rem 0.4rem;">INACTIVE</span>
                     {% endif %}
@@ -294,9 +294,11 @@
             {% set pct = (p.quantity | float / capacity * 100) | round %}
             {% if pct < 0 %}{% set pct = 0 %}{% endif %}
             {% if pct > 100 %}{% set pct = 100 %}{% endif %}
-            <a href="{{ url_for('products.view_product', product_name=p.product_name) }}" class="product-card {% if not p.is_active %}is-inactive{% endif %}">
+            <div class="product-card {% if not p.is_active %}is-inactive{% endif %}" tabindex="0" role="region" aria-label="{{ p.product_name }}">
               <div class="product-card-top">
-                <span class="product-card-name">{{ p.product_name }}</span>
+                <span class="product-card-name">
+                  {{ p.product_name }}
+                </span>
                 {% if not p.is_active %}
                   <span class="badge badge-secondary" style="font-size: 0.6rem;">INACTIVE</span>
                 {% endif %}
@@ -326,7 +328,11 @@
                   <span class="product-card-total" style="font-family: 'JetBrains Mono', monospace;">{{ format_currency((p.quantity or 0) * (p.price or 0)) }}</span>
                 </div>
               </div>
-            </a>
+              <div class="product-card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem; padding-top: 0.5rem; border-top: 1px solid var(--color-outline-variant, #e2e8f0);">
+                <span style="font-size: 0.74rem; color: var(--color-on-surface-variant, #64748b);">Min Stock: <strong>{{ min_stock }}</strong> {{ p.unit }}</span>
+                <span style="font-size: 0.74rem; color: var(--color-on-surface-variant, #64748b);">{{ p.location or 'Default Bay' }}</span>
+              </div>
+            </div>
           {% endfor %}
         </div>
       {% else %}
