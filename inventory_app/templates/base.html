@@ -155,7 +155,9 @@
       function showHoverSidebar() {
         if (!body.classList.contains('sidebar-hover-mode')) return;
         clearTimeout(hoverTimer);
-        body.classList.add('sidebar-hover-active');
+        if (!body.classList.contains('sidebar-hover-active')) {
+          body.classList.add('sidebar-hover-active');
+        }
       }
 
       function hideHoverSidebarWithDelay(delayMs) {
@@ -163,7 +165,7 @@
         clearTimeout(hoverTimer);
         hoverTimer = setTimeout(function() {
           body.classList.remove('sidebar-hover-active');
-        }, delayMs || 350);
+        }, delayMs || 280);
       }
 
       if (mqDesktop.matches && sidebar) {
@@ -175,8 +177,8 @@
           if (body.classList.contains('sidebar-hover-mode')) {
             if (e.clientX <= 28) {
               showHoverSidebar();
-            } else if (e.clientX > 270 && body.classList.contains('sidebar-hover-active')) {
-              hideHoverSidebarWithDelay(250);
+            } else if (e.clientX > 275 && body.classList.contains('sidebar-hover-active')) {
+              hideHoverSidebarWithDelay(200);
             }
           }
         });
@@ -189,7 +191,7 @@
 
         sidebar.addEventListener('mouseleave', function() {
           if (body.classList.contains('sidebar-hover-mode')) {
-            hideHoverSidebarWithDelay(350);
+            hideHoverSidebarWithDelay(280);
           }
         });
 
