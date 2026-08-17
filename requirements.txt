@@ -12,3 +12,4 @@ gunicorn>=22.0.0
 flask-limiter>=3.5.0
 redislite>=0.1.4
 upstash-redis>=1.0.0
+rapidfuzz>=3.0.0
