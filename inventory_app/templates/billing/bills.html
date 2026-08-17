@@ -176,11 +176,11 @@
           {# ── Balance Due ── #}
           <td style="text-align: right; padding-top: 0.65rem;">
             {% if bill.payment_status == 'REFUNDED' %}
-              <div style="font-weight: 700; color: #5b21b6; font-size: 0.85rem;">
-                {{ format_currency(paid) }}
+              <div style="font-weight: 700; color: #166534; font-size: 0.85rem;">
+                {{ format_currency(0) }}
               </div>
               <div style="font-size: 0.6rem; color: #5b21b6; font-weight: 600; margin-top: 0.15rem;">
-                refunded
+                <i class="fa-solid fa-rotate-left" style="font-size: 0.55rem;"></i> refunded
               </div>
             {% elif due > 0 %}
               <div style="font-weight: 800; color: #dc2626; font-size: 0.88rem; font-family: var(--font-mono);">
