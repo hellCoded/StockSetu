@@ -4,6 +4,24 @@
 
 {% block content %}
 <div class="bsi-container">
+  <!-- Interactive Spinner Overlay -->
+  <div id="bsi-spinner-overlay" class="bsi-spinner-overlay" aria-hidden="true" style="display:none;">
+    <div class="bsi-spinner-modal">
+      <div class="bsi-spinner-ring-wrap">
+        <div class="bsi-spinner-ring"></div>
+        <div class="bsi-spinner-core-icon">
+          <i class="fa-solid fa-file-invoice" id="bsi-spinner-icon"></i>
+        </div>
+      </div>
+      <h3 class="bsi-spinner-title" id="bsi-spinner-title">Processing Supplier Bill...</h3>
+      <p class="bsi-spinner-subtitle" id="bsi-spinner-sub">Extracting line items and matching inventory</p>
+      
+      <div class="bsi-spinner-progress-bar">
+        <div class="bsi-spinner-progress-fill" id="bsi-spinner-bar"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Stepper Bar -->
   <div class="bsi-stepper-wrap">
     <div class="bsi-steps">
@@ -206,20 +224,39 @@
 
     document.getElementById('upload-form').addEventListener('submit', function(e) {
       if (!fi.files.length) { e.preventDefault(); alert('Please select a file to upload.'); return; }
-      e.preventDefault();
-      var overlay = document.createElement('div');
-      overlay.id = 'bsi-upload-overlay';
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(11,28,48,0.6);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s ease;';
-      overlay.innerHTML = '<div style="background:var(--color-surface,#fff);border-radius:var(--r-xl,20px);padding:2.5rem 3rem;text-align:center;box-shadow:0 25px 50px rgba(11,61,110,0.25);transform:scale(0.95);transition:transform 0.2s ease;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--color-primary,#0b3d6e);margin-bottom:0.75rem;display:block;"></i><strong style="font-size:1rem;color:var(--color-on-surface,#0f172a);display:block;margin-bottom:0.25rem;">Extracting line items...</strong><span style="font-size:0.82rem;color:var(--color-on-surface-variant,#64748b);">This may take a few seconds</span></div>';
-      document.body.appendChild(overlay);
-      // Force paint, then fade in, then submit
-      requestAnimationFrame(function() {
-        overlay.style.opacity = '1';
-        overlay.querySelector('div').style.transform = 'scale(1)';
-        setTimeout(function() {
-          document.getElementById('upload-form').submit();
-        }, 200);
-      });
+      
+      var overlay = document.getElementById('bsi-spinner-overlay');
+      var title = document.getElementById('bsi-spinner-title');
+      var sub = document.getElementById('bsi-spinner-sub');
+      var icon = document.getElementById('bsi-spinner-icon');
+
+      if (overlay) {
+        overlay.style.display = 'flex';
+        requestAnimationFrame(function() {
+          overlay.classList.add('show');
+        });
+
+        if (title) title.textContent = 'Extracting Line Items...';
+        if (sub) sub.textContent = 'Reading supplier invoice and analyzing tables...';
+        if (icon) icon.className = 'fa-solid fa-file-invoice';
+
+        var steps = [
+          { t: 'Extracting Line Items...', s: 'Reading supplier invoice and analyzing tables...', delay: 0 },
+          { t: 'Parsing Item Details...', s: 'Extracting product names, quantities, and GST rates...', delay: 1200 },
+          { t: 'Fuzzy Matching Inventory...', s: 'Comparing bill line items with existing catalog...', delay: 2400 },
+          { t: 'Rendering Review Workspace...', s: 'Almost ready! Building reconciliation view...', delay: 3600 }
+        ];
+
+        steps.forEach(function(step) {
+          setTimeout(function() {
+            if (title) title.textContent = step.t;
+            if (sub) sub.textContent = step.s;
+          }, step.delay);
+        });
+      }
+
+      sb.disabled = true;
+      sb.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Bill...';
     });
   })();
   </script>
@@ -653,6 +690,32 @@
     });
 
     updateSummary();
+
+    // Confirm & Stock In Submit Spinner
+    var mapForm = document.getElementById('map-form');
+    var confirmBtn = document.getElementById('confirm-btn');
+    if (mapForm && confirmBtn) {
+      mapForm.addEventListener('submit', function() {
+        var overlay = document.getElementById('bsi-spinner-overlay');
+        var title = document.getElementById('bsi-spinner-title');
+        var sub = document.getElementById('bsi-spinner-sub');
+        var icon = document.getElementById('bsi-spinner-icon');
+
+        if (overlay) {
+          overlay.style.display = 'flex';
+          requestAnimationFrame(function() {
+            overlay.classList.add('show');
+          });
+
+          if (title) title.textContent = 'Processing Bulk Stock In...';
+          if (sub) sub.textContent = 'Recording stock-in transactions and updating inventory...';
+          if (icon) icon.className = 'fa-solid fa-boxes-stacked';
+        }
+
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Stocking In...';
+      });
+    }
   })();
   </script>
 {% endif %}
@@ -1544,6 +1607,109 @@
       overflow-x: auto;
       width: 100%;
     }
+  }
+
+  /* -------------------------------------------------------------
+     PROGRESSIVE SPINNER OVERLAY COMPONENT
+     ------------------------------------------------------------- */
+  .bsi-spinner-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 28, 48, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .bsi-spinner-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .bsi-spinner-modal {
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-outline-variant, #e2e8f0);
+    border-radius: var(--r-xl, 20px);
+    padding: 2.5rem 2.8rem;
+    text-align: center;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 25px 60px rgba(11, 61, 110, 0.35);
+    transform: scale(0.92);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .bsi-spinner-overlay.show .bsi-spinner-modal {
+    transform: scale(1);
+  }
+  .bsi-spinner-ring-wrap {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bsi-spinner-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3.5px solid rgba(11, 61, 110, 0.12);
+    border-top-color: var(--color-primary, #0b3d6e);
+    border-right-color: var(--color-accent, #e4132b);
+    animation: bsi-spin 0.85s linear infinite;
+  }
+  .bsi-spinner-core-icon {
+    font-size: 1.65rem;
+    color: var(--color-primary, #0b3d6e);
+    animation: bsi-pulse 1.8s ease-in-out infinite;
+  }
+  .bsi-spinner-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-on-surface, #0f172a);
+    margin-bottom: 0.35rem;
+    font-family: var(--font-display, inherit);
+  }
+  .bsi-spinner-subtitle {
+    font-size: 0.85rem;
+    color: var(--color-on-surface-variant, #64748b);
+    margin-bottom: 1.35rem;
+    line-height: 1.4;
+  }
+  .bsi-spinner-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--color-surface-container, #e2e8f0);
+    border-radius: 9999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bsi-spinner-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 40%;
+    background: linear-gradient(90deg, var(--color-primary, #0b3d6e), var(--color-accent, #e4132b));
+    border-radius: 9999px;
+    animation: bsi-indeterminate 1.6s ease-in-out infinite;
+  }
+  @keyframes bsi-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes bsi-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.12); opacity: 1; }
+  }
+  @keyframes bsi-indeterminate {
+    0% { left: -40%; width: 40%; }
+    50% { left: 30%; width: 60%; }
+    100% { left: 100%; width: 40%; }
   }
 </style>
 {% endblock %}
