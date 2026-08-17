@@ -218,11 +218,6 @@ a:hover { color: var(--primary-hover); }
   position: fixed; height: 100vh;
   z-index: 120; overflow-y: auto; overflow-x: hidden;
   transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
 }
 
@@ -248,7 +243,7 @@ a:hover { color: var(--primary-hover); }
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   font-size: 0.75rem;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 .sidebar-pin-btn:hover {
@@ -283,7 +278,7 @@ body:not(.sidebar-hover-mode) .sidebar-pin-btn i {
   display: flex; align-items: center; gap: 0.75rem;
   padding: 0.62rem 0.875rem; border-radius: 10px;
   color: var(--text-sidebar); font-weight: 500; font-size: 0.875rem;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
 }
 .sidebar-link i {
   font-size: 0.92rem; width: 20px; text-align: center; flex-shrink: 0;
@@ -409,9 +404,7 @@ body.sidebar-hidden .main-wrapper {
    ============================================================ */
 .top-navbar {
   height: var(--navbar-height);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(255, 255, 255, 0.95);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 2rem; position: sticky; top: 0; z-index: 90;
@@ -428,15 +421,12 @@ body.sidebar-hidden .main-wrapper {
 
 .user-profile-badge {
   display: flex; align-items: center; gap: 0.6rem;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.85);
   padding: 0.35rem 0.75rem 0.35rem 0.45rem;
   border-radius: var(--r-full); 
   border: 1px solid rgba(255, 255, 255, 0.5);
-  transition: all 0.3s var(--ease); 
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease); 
   cursor: pointer;
-  transform-style: preserve-3d;
   box-shadow: 
     0 2px 4px rgba(11, 61, 110, 0.08),
     0 4px 8px rgba(11, 61, 110, 0.04);
@@ -475,9 +465,8 @@ body.sidebar-hidden .main-wrapper {
     0 2px 4px rgba(11, 61, 110, 0.04),
     0 4px 8px rgba(11, 61, 110, 0.04);
   margin-bottom: 1.5rem;
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
+  transition: box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
   position: relative;
-  transform-style: preserve-3d;
 }
 .card::before {
   content: '';
@@ -489,11 +478,9 @@ body.sidebar-hidden .main-wrapper {
   z-index: 1;
 }
 .card:hover {
-  transform: translateY(-4px) translateZ(8px);
   box-shadow: 
     0 8px 16px rgba(11, 61, 110, 0.08),
-    0 16px 32px rgba(11, 61, 110, 0.06),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    0 16px 32px rgba(11, 61, 110, 0.06);
   border-color: var(--color-primary-light);
 }
 
@@ -538,9 +525,7 @@ body.sidebar-hidden .main-wrapper {
   position: relative; overflow: hidden; 
   border-left: 4px solid transparent; 
   cursor: pointer; user-select: none;
-  transform-style: preserve-3d;
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease), border-left-width 0.15s ease;
-  animation: kpiEntrance 0.5s var(--ease-spring) both;
+  transition: box-shadow 0.3s var(--ease), border-color 0.3s var(--ease), border-left-width 0.15s ease;
   box-shadow: 
     0 2px 4px rgba(11, 61, 110, 0.04),
     0 4px 8px rgba(11, 61, 110, 0.04);
@@ -580,29 +565,13 @@ body.sidebar-hidden .main-wrapper {
     0 8px 16px rgba(11, 61, 110, 0.06);
 }
 .kpi-card:nth-child(1) { animation-delay: 0.05s; }
-.kpi-card:nth-child(2) { animation-delay: 0.12s; }
-.kpi-card:nth-child(3) { animation-delay: 0.19s; }
-.kpi-card:nth-child(4) { animation-delay: 0.26s; }
-.kpi-card:nth-child(5) { animation-delay: 0.33s; }
-@keyframes kpiEntrance { 
-  from { 
-    opacity:0; 
-    transform:translateY(24px) translateZ(-20px) rotateX(5deg) scale(0.95); 
-  } 
-  to { 
-    opacity:1; 
-    transform:translateY(0) translateZ(0) rotateX(0) scale(1); 
-  } 
-}
-
-.kpi-icon { font-size: 1.5rem; flex-shrink: 0; opacity: 0.9; transition: transform 0.3s var(--ease-spring); transform-style: preserve-3d; }
-.kpi-card:hover .kpi-icon { transform: scale(1.2) rotateY(15deg) translateZ(8px); opacity: 1; }
+.kpi-icon { font-size: 1.5rem; flex-shrink: 0; opacity: 0.9; transition: transform 0.3s var(--ease-spring); }
+.kpi-card:hover .kpi-icon { transform: scale(1.2); opacity: 1; }
 .kpi-products       { border-left-color: var(--color-primary); } .kpi-products .kpi-icon       { color: var(--color-primary); }
 .kpi-quantity       { border-left-color: var(--color-primary-fixed-dim); } .kpi-quantity .kpi-icon       { color: var(--color-primary); }
 .kpi-lowstock       { border-left-color: var(--color-warning); } .kpi-lowstock .kpi-icon       { color: var(--color-warning); }
 .kpi-outofstock     { border-left-color: var(--color-accent); } .kpi-outofstock .kpi-icon     { color: var(--color-accent); }
-.kpi-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: var(--color-on-surface); line-height: 1.2; letter-spacing: -0.02em; transition: transform 0.3s var(--ease); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kpi-card:hover .kpi-value { transform: translateZ(6px) scale(1.03); }
+.kpi-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: var(--color-on-surface); line-height: 1.2; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kpi-label { font-size: 0.75rem; font-weight: 600; color: var(--color-on-surface-variant); margin-top: 0.25rem; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); }
 
 /* ============================================================
@@ -644,9 +613,8 @@ body.sidebar-hidden .main-wrapper {
   gap: 0.5rem; padding: 0.625rem 1.25rem; 
   border-radius: var(--r-sm); font-family: var(--font-ui); 
   font-weight: 600; font-size: 0.875rem; border: none; cursor: pointer; 
-  transition: all 0.2s var(--ease); text-decoration: none !important; 
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease); text-decoration: none !important; 
   line-height: 1; white-space: nowrap;
-  transform-style: preserve-3d;
   position: relative;
 }
 .btn::after {
@@ -661,7 +629,7 @@ body.sidebar-hidden .main-wrapper {
   filter: blur(6px);
   opacity: 0.4;
   z-index: -1;
-  transition: all 0.2s var(--ease);
+  transition: opacity 0.2s var(--ease);
 }
 .btn-primary { 
   background: var(--color-accent); color: #fff; 
@@ -757,9 +725,7 @@ body.sidebar-hidden .main-wrapper {
 .filter-bar { 
   display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; 
   margin-bottom: 1.5rem; 
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(255, 255, 255, 0.95);
   padding: 1rem 1.25rem; 
   border-radius: var(--r-lg); 
   border: 1px solid rgba(255, 255, 255, 0.4);
@@ -866,9 +832,7 @@ body.sidebar-hidden .main-wrapper {
 }
 .auth-card { 
   width: 100%; max-width: 420px; 
-  background: rgba(255, 255, 255, 0.85); 
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.95); 
   border: 1px solid rgba(255, 255, 255, 0.5); 
   border-radius: var(--r-xl); padding: 2.5rem; 
   box-shadow: 
@@ -904,13 +868,10 @@ body.sidebar-hidden .main-wrapper {
 .pos-product-card { 
   border: 1.5px solid var(--color-outline-variant); 
   border-radius: var(--r-lg); padding: 0.875rem; 
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: all 0.3s var(--ease); 
+  background: rgba(255, 255, 255, 0.95);
+  transition: box-shadow 0.3s var(--ease), border-color 0.3s var(--ease); 
   display: flex; flex-direction: column; gap: 0.35rem; 
   cursor: pointer;
-  transform-style: preserve-3d;
   box-shadow: 
     0 2px 4px rgba(11, 61, 110, 0.04),
     0 4px 8px rgba(11, 61, 110, 0.04);
@@ -1674,9 +1635,7 @@ body.sidebar-hidden .main-wrapper {
 
 /* ── Glassmorphism ── */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 
     0 8px 32px rgba(11, 61, 110, 0.1),
@@ -1921,21 +1880,17 @@ body.sidebar-hidden .main-wrapper {
   z-index: 1;
 }
 
-/* ── Navbar Glass Effect ── */
+/* ── Navbar Solid (backdrop-filter removed for GPU perf) ── */
 .top-navbar {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background: rgba(255, 255, 255, 0.95);
 }
 [data-theme="dark"] .top-navbar {
   background: rgba(30, 41, 59, 0.85);
 }
 
-/* ── Sidebar Glass Effect ── */
+/* ── Sidebar Solid (backdrop-filter removed for GPU perf) ── */
 .sidebar {
-  background: rgba(11, 61, 110, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(11, 61, 110, 0.98);
 }
 
 /* ── Auth Card 3D ── */
