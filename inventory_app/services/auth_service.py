@@ -35,6 +35,7 @@ def register_user(username: str, email: str, password: str, role: str = "staff",
         "password_hash": generate_password_hash(password),
         "role": assigned_role,
         "is_active": True,
+        "last_active_at": now,
         "created_at": now,
         "updated_at": now
     }
@@ -48,26 +49,17 @@ def register_user(username: str, email: str, password: str, role: str = "staff",
 
 def set_user_active_status(user_id: str, is_active: bool):
     """Sets user is_active boolean state in database."""
-    uid_str = str(user_id) if user_id else ""
-    if not uid_str or not ObjectId.is_valid(uid_str):
-        return
     db = get_db()
     try:
-        now = datetime.now(timezone.utc)
-        update_doc = {"is_active": is_active, "updated_at": now}
-        if is_active:
-            update_doc["last_active_at"] = now
-        else:
-            update_doc["last_offline_at"] = now
         db.users.update_one(
-            {"_id": ObjectId(uid_str)},
-            {"$set": update_doc}
+            {"_id": ObjectId(user_id)},
+            {"$set": {"is_active": is_active, "updated_at": datetime.now(timezone.utc)}}
         )
     except Exception as e:
         logger.error(f"Failed to set user active status: {e}")
 
-def record_user_heartbeat(user_id: str):
-    """Updates user last_active_at and ensures is_active is True."""
+def record_user_activity(user_id: str):
+    """Updates the last_active_at timestamp for a user and marks them active."""
     uid_str = str(user_id) if user_id else ""
     if not uid_str or not ObjectId.is_valid(uid_str):
         return
@@ -76,34 +68,36 @@ def record_user_heartbeat(user_id: str):
         now = datetime.now(timezone.utc)
         db.users.update_one(
             {"_id": ObjectId(uid_str)},
-            {"$set": {"is_active": True, "last_active_at": now, "updated_at": now}}
+            {"$set": {"last_active_at": now, "updated_at": now}}
         )
     except Exception as e:
-        logger.error(f"Failed to record user heartbeat: {e}")
+        logger.error(f"Failed to record user activity: {e}")
 
-def cleanup_stale_active_users(stale_threshold_seconds: int = 180):
-    """Marks users as inactive (offline) if they haven't sent a heartbeat/request recently."""
+def deactivate_inactive_users(inactivity_hours: float = 12.0) -> int:
+    """
+    Finds all active users who have been inactive/offline for more than `inactivity_hours`
+    and marks them as inactive (is_active = False).
+    Returns count of users deactivated.
+    """
+    from datetime import timedelta
     db = get_db()
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=inactivity_hours)
     try:
-        from datetime import timedelta
-        cutoff = datetime.now(timezone.utc) - timedelta(seconds=stale_threshold_seconds)
-        db.users.update_many(
+        result = db.users.update_many(
             {
                 "is_active": True,
                 "$or": [
                     {"last_active_at": {"$lt": cutoff}},
-                    {"last_active_at": {"$exists": False}}
+                    {"last_active_at": {"$exists": False}, "updated_at": {"$lt": cutoff}},
+                    {"last_active_at": {"$exists": False}, "updated_at": {"$exists": False}, "created_at": {"$lt": cutoff}}
                 ]
             },
-            {
-                "$set": {
-                    "is_active": False,
-                    "updated_at": datetime.now(timezone.utc)
-                }
-            }
+            {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
         )
+        return result.modified_count
     except Exception as e:
-        logger.error(f"Failed to cleanup stale active users: {e}")
+        logger.error(f"Failed to deactivate inactive users: {e}")
+        return 0
 
 def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
     """Authenticates user by username or email."""
@@ -135,7 +129,6 @@ def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
 
 def get_all_users():
     """Retrieves all users for admin management."""
-    cleanup_stale_active_users()
     db = get_db()
     users = list(db.users.find().sort("created_at", -1))
     for u in users:

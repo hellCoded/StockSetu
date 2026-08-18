@@ -17,25 +17,20 @@ def login():
     if 'registered_user' in session:
         prefilled_identifier = session['registered_user'].get('username', '')
         
-    if request.method == 'GET':
-        reason = request.args.get('reason')
-        if reason == 'offline':
-            flash("You were logged out because your device went offline.", "warning")
-        elif reason == 'leave':
-            flash("Your session was closed because you left the application.", "info")
-        elif reason == 'inactive':
-            flash("You were logged out due to inactivity.", "info")
-            
     if request.method == 'POST':
         identifier = request.form.get('identifier', '').strip()
         password = request.form.get('password', '')
         
         success, msg, user = authenticate_user(identifier, password)
         if success:
+            session.permanent = True
+            now_ts = datetime.now(timezone.utc).timestamp()
             session['user_id'] = user['_id']
             session['username'] = user['username']
             session['email'] = user['email']
             session['role'] = user['role']
+            session['last_active_at'] = now_ts
+            session['last_db_active_sync'] = now_ts
             flash(f"Welcome back, {user['username']}!", "success")
             
             next_url = request.args.get('next')
@@ -95,49 +90,11 @@ def register():
             
     return render_template('auth/register.html')
 
-@auth_bp.route('/logout', methods=['GET', 'POST'])
+@auth_bp.route('/logout')
 def logout():
-    user_id = session.get('user_id')
-    if user_id:
-        from inventory_app.services.auth_service import set_user_active_status
-        set_user_active_status(user_id, False)
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for('auth.login'))
-
-@auth_bp.route('/api/auth/leave', methods=['POST'])
-def handle_leave():
-    """Called via navigator.sendBeacon or fetch when the user leaves the application / closes tab."""
-    user_id = session.get('user_id')
-    if user_id:
-        from inventory_app.services.auth_service import set_user_active_status
-        set_user_active_status(user_id, False)
-    session.clear()
-    return {"success": True, "message": "User marked inactive and logged out on leaving app."}, 200
-
-@auth_bp.route('/api/auth/offline', methods=['POST'])
-def handle_offline():
-    """Called when client network goes offline."""
-    user_id = session.get('user_id')
-    if user_id:
-        from inventory_app.services.auth_service import set_user_active_status
-        set_user_active_status(user_id, False)
-    session.clear()
-    return {"success": True, "message": "User marked inactive and logged out due to offline state."}, 200
-
-@auth_bp.route('/api/auth/heartbeat', methods=['POST'])
-def handle_heartbeat():
-    """Keeps user active status refreshed while app is open and in use."""
-    user_id = session.get('user_id')
-    if not user_id:
-        return {"success": False, "logged_in": False}, 401
-    from inventory_app.services.auth_service import get_user_by_id, record_user_heartbeat
-    user = get_user_by_id(user_id)
-    if not user or not user.get('is_active', True):
-        session.clear()
-        return {"success": False, "logged_in": False}, 401
-    record_user_heartbeat(user_id)
-    return {"success": True, "logged_in": True}, 200
 
 @auth_bp.route('/reset-admin')
 def reset_admin():

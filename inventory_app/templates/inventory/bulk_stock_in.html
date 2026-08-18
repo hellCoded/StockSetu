@@ -124,161 +124,214 @@
   box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
 
-/* ── Modern Dropzone ── */
-.bsi-dropzone {
-  border: 2px dashed var(--color-primary-light, #bae6fd);
-  background: var(--color-surface-container, #f8fafc);
-  border-radius: var(--r-lg, 12px);
+/* ── Premium File Drop & Upload UI ── */
+.bsi-drop-container {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px dashed #cbd5e1;
+  border-radius: var(--r-xl, 14px);
   padding: 2.25rem 1.5rem;
   text-align: center;
   cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  outline: none;
+}
+.bsi-drop-container:hover {
+  border-color: #0284c7;
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.1);
+  transform: translateY(-1px);
+}
+.bsi-drop-container.drag-over {
+  border-color: #0284c7;
+  border-style: solid;
+  background: #e0f2fe;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.18), 0 8px 24px rgba(2, 132, 199, 0.15);
+  transform: scale(1.01);
+}
+.bsi-drop-container:focus-visible {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25);
+}
+
+.bsi-drop-idle {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.85rem;
+  gap: 0.9rem;
 }
-.bsi-dropzone:hover,
-.bsi-dropzone.drag-over {
-  border-color: var(--color-primary, #0284c7);
-  background: rgba(2, 132, 199, 0.04);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.12);
-}
-.bsi-dropzone input[type="file"] {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  z-index: 5;
-}
-#bsi-idle-view, #bsi-idle-view * {
-  pointer-events: none;
-}
-.bsi-drop-circle {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(14, 165, 233, 0.2));
-  color: var(--color-primary, #0284c7);
+.bsi-drop-icon-bubble {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
-  transition: transform 0.2s;
+  font-size: 1.6rem;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.3);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.bsi-dropzone:hover .bsi-drop-circle {
-  transform: scale(1.08);
+.bsi-drop-container:hover .bsi-drop-icon-bubble {
+  transform: scale(1.08) translateY(-2px);
 }
-.bsi-drop-text h3 {
+.bsi-drop-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.bsi-drop-heading {
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: #0f172a;
   margin: 0;
-  color: var(--color-on-surface, #0f172a);
+  letter-spacing: -0.01em;
 }
-.bsi-drop-text p {
-  font-size: 0.8rem;
-  color: var(--color-on-surface-variant, #64748b);
-  margin: 0.25rem 0 0;
+.bsi-drop-subtext {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0;
 }
-.bsi-drop-text span.browse-link {
-  color: var(--color-primary, #0284c7);
+.bsi-link-text {
+  color: #0284c7;
   font-weight: 700;
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
-.bsi-format-tags {
+.bsi-format-chips {
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.4rem;
   flex-wrap: wrap;
-  justify-content: center;
+  margin-top: 0.25rem;
 }
-.bsi-format-tag {
+.bsi-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--r-xs, 4px);
-  font-size: 0.68rem;
+  gap: 0.35rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-outline-variant, #cbd5e1);
-  color: var(--color-on-surface-variant, #475569);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
-.bsi-format-tag.pdf { color: #e11d48; border-color: #fecdd3; background: #fff1f2; }
-.bsi-format-tag.excel { color: #059669; border-color: #a7f3d0; background: #ecfdf5; }
-.bsi-format-tag.ai { color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; }
+.bsi-chip.pdf { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+.bsi-chip.xls { color: #059669; border-color: #a7f3d0; background: #ecfdf5; }
+.bsi-chip.csv { color: #0284c7; border-color: #bae6fd; background: #f0f9ff; }
+.bsi-chip.size { color: #64748b; border-color: #e2e8f0; background: #f8fafc; }
 
-/* Selected File Preview Box */
-.bsi-file-preview {
-  display: none;
-  width: 100%;
-  background: var(--color-surface, #ffffff);
-  border: 1.5px solid var(--color-primary, #0284c7);
-  border-radius: var(--r-md, 8px);
-  padding: 0.85rem 1rem;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
-  position: relative;
-  z-index: 6;
-}
-.bsi-file-preview.show { display: flex; }
-.bsi-file-info {
+/* Selected Card */
+.bsi-file-selected-card {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #ffffff;
+  border: 1.5px solid #0284c7;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);
+  text-align: left;
+  animation: bsi-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.bsi-file-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: rgba(2, 132, 199, 0.1);
-  color: var(--color-primary, #0284c7);
+@keyframes bsi-pop {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.bsi-selected-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+  flex: 1;
+}
+.bsi-selected-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #f0f9ff;
+  color: #0284c7;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   flex-shrink: 0;
 }
-.bsi-file-meta {
+.bsi-selected-details {
   min-width: 0;
+  flex: 1;
 }
-.bsi-file-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-on-surface, #0f172a);
+.bsi-selected-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.bsi-selected-filename {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0;
+  max-width: 260px;
 }
-.bsi-file-sub {
-  font-size: 0.72rem;
-  color: var(--color-on-surface-variant, #64748b);
-  margin: 0.1rem 0 0;
+.bsi-ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
-.bsi-file-remove {
-  background: transparent;
-  border: none;
-  color: var(--color-on-surface-variant, #94a3b8);
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+.bsi-selected-meta {
+  font-size: 0.76rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.bsi-dot-sep {
+  color: #cbd5e1;
+}
+.bsi-action-hint {
+  color: #0284c7;
+  font-weight: 600;
+}
+.bsi-remove-file-btn {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  font-size: 0.95rem;
 }
-.bsi-file-remove:hover {
-  background: #fee2e2;
-  color: #dc2626;
+.bsi-remove-file-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  transform: scale(1.05);
 }
 
 .bsi-submit-wrap {
@@ -812,19 +865,33 @@
   color: rgba(255, 255, 255, 0.75);
 }
 .bsi-dock-reason {
-  min-width: 200px;
-  max-width: 280px;
+  min-width: 220px;
+  max-width: 320px;
+  flex: 0 1 auto;
 }
-.bsi-dock-reason input {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #ffffff !important;
-  height: 32px;
-  font-size: 0.74rem !important;
-  border-radius: var(--r-sm, 6px);
+.bsi-dock-reason input,
+.bsi-dock-reason .form-control {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  height: 38px !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  padding: 0.4rem 0.75rem !important;
+  border-radius: var(--r-md, 8px) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
-.bsi-dock-reason input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+.bsi-dock-reason input::placeholder,
+.bsi-dock-reason .form-control::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+.bsi-dock-reason input:focus,
+.bsi-dock-reason .form-control:focus {
+  background: #ffffff !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.4) !important;
+  outline: none !important;
 }
 .bsi-dock-actions {
   display: flex;
@@ -940,42 +1007,51 @@
        STEP 1: UPLOAD BILL SCREEN
        ========================================== -->
   <div class="bsi-upload-grid">
-    <!-- Left: Dropzone Upload Form -->
+    <!-- Left: Direct File Upload & Drop Form -->
     <div class="bsi-card">
       <form method="POST" action="{{ url_for('inventory.bulk_stock_in') }}" enctype="multipart/form-data" id="bsi-upload-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-        <div class="bsi-dropzone" id="bsi-dropzone">
-          <input type="file" name="bill_file" id="bsi-file-input" accept=".pdf,.xlsx,.xls,.csv" aria-label="Upload supplier invoice">
+        <div class="bsi-drop-container" id="bsi-drop-area" role="button" tabindex="0">
+          <input type="file" name="bill_file" id="bsi-file-input" accept=".pdf,.xlsx,.xls,.csv" style="display:none;" required>
           
-          <div id="bsi-idle-view" style="display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
-            <div class="bsi-drop-circle">
+          <!-- Idle View -->
+          <div id="bsi-idle-view" class="bsi-drop-idle">
+            <div class="bsi-drop-icon-bubble">
               <i class="fa-solid fa-cloud-arrow-up"></i>
             </div>
-            <div class="bsi-drop-text">
-              <h3>Drop supplier invoice or purchase bill here</h3>
-              <p>or <span class="browse-link">browse files on your device</span></p>
+            <div class="bsi-drop-content">
+              <h3 class="bsi-drop-heading">Select your supplier invoice</h3>
+              <p class="bsi-drop-subtext">Click here to <span class="bsi-link-text">browse and select files from your device</span></p>
             </div>
-            <div class="bsi-format-tags">
-              <span class="bsi-format-tag pdf"><i class="fa-solid fa-file-pdf"></i> PDF Invoice</span>
-              <span class="bsi-format-tag excel"><i class="fa-solid fa-file-excel"></i> Excel (XLSX, XLS)</span>
-              <span class="bsi-format-tag"><i class="fa-solid fa-file-csv"></i> CSV Sheet</span>
-              <span class="bsi-format-tag ai"><i class="fa-solid fa-wand-magic-sparkles"></i> AI OCR</span>
+            <div class="bsi-format-chips">
+              <span class="bsi-chip pdf"><i class="fa-solid fa-file-pdf"></i> PDF</span>
+              <span class="bsi-chip xls"><i class="fa-solid fa-file-excel"></i> Excel</span>
+              <span class="bsi-chip csv"><i class="fa-solid fa-file-csv"></i> CSV</span>
+              <span class="bsi-chip size"><i class="fa-solid fa-hard-drive"></i> Max 16MB</span>
             </div>
           </div>
 
-          <div class="bsi-file-preview" id="bsi-file-preview">
-            <div class="bsi-file-info">
-              <div class="bsi-file-icon" id="bsi-file-icon">
+          <!-- Selected File Card -->
+          <div id="bsi-file-summary" class="bsi-file-selected-card" style="display:none;">
+            <div class="bsi-selected-left">
+              <div class="bsi-selected-icon" id="bsi-selected-icon">
                 <i class="fa-solid fa-file-lines"></i>
               </div>
-              <div class="bsi-file-meta">
-                <h4 class="bsi-file-name" id="bsi-file-name">invoice.pdf</h4>
-                <p class="bsi-file-sub" id="bsi-file-size">1.2 MB &middot; Ready for extraction</p>
+              <div class="bsi-selected-details">
+                <div class="bsi-selected-title-row">
+                  <h4 id="bsi-summary-name" class="bsi-selected-filename">invoice.pdf</h4>
+                  <span class="bsi-ready-badge"><i class="fa-solid fa-circle-check"></i> Ready</span>
+                </div>
+                <div class="bsi-selected-meta">
+                  <span id="bsi-summary-size">1.2 MB</span>
+                  <span class="bsi-dot-sep">&middot;</span>
+                  <span class="bsi-action-hint">Click to replace file</span>
+                </div>
               </div>
             </div>
-            <button type="button" class="bsi-file-remove" id="bsi-remove-btn" title="Choose another file">
-              <i class="fa-solid fa-xmark"></i>
+            <button type="button" class="bsi-remove-file-btn" id="bsi-clear-btn" title="Remove file">
+              <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
         </div>
@@ -1024,13 +1100,13 @@
   <script>
   (function() {
     var fi = document.getElementById('bsi-file-input');
-    var dz = document.getElementById('bsi-dropzone');
-    var idle = document.getElementById('bsi-idle-view');
-    var preview = document.getElementById('bsi-file-preview');
-    var fname = document.getElementById('bsi-file-name');
-    var fsize = document.getElementById('bsi-file-size');
-    var ficon = document.getElementById('bsi-file-icon');
-    var removeBtn = document.getElementById('bsi-remove-btn');
+    var dropArea = document.getElementById('bsi-drop-area');
+    var idleView = document.getElementById('bsi-idle-view');
+    var summary = document.getElementById('bsi-file-summary');
+    var sName = document.getElementById('bsi-summary-name');
+    var sSize = document.getElementById('bsi-summary-size');
+    var sIcon = document.getElementById('bsi-selected-icon');
+    var clearBtn = document.getElementById('bsi-clear-btn');
     var submitBtn = document.getElementById('bsi-upload-submit');
     var form = document.getElementById('bsi-upload-form');
 
@@ -1042,106 +1118,155 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
-    function showFile(file) {
-      if (!file) return;
-      fname.textContent = file.name;
-      fsize.textContent = formatSize(file.size) + ' · Ready for extraction';
+    function updateFileDisplay(file) {
+      if (!file) {
+        if (summary) summary.style.display = 'none';
+        if (idleView) idleView.style.display = 'flex';
+        submitBtn.disabled = true;
+        return;
+      }
+      sName.textContent = file.name;
+      sSize.textContent = formatSize(file.size);
       
       var ext = file.name.split('.').pop().toLowerCase();
-      if (ext === 'pdf') {
-        ficon.innerHTML = '<i class="fa-solid fa-file-pdf" style="color:#e11d48;"></i>';
-      } else if (ext === 'xlsx' || ext === 'xls') {
-        ficon.innerHTML = '<i class="fa-solid fa-file-excel" style="color:#059669;"></i>';
-      } else {
-        ficon.innerHTML = '<i class="fa-solid fa-file-lines" style="color:#0284c7;"></i>';
+      if (sIcon) {
+        if (ext === 'pdf') {
+          sIcon.innerHTML = '<i class="fa-solid fa-file-pdf" style="color:#dc2626;"></i>';
+          sIcon.style.background = '#fef2f2';
+        } else if (ext === 'xlsx' || ext === 'xls') {
+          sIcon.innerHTML = '<i class="fa-solid fa-file-excel" style="color:#059669;"></i>';
+          sIcon.style.background = '#ecfdf5';
+        } else {
+          sIcon.innerHTML = '<i class="fa-solid fa-file-csv" style="color:#0284c7;"></i>';
+          sIcon.style.background = '#f0f9ff';
+        }
       }
 
-      idle.style.display = 'none';
-      preview.classList.add('show');
+      if (idleView) idleView.style.display = 'none';
+      if (summary) summary.style.display = 'flex';
       submitBtn.disabled = false;
     }
 
     function clearFile() {
       fi.value = '';
-      preview.classList.remove('show');
-      idle.style.display = 'flex';
-      submitBtn.disabled = true;
+      try {
+        if (window.DataTransfer) {
+          fi.files = new DataTransfer().files;
+        }
+      } catch (e) {}
+      updateFileDisplay(null);
     }
 
     function handleFiles(files) {
       if (!files || !files.length) return;
       var file = files[0];
+      
+      var allowedExts = ['pdf', 'xlsx', 'xls', 'csv'];
+      var ext = file.name.split('.').pop().toLowerCase();
+      if (allowedExts.indexOf(ext) === -1) {
+        alert('Unsupported file format (.' + ext + '). Please select a PDF, Excel (.xlsx, .xls), or CSV file.');
+        clearFile();
+        return;
+      }
+
+      if (file.size > 16 * 1024 * 1024) {
+        alert('File size exceeds the 16MB limit. Please select a smaller file.');
+        clearFile();
+        return;
+      }
+
       try {
         if (window.DataTransfer) {
           var dt = new DataTransfer();
-          for (var i = 0; i < files.length; i++) {
-            dt.items.add(files[i]);
-          }
+          dt.items.add(file);
           fi.files = dt.files;
-        } else {
-          fi.files = files;
         }
-      } catch (err) {
-        try {
-          fi.files = files;
-        } catch (e) {}
-      }
-      showFile(file);
+      } catch (err) {}
+      updateFileDisplay(file);
+    }
+
+    // Click on drop area to open file dialog
+    if (dropArea) {
+      dropArea.addEventListener('click', function(e) {
+        if (e.target && (e.target.closest('#bsi-clear-btn') || e.target.id === 'bsi-clear-btn')) {
+          return;
+        }
+        fi.click();
+      });
+
+      dropArea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          fi.click();
+        }
+      });
     }
 
     fi.addEventListener('change', function() {
       if (fi.files && fi.files.length) {
-        showFile(fi.files[0]);
+        handleFiles(fi.files);
+      } else {
+        updateFileDisplay(null);
       }
     });
 
-    removeBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      clearFile();
-    });
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        clearFile();
+      });
+    }
 
-    // Prevent default drag-drop across window
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(ev) {
-      window.addEventListener(ev, function(e) {
-        if (e.target !== dz && e.target !== fi) {
+    // Drop files directly onto the upload area
+    if (dropArea) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(ev) {
+        window.addEventListener(ev, function(e) {
           e.preventDefault();
-        }
-      }, false);
-    });
-
-    // Drag-drop directly on dropzone and file input
-    [dz, fi].forEach(function(el) {
-      ['dragenter', 'dragover'].forEach(function(ev) {
-        el.addEventListener(ev, function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          dz.classList.add('drag-over');
         }, false);
       });
 
-      ['dragleave', 'dragend'].forEach(function(ev) {
-        el.addEventListener(ev, function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          dz.classList.remove('drag-over');
-        }, false);
-      });
-
-      el.addEventListener('drop', function(e) {
+      var dragCounter = 0;
+      dropArea.addEventListener('dragenter', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        dz.classList.remove('drag-over');
+        dragCounter++;
+        dropArea.classList.add('drag-over');
+      });
+
+      dropArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        dropArea.classList.add('drag-over');
+      });
+
+      dropArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter--;
+        if (dragCounter <= 0) {
+          dragCounter = 0;
+          dropArea.classList.remove('drag-over');
+        }
+      });
+
+      dropArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter = 0;
+        dropArea.classList.remove('drag-over');
         var dt = e.dataTransfer;
         if (dt && dt.files && dt.files.length) {
           handleFiles(dt.files);
         }
-      }, false);
-    });
+      });
+    }
 
     form.addEventListener('submit', function(e) {
       if (!fi.files || !fi.files.length) {
         e.preventDefault();
+        alert('Please select an invoice file first.');
         return;
       }
       var overlay = document.getElementById('bsi-overlay');

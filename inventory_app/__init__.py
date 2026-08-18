@@ -1,7 +1,8 @@
 import os
 import json
 import logging
-from flask import Flask, render_template, session, request
+from datetime import datetime, timezone
+from flask import Flask, render_template, session, request, redirect, url_for, flash
 from config import Config
 from inventory_app.database import init_db
 from inventory_app.utils.validators import generate_csrf_token
@@ -113,6 +114,66 @@ def create_app(config_class=Config, custom_mongo_client=None):
 
     # Initialize Database Connection
     init_db(app, custom_client=custom_mongo_client)
+
+    # ── Enforce 12-hour offline/inactivity timeout, auto-deactivation, and logout ──
+    @app.before_request
+    def check_user_session_and_activity():
+        path = request.path
+        if path.startswith('/static') or path in ('/health',):
+            return None
+
+        # Periodically sweep offline users (inactive for > 12 hours) and mark them inactive
+        last_sweep = cache_get("auth:last_inactive_sweep")
+        if not last_sweep:
+            try:
+                from inventory_app.services.auth_service import deactivate_inactive_users
+                deactivate_inactive_users(inactivity_hours=12.0)
+                cache_set("auth:last_inactive_sweep", "1", ttl=300)
+            except Exception:
+                pass
+
+        user_id = session.get('user_id')
+        if not user_id:
+            return None
+
+        now = datetime.now(timezone.utc)
+        now_ts = now.timestamp()
+
+        # Check session inactivity (12 hours = 43200 seconds)
+        last_active_ts = session.get('last_active_at')
+        if last_active_ts:
+            try:
+                if (now_ts - float(last_active_ts)) > 43200:
+                    from inventory_app.services.auth_service import set_user_active_status
+                    set_user_active_status(user_id, False)
+                    session.clear()
+                    flash("You have been logged out due to 12 hours of inactivity, and your account has been set to inactive.", "warning")
+                    return redirect(url_for('auth.login'))
+            except (ValueError, TypeError):
+                pass
+
+        # Check if user has been deactivated in the database
+        from inventory_app.services.auth_service import get_user_by_id, record_user_activity
+        user = get_user_by_id(user_id)
+        if not user or not user.get('is_active', True):
+            session.clear()
+            flash("Your account has been deactivated. Please contact an administrator.", "danger")
+            return redirect(url_for('auth.login'))
+
+        # Update session activity timestamp
+        session['last_active_at'] = now_ts
+
+        # Throttle DB sync of last_active_at (once every 2 minutes)
+        last_db_sync = session.get('last_db_active_sync', 0)
+        try:
+            if (now_ts - float(last_db_sync)) > 120:
+                record_user_activity(user_id)
+                session['last_db_active_sync'] = now_ts
+        except (ValueError, TypeError):
+            record_user_activity(user_id)
+            session['last_db_active_sync'] = now_ts
+
+        return None
 
     # ── Cache-Control headers for static assets and pages ──
     STATIC_NO_CACHE = {'/health'}
