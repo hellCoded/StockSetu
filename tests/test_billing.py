@@ -1,5 +1,6 @@
 import pytest
 from datetime import datetime, timezone
+from inventory_app.services.billing_service import get_reconciliation_report
 
 def _seed_product(db, name="Steel Rod", price="500.00", gst="18", hsn="7214"):
     db.products.insert_one({
@@ -51,6 +52,7 @@ def test_bill_creation_deducts_stock_and_computes_gst(staff_client, mock_mongo):
     tx = db.inventory_transactions.find_one({"transaction_type": "BILL_SALE"})
     assert tx is not None
     assert tx["quantity"] == 2.0
+    assert tx.get("bill_number") == bill["bill_number"]
 
 def test_invoice_numbers_are_sequential(staff_client, mock_mongo):
     db = mock_mongo['inventory_test_db']
@@ -291,3 +293,59 @@ def test_reject_payment_on_already_paid_bill(staff_client, mock_mongo):
     assert resp.status_code == 200
     updated = db.invoices.find_one({"_id": __import__("bson").ObjectId(bill_id)})
     assert updated["payment_status"] == "PAID"
+
+
+def test_reconciliation_no_false_missing_sale_tx(staff_client, mock_mongo):
+    """A bill created through the normal flow must not be flagged as
+    MISSING_SALE_TX — its BILL_SALE transactions now carry bill_number."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Recon Bar")
+    bill_id = _create_bill(db, staff_client, "Recon Customer")
+
+    bill = db.invoices.find_one({"_id": __import__("bson").ObjectId(bill_id)})
+    assert bill is not None
+
+    anomalies = get_reconciliation_report()
+    relevant = [
+        a for a in anomalies
+        if a.get("type") == "MISSING_SALE_TX" and a.get("bill_number") == bill["bill_number"]
+    ]
+    assert relevant == []
+
+
+def test_reconciliation_detects_missing_sale_tx(app):
+    """A bill line with no matching BILL_SALE transaction must be flagged.
+    Depends on the app fixture so the global cache is flushed and get_db()
+    resolves to the fresh test database."""
+    from inventory_app.database import get_db
+    db = get_db()
+    now = datetime.now(timezone.utc)
+    db.invoices.insert_one({
+        "bill_number": "INV/MANUAL/1",
+        "customer_name": "Manual",
+        "line_items": [{
+            "product_name": "Ghost Item",
+            "quantity": 1.0,
+            "unit_price": 100.0,
+            "line_discount_amount": 0.0,
+            "taxable": 100.0,
+            "gst_amount": 18.0,
+            "line_total": 118.0,
+            "is_free": False,
+            "refund_quantity": 0.0,
+        }],
+        "subtotal": 100.0,
+        "grand_total": 118.0,
+        "payment_status": "PAID",
+        "amount_paid": 118.0,
+        "amount_due": 0.0,
+        "discount_amount": 0.0,
+        "created_by": "teststaff",
+        "created_at": now,
+    })
+
+    anomalies = get_reconciliation_report()
+    assert any(
+        a.get("type") == "MISSING_SALE_TX" and a.get("bill_number") == "INV/MANUAL/1"
+        for a in anomalies
+    )

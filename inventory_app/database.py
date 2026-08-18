@@ -138,6 +138,7 @@ def init_db_indexes(db):
         
         # Inventory transactions indexes
         db.inventory_transactions.create_index([("product_name", ASCENDING)])
+        db.inventory_transactions.create_index([("product_name", ASCENDING), ("transaction_type", ASCENDING)])
         db.inventory_transactions.create_index([("created_at", DESCENDING)])
         db.inventory_transactions.create_index([("transaction_type", ASCENDING)])
         

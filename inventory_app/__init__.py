@@ -79,6 +79,36 @@ def cache_delete(key):
         pass
 
 
+def cache_delete_prefix(prefix):
+    """Deletes every cached key whose name starts with `prefix`.
+
+    Used to invalidate derived caches (bills, dashboard, search results) on
+    writes. Best-effort: a scan failure degrades to the write going stale,
+    which the short TTLs would eventually fix anyway.
+    """
+    if not prefix:
+        return
+    c = _get_cache()
+    if isinstance(c, dict):
+        for key in list(c.keys()):
+            if key.startswith(prefix):
+                c.pop(key, None)
+        return
+    try:
+        keys = [k for k in c.scan_iter(match=prefix + "*", count=200)]
+    except Exception:
+        try:
+            keys = c.keys(prefix + "*")
+        except Exception:
+            return
+    if not keys:
+        return
+    try:
+        c.delete(*keys)
+    except Exception:
+        pass
+
+
 def cache_flush():
     c = _get_cache()
     if isinstance(c, dict):

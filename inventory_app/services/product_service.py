@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from inventory_app.utils.validators import normalize_product_name, validate_product_data
 from inventory_app.utils.helpers import calculate_stock_status
 from inventory_app.services.audit_service import log_audit
-from inventory_app import cache_get, cache_set, cache_delete
+from inventory_app import cache_get, cache_set, cache_delete, cache_delete_prefix
 
 # ── Product lookup cache TTL (global via Upstash on Vercel) ──
 _PRODUCT_CACHE_TTL = 30
@@ -132,9 +132,13 @@ def invalidate_product_cache(product_name: str = None):
     """Invalidates product cache globally. Call after stock changes."""
     if product_name:
         cache_delete(f"product:{normalize_product_name(product_name)}")
-    else:
-        # Flush all product caches (only works with redis/redislite, not dict)
-        pass
+    # Search results, category/location facets, dashboard and low-stock alerts
+    # all derive from product state — drop them so writes are visible immediately.
+    cache_delete_prefix("products:search:")
+    cache_delete("products:categories")
+    cache_delete("products:locations")
+    cache_delete("dashboard:main")
+    cache_delete_prefix("alerts:low_stock")
 
 def search_products(query: str = "", category: str = "", location: str = "", stock_status: str = "", is_active: bool = True, sort_by: str = "product_name", sort_dir: int = 1, limit: int = 50, page: int = None, per_page: int = 25, return_total: bool = False):
     """
@@ -169,7 +173,10 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         
     if query:
         norm_query = normalize_product_name(query)
-        # Flexible keyword search matching anywhere within product_name (case-insensitive)
+        # Flexible keyword search matching anywhere within product_name (case-insensitive).
+        # Intentionally NOT prefix-anchored: the UI promises "flexible" middle-substring
+        # matches (e.g. q=drill → "Heavy Duty Drill"). Products is a small collection, so
+        # the resulting scan is cheap; if the catalog ever grows large, move to a text index.
         filter_query["product_name"] = {"$regex": re.escape(norm_query), "$options": "i"}
         
     if category:

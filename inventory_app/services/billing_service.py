@@ -8,7 +8,7 @@ from pymongo import ReturnDocument
 from inventory_app.database import get_db
 from inventory_app.services.product_service import get_product_by_name, invalidate_product_cache
 from inventory_app.services.audit_service import log_audit
-from inventory_app import cache_get, cache_set
+from inventory_app import cache_get, cache_set, cache_delete, cache_delete_prefix
 
 # ── Billing summary cache (global,60-second TTL) ──
 _BILLING_SUMMARY_TTL = 60
@@ -28,6 +28,21 @@ def _cached_billing_summary():
     import json
     cache_set(cache_key, json.dumps(data, default=str), ttl=_BILLING_SUMMARY_TTL)
     return data
+
+
+def invalidate_billing_caches():
+    """Drop all bill/stock-derived caches. Call after any successful write
+    (create, edit, payment, refund) so pages reflect new data immediately."""
+    cache_delete("billing:summary")
+    cache_delete_prefix("billing:bills:")
+    cache_delete_prefix("billing:bill:")
+    cache_delete_prefix("billing:audit:")
+    cache_delete("billing:reconciliation")
+    cache_delete_prefix("sales:analytics:")
+    cache_delete("dashboard:main")
+    cache_delete_prefix("inventory:txns:")
+    cache_delete_prefix("inventory:product_txns:")
+    cache_delete_prefix("alerts:low_stock")
 
 
 def _round2(value: float) -> float:
@@ -284,7 +299,7 @@ def compute_bill(customer_data: dict, items_with_products: list,
 # Stock helpers
 # ──────────────────────────────────────────────────────────────────────
 
-def _deduct_stock(db, canonical_name: str, quantity: float, now: datetime, performed_by: str) -> tuple[bool, str, str]:
+def _deduct_stock(db, canonical_name: str, quantity: float, now: datetime, performed_by: str, bill_number: str = "") -> tuple[bool, str, str]:
     """Atomically deducts stock for a sale item. Records BILL_SALE transaction."""
     product = get_product_by_name(canonical_name)
     if not product:
@@ -309,6 +324,7 @@ def _deduct_stock(db, canonical_name: str, quantity: float, now: datetime, perfo
         "quantity": quantity,
         "previous_quantity": prev_qty,
         "new_quantity": _round2(prev_qty - quantity),
+        "bill_number": bill_number,
         "reason": f"Sale via bill (performed by {performed_by})",
         "performed_by": performed_by,
         "created_at": now
@@ -436,7 +452,7 @@ def create_bill(customer_data: dict, items: list, performed_by: str,
     deducted = []
     inserted_tx_ids = []
     for item in computed["line_items"]:
-        success, err, tx_id = _deduct_stock(db, item["product_name"], item["quantity"], now, performed_by)
+        success, err, tx_id = _deduct_stock(db, item["product_name"], item["quantity"], now, performed_by, bill_number)
         if not success:
             for ref in deducted:
                 db.products.update_one(
@@ -523,8 +539,8 @@ def create_bill(customer_data: dict, items: list, performed_by: str,
             "snapshot": snapshot,
         })
 
+        invalidate_billing_caches()
         return True, f"Bill {bill_number} created successfully.", bill_doc
-
     except Exception as e:
         for ref in deducted:
             db.products.update_one(
@@ -605,6 +621,7 @@ def record_bill_payment(bill_id: str, amount: float, method: str,
         "amount_due": new_amount_due,
     })
 
+    invalidate_billing_caches()
     return True, f"Payment of {amount} recorded successfully."
 
 
@@ -716,6 +733,7 @@ def refund_bill_lines(bill_id: str, line_indices: list, reason: str, performed_b
         "new_status": new_status,
     })
 
+    invalidate_billing_caches()
     return True, f"Refund of {refund_amount} processed for {len(lines_to_refund)} line(s)."
 
 
@@ -810,7 +828,7 @@ def edit_bill(bill_id: str, new_items: list, charges: dict,
         old_qty = old_qty_map.get(name, 0)
         if new_qty > old_qty:
             deduct_qty = new_qty - old_qty
-            success, err, tx_id = _deduct_stock(db, name, deduct_qty, now, performed_by)
+            success, err, tx_id = _deduct_stock(db, name, deduct_qty, now, performed_by, bill.get('bill_number') or "")
             if not success:
                 # Rollback all deductions so far
                 for ref in deducted:
@@ -881,6 +899,7 @@ def edit_bill(bill_id: str, new_items: list, charges: dict,
     })
 
     updated_bill = get_bill_by_id(bill_id)
+    invalidate_billing_caches()
     return True, f"Bill {bill.get('bill_number')} updated successfully.", updated_bill
 
 
@@ -948,6 +967,7 @@ def refund_bill(bill_id: str, reason: str, performed_by: str) -> tuple[bool, str
     })
 
     log_audit("BILL_REFUND", performed_by, bill.get("bill_number"), {"reason": reason_clean})
+    invalidate_billing_caches()
     return True, f"Bill {bill.get('bill_number')} refunded successfully and inventory stock restored."
 
 
@@ -1052,52 +1072,38 @@ def get_bills(search: str = "", limit: int = 100, payment_status: str = "", page
 
 
 def get_billing_summary() -> dict:
-    """Returns billing metrics for the dashboard using aggregation (no full scan)."""
+    """Returns billing metrics for the dashboard using a single $facet
+    aggregation (one pass over invoices instead of three: today agg +
+    count + all-time agg)."""
     db = get_db()
     now = datetime.now(timezone.utc)
     start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    # Today's stats via aggregation
-    today_pipeline = [
-        {"$match": {"created_at": {"$gte": start_of_today}}},
-        {"$group": {
-            "_id": None,
-            "today_bills": {"$sum": 1},
-            "today_sales": {"$sum": "$grand_total"},
-        }}
-    ]
-    today_result = list(db.invoices.aggregate(today_pipeline))
-    today_bills = today_result[0]["today_bills"] if today_result else 0
-    today_sales = today_result[0]["today_sales"] if today_result else 0.0
-
-    total_bills = db.invoices.count_documents({})
-
-    # All-time totals via aggregation
-    all_pipeline = [
-        {"$group": {
-            "_id": None,
-            "total_sales": {"$sum": "$grand_total"},
-            "total_outstanding": {
-                "$sum": {
-                    "$cond": [
-                        {"$in": ["$payment_status", ["PARTIAL"]]},
-                        "$amount_due",
-                        0
-                    ]
-                }
-            },
-        }}
-    ]
-    all_result = list(db.invoices.aggregate(all_pipeline))
-    total_sales = all_result[0]["total_sales"] if all_result else 0.0
-    total_outstanding = all_result[0]["total_outstanding"] if all_result else 0.0
-
+    pipeline = [{"$facet": {
+        "today": [
+            {"$match": {"created_at": {"$gte": start_of_today}}},
+            {"$group": {"_id": None, "today_bills": {"$sum": 1}, "today_sales": {"$sum": "$grand_total"}}},
+        ],
+        "all": [
+            {"$group": {
+                "_id": None,
+                "total_bills": {"$sum": 1},
+                "total_sales": {"$sum": "$grand_total"},
+                "total_outstanding": {
+                    "$sum": {"$cond": [{"$in": ["$payment_status", ["PARTIAL"]]}, "$amount_due", 0]},
+                },
+            }},
+        ],
+    }}]
+    result = list(db.invoices.aggregate(pipeline))
+    today = result[0]["today"][0] if result and result[0]["today"] else {}
+    all_time = result[0]["all"][0] if result and result[0]["all"] else {}
     return {
-        "total_bills": total_bills,
-        "today_bills": today_bills,
-        "today_sales": float(today_sales),
-        "total_sales": float(total_sales),
-        "total_outstanding": float(total_outstanding),
+        "total_bills": all_time.get("total_bills", 0),
+        "today_bills": today.get("today_bills", 0),
+        "today_sales": float(today.get("today_sales", 0) or 0),
+        "total_sales": float(all_time.get("total_sales", 0) or 0),
+        "total_outstanding": float(all_time.get("total_outstanding", 0) or 0),
     }
 
 
@@ -1156,12 +1162,40 @@ def get_reconciliation_report() -> list:
     db = get_db()
     anomalies = []
 
-    all_bills = list(db.invoices.find({}, {"line_items": 1, "bill_number": 1, "created_by": 1,
-                                            "created_at": 1, "grand_total": 1, "subtotal": 1,
-                                            "gst_total": 1, "payment_status": 1, "amount_paid": 1,
-                                            "amount_due": 1, "discount_amount": 1,
-                                            "shipping_charge": 0, "packing_charge": 0,
-                                            "round_off": 0})).limit(5000)
+    all_bills = list(db.invoices.find({}, {
+        "line_items": 1, "bill_number": 1, "created_by": 1,
+        "created_at": 1, "grand_total": 1, "subtotal": 1,
+        "gst_total": 1, "payment_status": 1, "amount_paid": 1,
+        "amount_due": 1, "discount_amount": 1,
+    }).limit(5000))
+
+    # ── Batch BILL_SALE lookups (replaces per-line find_one N+1) ──
+    # Build a single (product_name, bill_number) index from one query, plus a
+    # legacy fallback set for transactions recorded before bill_number was stored.
+    sale_products = set()
+    sale_keys = set()
+    legacy_products = set()
+    for bill in all_bills:
+        for line in bill.get("line_items", []):
+            net_qty = float(line.get("quantity", 0)) - float(line.get("refund_quantity", 0))
+            if net_qty > 0:
+                sale_products.add(line.get("product_name"))
+    if sale_products:
+        for tx in db.inventory_transactions.find(
+            {"transaction_type": "BILL_SALE", "product_name": {"$in": list(sale_products)}},
+            {"product_name": 1, "bill_number": 1}
+        ):
+            if tx.get("bill_number"):
+                sale_keys.add((tx.get("product_name"), tx.get("bill_number")))
+            else:
+                legacy_products.add(tx.get("product_name"))
+
+    # ── Batch bill_payments for PARTIAL bills (replaces per-bill find N+1) ──
+    partial_numbers = [b.get("bill_number") for b in all_bills if b.get("payment_status") == "PARTIAL"]
+    payments_by_bill = {}
+    if partial_numbers:
+        for p in db.bill_payments.find({"bill_number": {"$in": partial_numbers}}, {"bill_number": 1, "amount": 1}):
+            payments_by_bill[p.get("bill_number")] = payments_by_bill.get(p.get("bill_number"), 0) + float(p.get("amount", 0))
 
     for bill in all_bills:
         bill_id = bill["_id"]
@@ -1210,24 +1244,20 @@ def get_reconciliation_report() -> list:
                     "created_at": bill.get("created_at"),
                 })
 
-        # ── Check BILL_SALE transactions exist for each line ──
+        # ── Check BILL_SALE transactions exist for each line (in-memory set lookup) ──
         for i, line in enumerate(items):
             qty = float(line.get("quantity", 0))
             refunded_qty = float(line.get("refund_quantity", 0))
             net_qty = qty - refunded_qty
             if net_qty <= 0:
                 continue
-            tx = db.inventory_transactions.find_one({
-                "product_name": line.get("product_name"),
-                "transaction_type": "BILL_SALE",
-                "reason": {"$regex": re.escape(bill_number)},
-            })
-            if not tx:
+            pname = line.get("product_name")
+            if (pname, bill_number) not in sale_keys and pname not in legacy_products:
                 anomalies.append({
                     "type": "MISSING_SALE_TX",
                     "bill_number": bill_number,
                     "line_index": i,
-                    "product": line.get("product_name"),
+                    "product": pname,
                     "detail": f"No BILL_SALE transaction for {net_qty} units",
                     "cashier": bill.get("created_by"),
                     "created_at": bill.get("created_at"),
@@ -1235,8 +1265,7 @@ def get_reconciliation_report() -> list:
 
         # ── PARTIAL bills without payments ──
         if bill.get("payment_status") == "PARTIAL":
-            payments = list(db.bill_payments.find({"bill_number": bill_number}))
-            total_payments = sum(float(p.get("amount", 0)) for p in payments)
+            total_payments = payments_by_bill.get(bill_number, 0)
             if total_payments < float(bill.get("amount_paid", 0)) - 0.02:
                 anomalies.append({
                     "type": "PAYMENT_MISMATCH",
@@ -1246,7 +1275,6 @@ def get_reconciliation_report() -> list:
                     "created_at": bill.get("created_at"),
                 })
 
-    import json
     cache_set(_cache_key, json.dumps(anomalies, default=str), ttl=60)
     return anomalies
 
@@ -1491,6 +1519,6 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
         "selected_cashier": cashier or "",
     }
 
-    cache_set(_cache_key, json.dumps(result, default=str), ttl=20)
+    cache_set(_cache_key, json.dumps(result, default=str), ttl=60)
     return result
 
