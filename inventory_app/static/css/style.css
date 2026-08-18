@@ -3007,3 +3007,48 @@ body.sidebar-hidden .main-wrapper {
   font-weight: 600;
   text-decoration: underline;
 }
+
+/* ============================================================
+   Global High-Performance Page Loader & Action Spinners
+   ============================================================ */
+#app-top-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #ea580c 0%, #fb923c 50%, #881337 100%);
+  box-shadow: 0 0 10px rgba(234, 88, 12, 0.8), 0 0 5px rgba(251, 146, 60, 0.6);
+  z-index: 9999999;
+  pointer-events: none;
+  opacity: 0;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+#app-top-loader.active {
+  opacity: 1;
+}
+
+.btn-loading-state {
+  position: relative !important;
+  pointer-events: none !important;
+  opacity: 0.82 !important;
+  cursor: wait !important;
+}
+
+.btn-loading-state i.ri-spin {
+  display: inline-block;
+  animation: ri-spin-anim 0.8s linear infinite;
+}
+
+@keyframes ri-spin-anim {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.content-loading-fade {
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+

@@ -389,6 +389,112 @@ function initAlertBell() {
   });
 }
 
+// ── 12. GLOBAL TOP PROGRESS BAR & NAVIGATION LOADER ──────────
+let _topLoaderEl = null;
+let _topLoaderProgress = 0;
+let _topLoaderTimer = null;
+
+function ensureTopLoader() {
+  if (!_topLoaderEl) {
+    _topLoaderEl = document.getElementById('app-top-loader');
+    if (!_topLoaderEl) {
+      _topLoaderEl = document.createElement('div');
+      _topLoaderEl.id = 'app-top-loader';
+      document.body.appendChild(_topLoaderEl);
+    }
+  }
+  return _topLoaderEl;
+}
+
+function startTopLoader() {
+  const el = ensureTopLoader();
+  clearInterval(_topLoaderTimer);
+  _topLoaderProgress = 25;
+  el.style.width = _topLoaderProgress + '%';
+  el.classList.add('active');
+
+  _topLoaderTimer = setInterval(() => {
+    if (_topLoaderProgress < 85) {
+      _topLoaderProgress += Math.floor(Math.random() * 12) + 5;
+      if (_topLoaderProgress > 85) _topLoaderProgress = 85;
+      el.style.width = _topLoaderProgress + '%';
+    }
+  }, 220);
+}
+
+function finishTopLoader() {
+  const el = ensureTopLoader();
+  clearInterval(_topLoaderTimer);
+  _topLoaderProgress = 100;
+  el.style.width = '100%';
+  setTimeout(() => {
+    el.classList.remove('active');
+    setTimeout(() => {
+      el.style.width = '0%';
+      _topLoaderProgress = 0;
+    }, 300);
+  }, 200);
+}
+
+function initNavigationLoading() {
+  ensureTopLoader();
+
+  // Intercept internal link clicks to display instant progress bar
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank' || link.hasAttribute('download')) {
+      return;
+    }
+    if (link.hostname && link.hostname !== window.location.hostname) return;
+
+    startTopLoader();
+    const main = document.querySelector('.main-wrapper, .app-main, main, .content');
+    if (main) main.classList.add('content-loading-fade');
+  });
+
+  window.addEventListener('pageshow', () => {
+    finishTopLoader();
+    const main = document.querySelector('.main-wrapper, .app-main, main, .content');
+    if (main) main.classList.remove('content-loading-fade');
+  });
+
+  // Intercept fetch calls for asynchronous loading indicators
+  if (window.fetch) {
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+      startTopLoader();
+      return originalFetch.apply(this, args).finally(() => {
+        finishTopLoader();
+      });
+    };
+  }
+}
+
+function initFormLoadingState() {
+  document.querySelectorAll('form:not(.no-auto-loading)').forEach((form) => {
+    form.addEventListener('submit', function (e) {
+      if (form.dataset.submitting === 'true') {
+        e.preventDefault();
+        return;
+      }
+
+      const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+      if (submitBtn) {
+        form.dataset.submitting = 'true';
+        startTopLoader();
+        submitBtn.classList.add('btn-loading-state');
+        if (submitBtn.tagName === 'BUTTON') {
+          const originalHtml = submitBtn.innerHTML;
+          submitBtn.dataset.originalHtml = originalHtml;
+          submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin" style="margin-right:0.35rem;"></i> Processing...';
+        }
+      }
+    });
+  });
+}
+
 // ── INIT ALL ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const toggleBtn = document.getElementById('mobile-sidebar-toggle');
@@ -398,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
       sidebar.classList.toggle('mobile-open');
     });
-    
+
     // Close sidebar when clicking outside on mobile
     document.addEventListener('click', (e) => {
       if (sidebar.classList.contains('mobile-open')) {
@@ -439,3 +545,4 @@ function togglePasswordVisibility(inputId, btn) {
     }
   }
 }
+
