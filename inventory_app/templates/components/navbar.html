@@ -1,53 +1,102 @@
 <header class="top-navbar">
-  <div style="display: flex; align-items: center; gap: 1rem;">
-    <button id="mobile-sidebar-toggle" class="btn btn-secondary btn-sm" style="display: none;">
-      <i class="fa-solid fa-bars"></i>
+  <!-- Left Side: Mobile Toggle & Brand / Section Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.85rem;">
+    <button id="mobile-sidebar-toggle" class="btn btn-secondary btn-sm navbar-icon-btn" title="Open Menu" style="display: none;">
+      <i class="ri-menu-line"></i>
     </button>
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
-        <path d="M4 16C4 11.58 7.58 8 12 8C16.42 8 20 11.58 20 16" stroke="var(--jklc-red)" stroke-width="3" stroke-linecap="round"/>
-        <rect x="2" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
-        <rect x="18" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
-        <rect x="1" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
-        <rect x="17" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
-      </svg>
-      <div>
-        <h2 style="margin: 0; font-size: 1.2rem; font-weight: 800; font-family: var(--font-display); line-height: 1.1;">
-          <a href="{{ url_for('dashboard.index') }}" style="text-decoration: none;">
-            <span style="color: var(--text-main);">Stock</span><span style="color: var(--jklc-red);">Setu</span>
-          </a>
-        </h2>
-        <p style="font-size: 0.72rem; color: var(--text-faint); margin: 0; line-height: 1;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <a href="{{ url_for('dashboard.index') }}" style="display: flex; align-items: center; gap: 0.6rem; text-decoration: none;" title="StockSetu Home">
+        <div style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="26" height="26" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="nbHexTop" x1="8" y1="4" x2="32" y2="18" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#fdba74"/>
+                <stop offset="100%" stop-color="#fb923c"/>
+              </linearGradient>
+              <linearGradient id="nbHexLeft" x1="8" y1="18" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#ea580c"/>
+                <stop offset="100%" stop-color="#881337"/>
+              </linearGradient>
+              <linearGradient id="nbHexRight" x1="20" y1="18" x2="32" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#c2410c"/>
+                <stop offset="100%" stop-color="#450a0a"/>
+              </linearGradient>
+            </defs>
+            <path d="M20 4.5L33 12L20 19.5L7 12L20 4.5Z" fill="url(#nbHexTop)"/>
+            <path d="M7 12.5L20 20V35L7 27.5V12.5Z" fill="url(#nbHexLeft)"/>
+            <path d="M33 12.5L20 20V35L33 27.5V12.5Z" fill="url(#nbHexRight)"/>
+            <path d="M20 8L27.5 12.3L20 16.6L12.5 12.3L20 8Z" fill="white" fill-opacity="0.3"/>
+            <path d="M20 20L20 31L29.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.12"/>
+            <path d="M20 20L20 31L10.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.18"/>
+          </svg>
+        </div>
+        <div>
+          <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; font-family: var(--font-display); line-height: 1.1; letter-spacing: -0.02em;">
+            <span style="color: var(--color-on-surface);">Stock</span><span style="color: #ea580c;">Setu</span>
+          </h2>
+        </div>
+      </a>
+      
+      <!-- Section Breadcrumb Pill -->
+      <div class="navbar-section-pill" style="display: flex; align-items: center; gap: 0.35rem; background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); padding: 0.2rem 0.65rem; border-radius: var(--r-full); font-size: 0.74rem; font-weight: 600; color: var(--color-on-surface-variant);">
+        <span style="color: var(--color-accent); font-size: 0.85rem; display: flex; align-items: center;">
+          {% if request.endpoint == 'dashboard.index' %}<i class="ri-dashboard-3-line"></i>
+          {% elif request.endpoint and request.endpoint.startswith('products.') %}<i class="ri-archive-stack-line"></i>
+          {% elif request.endpoint and request.endpoint.startswith('inventory.bulk') %}<i class="ri-upload-cloud-2-line"></i>
+          {% elif request.endpoint and request.endpoint.startswith('inventory.adjust') %}<i class="ri-equalizer-2-line"></i>
+          {% elif request.endpoint and request.endpoint.startswith('inventory.') %}<i class="ri-history-line"></i>
+          {% elif request.endpoint == 'billing.pos' %}<i class="ri-funds-box-line"></i>
+          {% elif request.endpoint and request.endpoint.startswith('billing.sales') %}<i class="ri-trending-up-line"></i>
+          {% elif request.endpoint and request.endpoint.startswith('billing.') %}<i class="ri-receipt-line"></i>
+          {% elif request.endpoint and request.endpoint.startswith('users.') %}<i class="ri-user-settings-line"></i>
+          {% else %}<i class="ri-compass-3-line"></i>{% endif %}
+        </span>
+        <span>
           {% if request.endpoint %}
-            {% if request.endpoint == 'dashboard.index' %}Overview
-            {% elif request.endpoint.startswith('products.') %}Products
-            {% elif request.endpoint.startswith('inventory.') %}Inventory
-            {% elif request.endpoint.startswith('billing.') %}Billing
-            {% elif request.endpoint.startswith('users.') %}Users
+            {% if request.endpoint == 'dashboard.index' %}Overview &amp; Control
+            {% elif request.endpoint.startswith('products.add') %}Add New Product
+            {% elif request.endpoint.startswith('products.edit') %}Edit Product
+            {% elif request.endpoint.startswith('products.') %}Product Inventory
+            {% elif request.endpoint.startswith('inventory.bulk') %}Bulk Stock In
+            {% elif request.endpoint.startswith('inventory.adjust') %}Adjust Stock
+            {% elif request.endpoint.startswith('inventory.') %}Transaction Ledger
+            {% elif request.endpoint == 'billing.pos' %}POS Billing Counter
+            {% elif request.endpoint.startswith('billing.sales') %}Sales Analytics
+            {% elif request.endpoint.startswith('billing.') %}Bill History
+            {% elif request.endpoint == 'users.profile' %}My Profile
+            {% elif request.endpoint.startswith('users.') %}User Management
             {% else %}{{ request.endpoint | replace('_', ' ') | replace('.', ' › ') | title }}{% endif %}
           {% endif %}
-        </p>
+        </span>
       </div>
     </div>
   </div>
 
-  <div style="display: flex; align-items: center; gap: 0.75rem;">
-    <button id="desk-sidebar-toggle" class="btn btn-secondary btn-sm" title="Toggle sidebar (Ctrl+S)" aria-label="Toggle sidebar" style="width:36px;height:36px;display:none;align-items:center;justify-content:center;border-radius:50%;">
-      <i class="fa-solid fa-bars-staggered"></i>
+  <!-- Right Side: Theme Toggle, Notification Bell, User Badge -->
+  <div style="display: flex; align-items: center; gap: 0.65rem;">
+    <!-- Global Spotlight Search Shortcut -->
+    <button onclick="if(window.openCommandPalette)window.openCommandPalette()" class="btn btn-secondary btn-sm" title="Search SKU, Bills, Actions (Ctrl + K)" style="display: flex; align-items: center; gap: 0.5rem; height: 36px; padding: 0 0.75rem; border-radius: var(--r-full); background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); color: var(--color-on-surface-variant); font-size: 0.76rem; font-weight: 600; cursor: pointer;">
+      <i class="ri-search-2-line" style="color: var(--color-accent); font-size: 0.85rem;"></i>
+      <span class="desk-only" style="opacity: 0.85;">Search...</span>
+      <kbd style="background: var(--color-surface); border: 1px solid var(--color-outline-variant); border-radius: 4px; padding: 0.05rem 0.35rem; font-size: 0.62rem; font-family: var(--font-mono); color: var(--color-on-surface-variant); font-weight: 700;">Ctrl K</kbd>
     </button>
-    <button id="theme-toggle" class="btn btn-secondary btn-sm" title="Toggle Dark Mode" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;">
-      <i class="fa-solid fa-moon"></i>
+
+    <!-- Dark/Light Mode Toggle -->
+    <button id="theme-toggle" class="btn btn-secondary btn-sm navbar-icon-btn" title="Toggle Theme" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;">
+      <i class="ri-moon-line"></i>
     </button>
+
+    <!-- Low Stock Alert Bell -->
     <div class="alert-bell-wrap">
-      <button id="alert-bell" class="btn btn-secondary btn-sm alert-bell-btn" title="Low stock alerts" aria-haspopup="true" aria-expanded="false" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;">
-        <i class="fa-solid fa-bell"></i>
+      <button id="alert-bell" class="btn btn-secondary btn-sm alert-bell-btn navbar-icon-btn" title="Low stock alerts" aria-haspopup="true" aria-expanded="false" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;">
+        <i class="ri-notification-3-line"></i>
         {% if low_stock_count > 0 %}
           <span class="alert-bell-count" data-count="{{ low_stock_count }}">{{ low_stock_count if low_stock_count <= 9 else '9+' }}</span>
         {% endif %}
       </button>
       <div class="alert-bell-panel" id="alert-bell-panel" role="menu">
         <div class="alert-bell-head">
-          <span><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</span>
+          <span><i class="ri-alert-line" style="color: var(--color-warning);"></i> Low Stock Alerts</span>
           <a href="{{ url_for('products.list_products', status='LOW STOCK') }}">View all</a>
         </div>
         {% if low_stock_alerts %}
@@ -55,7 +104,7 @@
             {% for a in low_stock_alerts %}
               <li>
                 <a href="{{ url_for('products.view_product', product_name=a.product_name) }}">
-                  <i class="fa-solid fa-triangle-exclamation" style="color: {% if a.status == 'OUT OF STOCK' %}var(--danger, #dc2626){% else %}var(--warning, #f59e0b){% endif %};"></i>
+                  <i class="ri-alert-line" style="color: {% if a.status == 'OUT OF STOCK' %}var(--color-danger, #dc2626){% else %}var(--color-warning, #f59e0b){% endif %};"></i>
                   <div style="min-width: 0;">
                     <div class="alert-bell-name">{{ a.product_name }}</div>
                     <div class="alert-bell-sub">{{ a.quantity }} {{ a.unit }} left · min {{ a.minimum_stock }} {{ a.unit }}</div>
@@ -70,19 +119,21 @@
           </a>
         {% else %}
           <div class="alert-bell-empty">
-            <i class="fa-solid fa-circle-check" style="color: var(--success, #10b981);"></i>
+            <i class="ri-checkbox-circle-fill" style="color: var(--color-success, #15803d);"></i>
             All good — no low stock alerts.
           </div>
         {% endif %}
       </div>
     </div>
-    <a href="{{ url_for('users.profile') }}" style="text-decoration: none;" title="View Profile & Account Settings">
+
+    <!-- User Profile Badge -->
+    <a href="{{ url_for('users.profile') }}" style="text-decoration: none;" title="View Profile &amp; Settings">
       <div class="user-profile-badge">
         <div class="user-avatar">
           {{ current_user.username[0] | upper if current_user.username else 'U' }}
         </div>
-        <div style="display: flex; flex-direction: column; line-height: 1.3;">
-          <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">{{ current_user.username }}</span>
+        <div style="display: flex; flex-direction: column; line-height: 1.2;">
+          <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-on-surface);">{{ current_user.username }}</span>
           <span class="role-pill role-{{ current_user.role }}">
             {{ current_user.role | replace('_', ' ') | title }}
           </span>

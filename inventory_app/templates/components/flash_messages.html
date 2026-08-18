@@ -4,10 +4,10 @@
       {% for category, message in messages %}
         <div class="alert alert-{{ category if category != 'message' else 'info' }}">
           <span style="display: flex; align-items: center; gap: 0.6rem;">
-            {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
-            {% elif category == 'danger' or category == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
-            {% elif category == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
-            {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+            {% if category == 'success' %}<i class="ri-checkbox-circle-fill"></i>
+            {% elif category == 'danger' or category == 'error' %}<i class="ri-close-circle-line"></i>
+            {% elif category == 'warning' %}<i class="ri-alert-line"></i>
+            {% else %}<i class="ri-information-line"></i>{% endif %}
             {{ message }}
           </span>
           <button type="button" class="alert-close">&times;</button>

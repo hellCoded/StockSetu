@@ -3,482 +3,394 @@
 {% block title %}Invoice {{ bill.bill_number }} - StockSetu{% endblock %}
 
 {% block extra_head %}
-{% if format_type == 'thermal' %}
 <style>
-/* ═══════════════════════════════════════════
-   THERMAL RECEIPT — 80mm Clean Design
-   ═══════════════════════════════════════════ */
-.inv-actions {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;
+/* ── Bill & Thermal Invoice Engine ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+.inv-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--r-xl, 16px);
+  box-shadow: 0 4px 16px rgba(69, 10, 10, 0.04);
 }
 
-.receipt-container {
-  width: 100%; display: flex; justify-content: center;
-  padding: 1rem 0 3rem;
+.inv-mode-toggle {
+  display: flex;
+  align-items: center;
+  background: var(--color-surface-container, #f1f5f9);
+  padding: 0.25rem;
+  border-radius: var(--r-full, 9999px);
+  border: 1px solid var(--color-outline-variant);
 }
 
-.receipt-wrap {
-  width: 100%; max-width: 340px;
-  background: #fff;
-  padding: 1.25rem 1.25rem 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 12px; color: #000; line-height: 1.45;
-  border: 1px solid #e5e7eb;
+.inv-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--r-full, 9999px);
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* ── Dividers ── */
-.rcpt-line { border: none; border-top: 1px dashed #bbb; margin: 0.55rem 0; }
-.rcpt-line-thick { border: none; border-top: 2px solid #000; margin: 0.6rem 0; }
-.rcpt-line-double { border: none; border-top: 1px solid #000; border-bottom: 1px solid #000; height: 4px; margin: 0.6rem 0; }
-
-/* ── Header ── */
-.rcpt-header { text-align: center; margin-bottom: 0.4rem; }
-.rcpt-brand { font-size: 22px; font-weight: 900; letter-spacing: 1px; line-height: 1; }
-.rcpt-sub { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin: 0.2rem 0 0.15rem; color: #333; }
-.rcpt-addr { font-size: 9.5px; line-height: 1.35; color: #444; }
-.rcpt-gstin { font-size: 10px; font-weight: 800; margin-top: 0.3rem; }
-
-/* ── Title ── */
-.rcpt-title { text-align: center; font-size: 13px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; padding: 0.3rem 0; }
-
-/* ── Meta Grid ── */
-.rcpt-meta { display: grid; grid-template-columns: auto 1fr; gap: 0.1rem 0.5rem; font-size: 10.5px; margin: 0.4rem 0; }
-.rcpt-meta dt { font-weight: 700; color: #555; white-space: nowrap; }
-.rcpt-meta dd { color: #000; font-weight: 600; }
-
-/* ── Customer ── */
-.rcpt-cust { font-size: 10.5px; margin: 0.3rem 0; line-height: 1.5; }
-.rcpt-cust-row { display: flex; gap: 0.3rem; }
-.rcpt-cust-label { font-weight: 700; color: #555; min-width: 70px; white-space: nowrap; }
-.rcpt-cust-val { color: #000; }
-
-/* ── Items Table ── */
-.rcpt-items { width: 100%; border-collapse: collapse; margin: 0.4rem 0; font-size: 10.5px; }
-.rcpt-items th {
-  border-top: 1.5px dashed #000; border-bottom: 1.5px dashed #000;
-  padding: 0.3rem 0.15rem; font-weight: 700; text-transform: uppercase; font-size: 9px;
-  letter-spacing: 0.5px;
-}
-.rcpt-items td { padding: 0.25rem 0.15rem; vertical-align: top; }
-.rcpt-items .tl { text-align: left; }
-.rcpt-items .tc { text-align: center; }
-.rcpt-items .tr { text-align: right; }
-.rcpt-items tbody tr + tr { border-top: 1px dotted #e5e7eb; }
-
-/* ── Summary Line ── */
-.rcpt-summary { display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; padding: 0.2rem 0; }
-
-/* ── Totals ── */
-.rcpt-totals { margin: 0.3rem 0; font-size: 10.5px; }
-.rcpt-tot-row { display: flex; justify-content: space-between; padding: 0.12rem 0; }
-.rcpt-tot-row .lbl { color: #444; }
-.rcpt-tot-row .val { font-weight: 700; }
-.rcpt-grand {
-  border-top: 2px solid #000; border-bottom: 2px solid #000;
-  padding: 0.4rem 0; margin: 0.4rem 0;
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 15px; font-weight: 900;
+.inv-mode-btn.active {
+  background: #ffffff;
+  color: #ea580c;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* ── Payment ── */
-.rcpt-pay { font-size: 10px; margin: 0.4rem 0; line-height: 1.6; }
-.rcpt-pay-row { display: flex; justify-content: space-between; }
-.rcpt-pay-label { color: #555; font-weight: 600; }
-.rcpt-pay-val { font-weight: 700; }
-.rcpt-paid-badge {
-  display: inline-block; background: #000; color: #fff;
-  padding: 0.15rem 0.6rem; font-weight: 900; font-size: 10px;
-  letter-spacing: 1.5px; margin-top: 0.3rem;
-}
-
-/* ── Words ── */
-.rcpt-words { font-size: 9.5px; margin: 0.4rem 0; line-height: 1.4; }
-.rcpt-words-hd { font-weight: 800; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.15rem; }
-
-/* ── Policy ── */
-.rcpt-policy { font-size: 8.5px; line-height: 1.4; color: #555; margin: 0.4rem 0; }
-.rcpt-policy-bd { font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.15rem; color: #333; }
-.rcpt-policy ul { padding-left: 1rem; margin: 0.15rem 0; }
-.rcpt-policy li { margin-bottom: 0.1rem; }
-
-/* ── Footer ── */
-.rcpt-footer { text-align: center; margin-top: 0.6rem; }
-.rcpt-thanks { font-size: 11px; font-weight: 900; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
-.rcpt-sig-line { display: inline-block; border-top: 1px solid #000; width: 140px; margin: 0.6rem auto 0.15rem; }
-.rcpt-sig-label { font-size: 9px; font-weight: 700; text-transform: uppercase; }
-.rcpt-barcode {
-  margin-top: 0.6rem; text-align: center; font-size: 8px; color: #888;
-  letter-spacing: 2px; font-family: 'Courier New', monospace;
-}
-
-/* ── Print: 80mm Thermal ── */
-@media print {
-  @page { size: 80mm auto; margin: 2mm; }
-  .inv-actions, .no-print, button, .btn, .sidebar, .top-navbar, .filter-bar, .modal-backdrop { display: none !important; }
-  body, html { background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; width: 80mm !important; }
-  .app-container, .main-wrapper, .content-body { margin: 0 !important; padding: 0 !important; width: 80mm !important; box-shadow: none !important; }
-  .receipt-container { padding: 0 !important; }
-  .receipt-wrap {
-    width: 76mm !important; max-width: 76mm !important;
-    box-shadow: none !important; border: none !important;
-    padding: 0 !important; margin: 0 auto;
-    font-size: 11px !important;
-  }
-  * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-}
-</style>
-{% else %}
-<style>
-/* ── Bill Invoice Styling (Auto-scaled to fit bill printout) ── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-
-.inv-actions { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem; }
-
+/* ── Standard GST Tax Invoice ── */
 .inv-wrap {
   width: 100%;
-  max-width: 760px;
+  max-width: 780px;
   margin: 0 auto;
   font-family: 'Inter', Arial, sans-serif;
-  font-size: 0.7rem;
-  color: #111;
-  line-height: 1.3;
+  font-size: 0.72rem;
+  color: #111827;
+  line-height: 1.35;
 }
 
-.inv-box { background:#fff; border:1.75px solid #000; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.inv-box {
+  background: #ffffff;
+  border: 1.5px solid #1e293b;
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
 
-/* ── Row 1: Store header ── */
 .inv-head {
   display: grid;
-  grid-template-columns: 50px 1fr auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  border-bottom: 1.5px solid #000;
-  padding: 0.4rem 0.6rem;
-  gap: 0;
+  border-bottom: 1.5px solid #1e293b;
+  padding: 0.6rem 0.85rem;
+  gap: 0.85rem;
 }
-.inv-logo {
-  width: 44px; height: 44px;
-  border: 1.5px solid #000;
-  border-radius: 4px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  text-align: center;
-}
-.inv-logo i { font-size: 0.95rem; color: #000; }
-.inv-logo span { font-size: 0.4rem; font-weight: 900; color: #000; text-transform: uppercase; line-height: 1.1; margin-top: 1px; }
-.inv-store-name { font-size: 1.25rem; font-weight: 900; color: #000; font-style: italic; text-transform: uppercase; line-height: 1; padding: 0 0.5rem; }
-.inv-store-addr { font-size: 0.62rem; color: #444; margin-top: 0.15rem; padding: 0 0.5rem; }
-.inv-contact { font-size: 0.6rem; color: #333; text-align: right; border-left: 1px solid #e5e7eb; padding-left: 0.5rem; line-height: 1.5; }
-.inv-contact strong { font-size: 0.65rem; color: #111; }
 
-/* ── Row 2: GSTIN + TAX INVOICE + ORIGINAL ── */
+.inv-brand-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.inv-store-name {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.inv-store-addr {
+  font-size: 0.65rem;
+  color: #475569;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+}
+
+.inv-contact {
+  font-size: 0.62rem;
+  color: #334155;
+  text-align: right;
+  border-left: 1px solid #e2e8f0;
+  padding-left: 0.85rem;
+  line-height: 1.5;
+}
+
 .inv-title-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 0.25rem 0.6rem;
-  border-bottom: 1.5px solid #000;
+  padding: 0.35rem 0.85rem;
+  border-bottom: 1.5px solid #1e293b;
   background: #f8fafc;
 }
-.inv-gstin { font-size: 0.72rem; font-weight: 800; color: #000; }
-.inv-title { font-size: 1rem; font-weight: 900; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
-.inv-original { font-size: 0.6rem; font-weight: 700; text-align: right; text-transform: uppercase; color: #374151; }
 
-/* ── Row 3: Customer + Invoice details ── */
-.inv-info { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1.5px solid #000; }
-.inv-info-left { border-right: 1.5px solid #000; }
-.inv-sec-hd { background: #e2e8f0; font-size: 0.62rem; font-weight: 800; text-align: center; padding: 0.12rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #cbd5e1; }
-.inv-dt { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
-.inv-dt td { padding: 0.15rem 0.5rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-.inv-dt td:first-child { font-weight: 700; color: #374151; width: 36%; white-space: nowrap; }
+.inv-gstin { font-size: 0.72rem; font-weight: 800; color: #0f172a; }
+.inv-title { font-size: 1rem; font-weight: 900; text-align: center; text-transform: uppercase; letter-spacing: 0.06em; color: #881337; }
+.inv-original { font-size: 0.62rem; font-weight: 700; text-align: right; text-transform: uppercase; color: #475569; }
 
-/* ── Items table ── */
-.inv-tbl { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
+.inv-info { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1.5px solid #1e293b; }
+.inv-info-left { border-right: 1.5px solid #1e293b; }
+.inv-sec-hd { background: #e2e8f0; font-size: 0.65rem; font-weight: 800; text-align: center; padding: 0.2rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #cbd5e1; color: #1e293b; }
+.inv-dt { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
+.inv-dt td { padding: 0.22rem 0.65rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.inv-dt td:first-child { font-weight: 700; color: #475569; width: 36%; white-space: nowrap; }
+
+.inv-tbl { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
 .inv-tbl th {
-  background: #e2e8f0; border: 1px solid #9ca3af;
-  padding: 0.2rem 0.35rem; text-align: center;
-  font-weight: 700; font-size: 0.6rem; vertical-align: middle;
-  line-height: 1.2; text-transform: uppercase;
+  background: #e2e8f0; border: 1px solid #94a3b8;
+  padding: 0.3rem 0.4rem; text-align: center;
+  font-weight: 800; font-size: 0.62rem; vertical-align: middle;
+  line-height: 1.2; text-transform: uppercase; color: #0f172a;
 }
 .inv-tbl td {
-  border: 1px solid #d1d5db;
-  padding: 0.2rem 0.35rem;
-  vertical-align: middle; line-height: 1.25;
+  border: 1px solid #cbd5e1;
+  padding: 0.28rem 0.4rem;
+  vertical-align: middle; line-height: 1.3;
 }
 .inv-tbl td.c { text-align: center; }
 .inv-tbl td.r { text-align: right; }
 .inv-tbl td.l { text-align: left; }
-.inv-tbl tbody tr:nth-child(odd) td { background: #fff; }
+.inv-tbl tbody tr:nth-child(odd) td { background: #ffffff; }
 .inv-tbl tbody tr:nth-child(even) td { background: #f8fafc; }
-.inv-tbl .tfoot td { background: #e2e8f0 !important; font-weight: 700; border-top: 1.5px solid #9ca3af; padding: 0.2rem 0.35rem; }
+.inv-tbl .tfoot td { background: #e2e8f0 !important; font-weight: 800; border-top: 1.5px solid #64748b; padding: 0.3rem 0.4rem; color: #0f172a; }
 
-/* ── Bottom ── */
-.inv-bottom { display: grid; grid-template-columns: 1fr 190px; border-top: 1.5px solid #000; }
-.inv-bl { border-right: 1.5px solid #000; display: flex; flex-direction: column; }
-.inv-words-sec { border-bottom: 1px solid #cbd5e1; padding: 0.25rem 0.5rem; }
-.inv-terms-sec { padding: 0.25rem 0.5rem; flex: 1; }
-.inv-bsec-hd { font-weight: 800; text-align: center; background: #e2e8f0; margin: -0.25rem -0.5rem 0.2rem; padding: 0.12rem; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.04em; }
-.inv-words-val { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; color: #111; }
-.inv-terms-txt { font-size: 0.58rem; color: #374151; line-height: 1.5; }
+.inv-bottom { display: grid; grid-template-columns: 1fr 220px; border-top: 1.5px solid #1e293b; }
+.inv-bl { border-right: 1.5px solid #1e293b; display: flex; flex-direction: column; }
+.inv-words-sec { border-bottom: 1px solid #cbd5e1; padding: 0.4rem 0.65rem; }
+.inv-terms-sec { padding: 0.4rem 0.65rem; flex: 1; }
+.inv-bsec-hd { font-weight: 800; text-align: center; background: #e2e8f0; margin: -0.4rem -0.65rem 0.3rem; padding: 0.18rem; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em; color: #1e293b; }
+.inv-words-val { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.01em; color: #0f172a; }
+.inv-terms-txt { font-size: 0.6rem; color: #475569; line-height: 1.5; }
 
 .inv-totals { display: flex; flex-direction: column; }
-.inv-tot-tbl { width: 100%; border-collapse: collapse; font-size: 0.65rem; flex: 1; }
-.inv-tot-tbl td { padding: 0.18rem 0.45rem; border-bottom: 1px solid #e2e8f0; }
-.inv-tot-tbl td:last-child { text-align: right; font-weight: 600; }
-.inv-tot-tbl .grand td { font-size: 0.78rem; font-weight: 900; background: #f8fafc; border-top: 1.5px solid #000; color: #000; }
-.inv-cert { border-top: 1px solid #cbd5e1; padding: 0.25rem 0.45rem; font-size: 0.58rem; text-align: center; color: #374151; display: flex; flex-direction: column; justify-content: space-between; min-height: 44px; }
-.inv-cert strong { font-size: 0.65rem; color: #111; display: block; margin-top: 0.12rem; }
-.inv-sig { border-top: 1px solid #374151; font-size: 0.58rem; color: #374151; text-align: center; padding-top: 0.12rem; margin-top: 0.75rem; }
+.inv-tot-tbl { width: 100%; border-collapse: collapse; font-size: 0.68rem; flex: 1; }
+.inv-tot-tbl td { padding: 0.22rem 0.6rem; border-bottom: 1px solid #e2e8f0; }
+.inv-tot-tbl td:last-child { text-align: right; font-weight: 700; }
+.inv-tot-tbl .grand td { font-size: 0.85rem; font-weight: 900; background: #fdf2f4; border-top: 1.5px solid #881337; color: #881337; }
+.inv-cert { border-top: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; font-size: 0.6rem; text-align: center; color: #475569; display: flex; flex-direction: column; justify-content: space-between; min-height: 48px; }
+.inv-cert strong { font-size: 0.68rem; color: #0f172a; display: block; margin-top: 0.15rem; }
+.inv-sig { border-top: 1px solid #475569; font-size: 0.6rem; color: #475569; text-align: center; padding-top: 0.18rem; margin-top: 0.85rem; }
 
-/* ── Billing Receipt Print Configuration (Auto-scaled to Paper Width) ── */
+/* ── POS Thermal Slip Mode (80mm / 3-inch) ── */
+.thermal-slip-container {
+  display: none;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 3rem auto;
+  background: #ffffff;
+  border: 1px dashed #94a3b8;
+  padding: 1rem 0.85rem;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: #000000;
+  line-height: 1.35;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.thermal-slip-header {
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed #000000;
+  margin-bottom: 0.5rem;
+}
+
+.thermal-store-name {
+  font-size: 1.1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+}
+
+.thermal-divider {
+  border-top: 1px dashed #000000;
+  margin: 0.45rem 0;
+}
+
+.thermal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+}
+
+.thermal-table th {
+  border-bottom: 1px dashed #000000;
+  padding: 0.25rem 0;
+  text-align: left;
+  font-weight: 700;
+}
+
+.thermal-table td {
+  padding: 0.25rem 0;
+  vertical-align: top;
+}
+
+.thermal-row-flex {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.15rem 0;
+}
+
+.thermal-qr-box {
+  text-align: center;
+  padding: 0.5rem 0;
+  margin-top: 0.4rem;
+}
+
+/* ── Print Media Optimization ── */
 @media print {
   @page {
     size: auto;
-    margin: 6mm 8mm;
+    margin: 4mm 6mm;
   }
-  .inv-actions, .no-print, button, .btn, .sidebar, .top-navbar, .filter-bar, .modal-backdrop { display: none !important; }
+  .inv-actions-bar, .no-print, button, .btn, .sidebar, .top-navbar, .filter-bar,
+  .modal-backdrop, .mobile-sidebar-toggle, #mobile-sidebar-toggle,
+  .sidebar-reveal-tab, #sidebar-reveal-tab, .sidebar-overlay, .sidebar-hover-zone,
+  #toast-container, .skip-link, .app-modal, .q-cart-toggle-btn, .q-cart-overlay,
+  #theme-toggle {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
   body, html { background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
   .app-container, .main-wrapper, .content-body { margin: 0 !important; padding: 0 !important; width: 100% !important; box-shadow: none !important; }
-  .inv-wrap { width: 100% !important; max-width: 100% !important; font-size: 0.72rem !important; margin: 0 auto !important; }
-  .inv-box { border: 1.5px solid #000 !important; width: 100% !important; box-shadow: none !important; }
-  .inv-store-name { font-size: 1.3rem !important; }
-  .inv-title { font-size: 1.05rem !important; }
-  .inv-tbl th { font-size: 0.68rem !important; padding: 0.2rem 0.35rem !important; }
-  .inv-tbl td { font-size: 0.72rem !important; padding: 0.2rem 0.35rem !important; }
-  .inv-tot-tbl { font-size: 0.75rem !important; }
-  .inv-tot-tbl .grand td { font-size: 0.9rem !important; }
+  
+  body.print-mode-thermal .inv-wrap { display: none !important; }
+  body.print-mode-thermal .thermal-slip-container {
+    display: block !important;
+    width: 100% !important;
+    max-width: 78mm !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+  }
+  
+  body:not(.print-mode-thermal) .thermal-slip-container { display: none !important; }
+  body:not(.print-mode-thermal) .inv-wrap { width: 100% !important; max-width: 100% !important; margin: 0 !important; }
+  
   * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 </style>
-{% endif %}
+
+<script>
+function switchInvoiceView(mode) {
+  var taxWrap = document.getElementById('gst-invoice-view');
+  var thermalWrap = document.getElementById('thermal-slip-view');
+  var btnTax = document.getElementById('btn-view-tax');
+  var btnThermal = document.getElementById('btn-view-thermal');
+  
+  if (mode === 'thermal') {
+    taxWrap.style.display = 'none';
+    thermalWrap.style.display = 'block';
+    btnThermal.classList.add('active');
+    btnTax.classList.remove('active');
+  } else {
+    taxWrap.style.display = 'block';
+    thermalWrap.style.display = 'none';
+    btnTax.classList.add('active');
+    btnThermal.classList.remove('active');
+  }
+}
+
+function printTaxInvoice() {
+  document.body.classList.remove('print-mode-thermal');
+  window.print();
+}
+
+function printThermalSlip() {
+  document.body.classList.add('print-mode-thermal');
+  window.print();
+  setTimeout(function() {
+    document.body.classList.remove('print-mode-thermal');
+  }, 1000);
+}
+</script>
 {% endblock %}
 
 {% block content %}
-<div class="inv-actions">
-  <div>
-    <h1 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0;">
-      <i class="fa-solid fa-receipt" style="color: var(--primary); margin-right: 0.35rem;"></i>Invoice {{ bill.bill_number }}
-    </h1>
-    {% if format_type == 'thermal' %}
-    <p style="color: var(--text-muted); font-size: 0.75rem; margin: 0;">Standard POS Billing Receipt — Print optimized</p>
-    {% else %}
-    <p style="color: var(--text-muted); font-size: 0.75rem; margin: 0;">Half-A4 GST Invoice — Ctrl+P → Paper size: A5</p>
-    {% endif %}
+<!-- Executive Action Bar -->
+<div class="inv-actions-bar no-print">
+  <div style="display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;">
+    <div>
+      <h1 style="font-size: 1.15rem; font-weight: 800; color: var(--color-on-surface); margin: 0; display: flex; align-items: center; gap: 0.45rem;">
+        <i class="ri-receipt-line" style="color: #ea580c;"></i> Invoice {{ bill.bill_number }}
+      </h1>
+      <p style="color: var(--color-on-surface-variant); font-size: 0.76rem; margin: 0.1rem 0 0 0;">
+        {{ format_datetime(bill.created_at) }} · Customer: <strong>{{ bill.customer_name }}</strong>
+      </p>
+    </div>
+
+    <!-- View Mode Switcher -->
+    <div class="inv-mode-toggle">
+      <button id="btn-view-tax" class="inv-mode-btn active" onclick="switchInvoiceView('tax')" title="Standard GST Tax Invoice">
+        <i class="ri-file-list-3-line"></i> GST Invoice (A4/A5)
+      </button>
+      <button id="btn-view-thermal" class="inv-mode-btn" onclick="switchInvoiceView('thermal')" title="Compact 80mm POS Thermal Slip">
+        <i class="ri-printer-cloud-line"></i> Thermal Slip (80mm)
+      </button>
+    </div>
   </div>
-  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-arrow-left"></i> Back</a>
-    <a href="{{ url_for('billing.pos') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-cash-register"></i> New Bill</a>
-    
-    {% if format_type == 'thermal' %}
-      <a href="{{ url_for('billing.view_bill', bill_id=bill['_id'] or bill.id, format='standard') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-file-invoice"></i> Standard A5 View</a>
-      <button onclick="window.print()" class="btn btn-primary btn-sm"><i class="fa-solid fa-print"></i> Print Receipt</button>
-    {% else %}
-      <a href="{{ url_for('billing.view_bill', bill_id=bill['_id'] or bill.id, format='thermal') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-receipt"></i> Thermal Receipt View</a>
-      <button onclick="window.print()" class="btn btn-primary btn-sm"><i class="fa-solid fa-print"></i> Print A5 Invoice</button>
-    {% endif %}
+
+  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
+    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary btn-sm"><i class="ri-arrow-left-line"></i> Back</a>
+    <a href="{{ url_for('billing.pos') }}" class="btn btn-secondary btn-sm"><i class="ri-funds-box-line"></i> New Bill</a>
+
+    <!-- Print Options -->
+    <button onclick="printTaxInvoice()" class="btn btn-primary btn-sm" title="Print Standard GST Invoice (Ctrl+P)">
+      <i class="ri-printer-line"></i> Print Invoice
+    </button>
+    <button onclick="printThermalSlip()" class="btn btn-secondary btn-sm" title="Print POS Thermal Slip">
+      <i class="ri-receipt-2-line"></i> Print Thermal
+    </button>
 
     {% if current_user.role in ['admin', 'inventory_manager'] %}
       {% if bill.payment_status == 'REFUNDED' %}
         <span class="badge" style="background: #ef4444; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;">REFUNDED / CANCELLED</span>
       {% else %}
         {% if bill.payment_status == 'PARTIAL' %}
-          <button onclick="document.getElementById('payModal').classList.add('active')" class="btn btn-primary btn-sm"><i class="fa-solid fa-money-bill-wave"></i> Record Payment</button>
+          <button onclick="document.getElementById('payModal').classList.add('active')" class="btn btn-primary btn-sm"><i class="ri-money-dollar-circle-line"></i> Record Payment</button>
         {% endif %}
-        <button onclick="document.getElementById('refundItemModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i> Refund Items</button>
-        <button onclick="document.getElementById('editModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen-to-square"></i> Edit Bill</button>
-        <button onclick="document.getElementById('refundModal').classList.add('active')" class="btn btn-danger btn-sm"><i class="fa-solid fa-ban"></i> Full Refund</button>
+        <button onclick="document.getElementById('refundItemModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="ri-refund-2-line"></i> Refund Items</button>
+        <button onclick="document.getElementById('editModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="ri-edit-line"></i> Edit Bill</button>
+        <button onclick="document.getElementById('refundModal').classList.add('active')" class="btn btn-danger btn-sm"><i class="ri-prohibited-line"></i> Full Refund</button>
       {% endif %}
     {% endif %}
   </div>
 </div>
 
-{# ── Render Layouts ── #}
-{% if format_type == 'thermal' %}
-
-  {# ── Date & Time parsing helpers ── #}
-  {% if bill.created_at is string %}
-    {% set date_str = bill.created_at %}
-    {% set time_str = '' %}
-  {% else %}
-    {% set date_str = bill.created_at.strftime('%d %b %Y') %}
-    {% set time_str = bill.created_at.strftime('%I:%M %p') %}
-  {% endif %}
-
-  {% set ns = namespace(total_qty=0, active_taxable=0, active_cgst=0, active_sgst=0, active_total=0) %}
-  {% for item in bill.line_items %}
-    {% set ns.total_qty = ns.total_qty + item.quantity | int %}
-    {% if not item.is_refunded %}
-      {% set ns.active_taxable = ns.active_taxable + item.taxable %}
-      {% set ns.active_cgst = ns.active_cgst + item.cgst %}
-      {% set ns.active_sgst = ns.active_sgst + item.sgst %}
-      {% set ns.active_total = ns.active_total + item.line_total %}
-    {% endif %}
-  {% endfor %}
-
-  <div class="receipt-container">
-    <div class="receipt-wrap">
-
-      {# ── Store Header ── #}
-      <div class="rcpt-header">
-        <div class="rcpt-brand">StockSetu</div>
-        <div class="rcpt-sub">Inventory &amp; Point of Sale</div>
-        <div class="rcpt-addr">
-          G/456, City Mall Complex, MG Road,<br>
-          Pune, Maharashtra - 411001<br>
-          Ph: +91 98765 43210
-        </div>
-        <div class="rcpt-gstin">GSTIN: 27AABCU9603R1ZM</div>
-      </div>
-
-      <hr class="rcpt-line-thick">
-      <div class="rcpt-title">Tax Invoice</div>
-      <hr class="rcpt-line-thick">
-
-      {# ── Invoice Metadata ── #}
-      <dl class="rcpt-meta">
-        <dt>Invoice</dt><dd>{{ bill.bill_number }}</dd>
-        <dt>Date</dt><dd>{{ date_str }}</dd>
-        <dt>Time</dt><dd>{{ time_str or '—' }}</dd>
-        <dt>Cashier</dt><dd>{{ bill.created_by or 'Admin' }}</dd>
-        <dt>Payment</dt><dd>{{ bill.payment_method }}</dd>
-      </dl>
-
-      <hr class="rcpt-line">
-
-      {# ── Customer ── #}
-      <div class="rcpt-cust">
-        <div class="rcpt-cust-row"><span class="rcpt-cust-label">Name</span><span class="rcpt-cust-val">{{ bill.customer_name }}</span></div>
-        {% if bill.customer_phone %}
-        <div class="rcpt-cust-row"><span class="rcpt-cust-label">Phone</span><span class="rcpt-cust-val">{{ bill.customer_phone }}</span></div>
-        {% endif %}
-        {% if bill.customer_gstin %}
-        <div class="rcpt-cust-row"><span class="rcpt-cust-label">GSTIN</span><span class="rcpt-cust-val">{{ bill.customer_gstin }}</span></div>
-        {% endif %}
-      </div>
-
-      <hr class="rcpt-line">
-
-      {# ── Items ── #}
-      <table class="rcpt-items">
-        <thead>
-          <tr>
-            <th class="tl" style="width:32%">Item</th>
-            <th class="tc" style="width:12%">Qty</th>
-            <th class="tr" style="width:22%">Rate</th>
-            <th class="tr" style="width:34%">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in bill.line_items %}
-          <tr{% if item.is_refunded %} style="opacity:0.5;"{% endif %}>
-            <td class="tl"><span{% if item.is_refunded %} style="text-decoration:line-through;"{% endif %}>{{ item.product_name }}</span>{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.6rem; padding:0.05rem 0.25rem; border-radius:3px; font-weight:700;">REFUNDED</span>{% endif %}</td>
-            <td class="tc">{{ item.quantity | int }}</td>
-            <td class="tr">{{ "%.2f"|format(item.unit_price) }}</td>
-            <td class="tr">{{ "%.2f"|format(item.line_total) }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      <hr class="rcpt-line">
-
-      {# ── Summary ── #}
-      <div class="rcpt-summary">
-        <span>Items: {{ bill.line_items | length }}</span>
-        <span>Total Qty: {{ ns.total_qty }}</span>
-      </div>
-
-      <hr class="rcpt-line">
-
-      {# ── Tax Breakdown ── #}
-      <div class="rcpt-totals">
-        <div class="rcpt-tot-row"><span class="lbl">Taxable Amount</span><span class="val">{{ "%.2f"|format(ns.active_taxable) }}</span></div>
-        {% if bill.total_line_discount and bill.total_line_discount > 0 %}
-        <div class="rcpt-tot-row" style="color:#ef4444;"><span class="lbl">Line Discounts</span><span class="val">-{{ "%.2f"|format(bill.total_line_discount) }}</span></div>
-        {% endif %}
-        <div class="rcpt-tot-row"><span class="lbl">CGST</span><span class="val">{{ "%.2f"|format(ns.active_cgst) }}</span></div>
-        <div class="rcpt-tot-row"><span class="lbl">SGST</span><span class="val">{{ "%.2f"|format(ns.active_sgst) }}</span></div>
-        {% if bill.shipping_charge and bill.shipping_charge > 0 %}
-        <div class="rcpt-tot-row"><span class="lbl">Shipping</span><span class="val">{{ "%.2f"|format(bill.shipping_charge) }}</span></div>
-        {% endif %}
-        {% if bill.packing_charge and bill.packing_charge > 0 %}
-        <div class="rcpt-tot-row"><span class="lbl">Packing</span><span class="val">{{ "%.2f"|format(bill.packing_charge) }}</span></div>
-        {% endif %}
-        {% if bill.round_off and bill.round_off != 0 %}
-        <div class="rcpt-tot-row"><span class="lbl">Round-off</span><span class="val">{{ "%+.2f"|format(bill.round_off) }}</span></div>
-        {% endif %}
-        <div class="rcpt-grand">
-          <span>Grand Total</span>
-          {% set active_grand_th = bill.line_items|selectattr('is_refunded','false')|map(attribute='line_total')|sum + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
-          <span>{{ format_currency(active_grand_th) }}</span>
-        </div>
-      </div>
-
-      {# ── Amount in Words ── #}
-      <div class="rcpt-words">
-        <div class="rcpt-words-hd">Amount in Words</div>
-        <div>{{ amount_in_words(active_grand_th) }} Rupees Only</div>
-      </div>
-
-      <hr class="rcpt-line">
-
-      {# ── Payment Status ── #}
-      <div class="rcpt-pay">
-        {% if bill.payment_status != 'REFUNDED' %}
-        <div class="rcpt-pay-row"><span class="rcpt-pay-label">Amount Paid</span><span class="rcpt-pay-val">{{ format_currency(bill.amount_paid or active_grand_th) }}</span></div>
-        <div class="rcpt-pay-row"><span class="rcpt-pay-label">Balance</span><span class="rcpt-pay-val {% if (bill.amount_due or 0) > 0 %}style="color:#ef4444;font-weight:900;"{% endif %}">{{ format_currency(bill.amount_due or 0) }}</span></div>
-        {% endif %}
-        <div class="rcpt-paid-badge" style="background:{% if bill.payment_status == 'PAID' %}#dcfce7; color:#166534;{% elif bill.payment_status == 'PARTIAL' %}#fef3c7; color:#92400e;{% elif bill.payment_status == 'REFUNDED' %}#ede9fe; color:#5b21b6;{% else %}#dcfce7; color:#166534;{% endif %}">{{ bill.payment_status }}</div>
-      </div>
-
-      <hr class="rcpt-line">
-
-      {# ── Terms ── #}
-      <div class="rcpt-policy">
-        <div class="rcpt-policy-bd">Terms &amp; Conditions</div>
-        <ul>
-          <li>Goods once sold will not be taken back.</li>
-          <li>Exchange within 7 days with original invoice.</li>
-          <li>Subject to Pune jurisdiction only.</li>
-          <li>E. &amp; O.E.</li>
-        </ul>
-      </div>
-
-      <hr class="rcpt-line">
-
-      {# ── Footer ── #}
-      <div class="rcpt-footer">
-        <div class="rcpt-thanks">Thank you!</div>
-        <div style="font-size:9px; font-weight:700; text-transform:uppercase;">For StockSetu</div>
-        <div class="rcpt-sig-line"></div>
-        <div class="rcpt-sig-label">Authorized Signatory</div>
-        <div class="rcpt-barcode">{{ bill.bill_number }}</div>
-      </div>
-
-  </div>
-  </div>
-
-
-
-{% else %}
-
-  {# ── Original A5 Standard Layout ── #}
-  <div class="inv-wrap" style="padding-top: 1rem; padding-bottom: 3rem;">
+{# ══════════════════════════════════════════════════════════════════
+   VIEW 1: STANDARD GST TAX INVOICE (A4 / A5)
+   ══════════════════════════════════════════════════════════════════ #}
+<div id="gst-invoice-view" class="inv-wrap" style="padding-bottom: 3rem;">
   <div class="inv-box">
 
     {# ── Header ── #}
     <div class="inv-head">
-      <div class="inv-logo">
-        <i class="fa-solid fa-store"></i>
-        <span>Stock<br>Setu</span>
+      <div class="inv-brand-icon">
+        <svg width="44" height="44" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="invHexTop" x1="8" y1="4" x2="32" y2="18" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fdba74"/>
+              <stop offset="100%" stop-color="#fb923c"/>
+            </linearGradient>
+            <linearGradient id="invHexLeft" x1="8" y1="18" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ea580c"/>
+              <stop offset="100%" stop-color="#881337"/>
+            </linearGradient>
+            <linearGradient id="invHexRight" x1="20" y1="18" x2="32" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#c2410c"/>
+              <stop offset="100%" stop-color="#450a0a"/>
+            </linearGradient>
+          </defs>
+          <path d="M20 4.5L33 12L20 19.5L7 12L20 4.5Z" fill="url(#invHexTop)"/>
+          <path d="M7 12.5L20 20V35L7 27.5V12.5Z" fill="url(#invHexLeft)"/>
+          <path d="M33 12.5L20 20V35L33 27.5V12.5Z" fill="url(#invHexRight)"/>
+          <path d="M20 8L27.5 12.3L20 16.6L12.5 12.3L20 8Z" fill="white" fill-opacity="0.3"/>
+          <path d="M20 20L20 31L29.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.12"/>
+          <path d="M20 20L20 31L10.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.18"/>
+        </svg>
       </div>
       <div>
-        <div class="inv-store-name">StockSetu</div>
-        <div class="inv-store-addr">G/456, City Mall Complex, MG Road, Pune, Maharashtra – 411 001</div>
+        <div class="inv-store-name">Stock<span style="color:#ea580c;">Setu</span> Retail &amp; Wholesale</div>
+        <div class="inv-store-addr">G/456, Commercial Hub, Ring Road, Jaipur, Rajasthan – 302 015</div>
       </div>
       <div class="inv-contact">
-        <strong>For Order Call</strong><br>
+        <strong>Billing &amp; Support</strong><br>
         +91 98765 43210<br>
         billing@stocksetu.in
       </div>
@@ -486,7 +398,7 @@
 
     {# ── GSTIN / TAX INVOICE / Original ── #}
     <div class="inv-title-row">
-      <div class="inv-gstin">GSTIN : 27AABCU9603R1ZM</div>
+      <div class="inv-gstin">GSTIN : 08AABCU9603R1ZM</div>
       <div class="inv-title">TAX INVOICE</div>
       <div class="inv-original">ORIGINAL FOR RECIPIENT</div>
     </div>
@@ -494,21 +406,21 @@
     {# ── Customer + Invoice info ── #}
     <div class="inv-info">
       <div class="inv-info-left">
-        <div class="inv-sec-hd">Customer Detail</div>
+        <div class="inv-sec-hd">Billed To (Customer Details)</div>
         <table class="inv-dt">
-          <tr><td>Name</td><td>{{ bill.customer_name }}</td></tr>
-          <tr><td>Phone</td><td>{{ bill.customer_phone or '—' }}</td></tr>
-          <tr><td>GSTIN</td><td>{{ bill.customer_gstin or '—' }}</td></tr>
-          <tr><td>Place of Supply</td><td>Maharashtra (27)</td></tr>
+          <tr><td>Customer Name</td><td><strong>{{ bill.customer_name }}</strong></td></tr>
+          <tr><td>Contact Phone</td><td>{{ bill.customer_phone or '—' }}</td></tr>
+          <tr><td>Customer GSTIN</td><td>{{ bill.customer_gstin or '—' }}</td></tr>
+          <tr><td>Place of Supply</td><td>Rajasthan (08)</td></tr>
         </table>
       </div>
       <div>
-        <div class="inv-sec-hd" style="visibility:hidden;">-</div>
+        <div class="inv-sec-hd">Invoice Credentials</div>
         <table class="inv-dt">
-          <tr><td>Invoice No.</td><td><strong>{{ bill.bill_number }}</strong></td></tr>
-          <tr><td>Date</td><td>{{ format_datetime(bill.created_at) }}</td></tr>
-          <tr><td>Payment</td><td>{{ bill.payment_method }}</td></tr>
-          <tr><td>Status</td><td><strong style="color:{% if bill.payment_status == 'PAID' %}#15803d{% elif bill.payment_status == 'REFUNDED' %}#6366f1{% elif bill.payment_status == 'PARTIAL' %}#d97706{% else %}#15803d{% endif %};">{{ bill.payment_status }}</strong></td></tr>
+          <tr><td>Invoice Number</td><td><strong style="color:#ea580c;">{{ bill.bill_number }}</strong></td></tr>
+          <tr><td>Invoice Date</td><td>{{ format_datetime(bill.created_at) }}</td></tr>
+          <tr><td>Payment Mode</td><td><strong>{{ bill.payment_method }}</strong></td></tr>
+          <tr><td>Payment Status</td><td><strong style="color:{% if bill.payment_status == 'PAID' %}#15803d{% elif bill.payment_status == 'REFUNDED' %}#dc2626{% elif bill.payment_status == 'PARTIAL' %}#d97706{% else %}#15803d{% endif %};">{{ bill.payment_status }}</strong></td></tr>
         </table>
       </div>
     </div>
@@ -516,35 +428,35 @@
     {# ── Items table ── #}
     <table class="inv-tbl">
       <colgroup>
-        <col style="width:22px">
+        <col style="width:26px">
         <col>
-        <col style="width:58px">
-        <col style="width:52px">
-        <col style="width:60px">
-        <col style="width:64px">
-        <col style="width:28px">
-        <col style="width:46px">
-        <col style="width:28px">
-        <col style="width:46px">
         <col style="width:62px">
+        <col style="width:50px">
+        <col style="width:64px">
+        <col style="width:68px">
+        <col style="width:30px">
+        <col style="width:48px">
+        <col style="width:30px">
+        <col style="width:48px">
+        <col style="width:72px">
       </colgroup>
       <thead>
         <tr>
-          <th rowspan="2">Sr</th>
-          <th rowspan="2">Name of Product / Service</th>
+          <th rowspan="2">#</th>
+          <th rowspan="2">Item Description</th>
           <th rowspan="2">HSN</th>
           <th rowspan="2">Qty</th>
-          <th rowspan="2">Rate</th>
-          <th rowspan="2">Taxable</th>
-          <th colspan="2" style="background:#d1fae5;">CGST</th>
-          <th colspan="2" style="background:#dbeafe;">SGST</th>
-          <th rowspan="2">Total</th>
+          <th rowspan="2">Rate (₹)</th>
+          <th rowspan="2">Taxable (₹)</th>
+          <th colspan="2" style="background:#fef3c7;">CGST</th>
+          <th colspan="2" style="background:#fed7aa;">SGST</th>
+          <th rowspan="2">Total (₹)</th>
         </tr>
         <tr>
-          <th style="background:#d1fae5;">%</th>
-          <th style="background:#d1fae5;">Amt</th>
-          <th style="background:#dbeafe;">%</th>
-          <th style="background:#dbeafe;">Amt</th>
+          <th style="background:#fef3c7;">%</th>
+          <th style="background:#fef3c7;">Amt</th>
+          <th style="background:#fed7aa;">%</th>
+          <th style="background:#fed7aa;">Amt</th>
         </tr>
       </thead>
       <tbody>
@@ -559,14 +471,17 @@
         {% endif %}
         <tr{% if item.is_refunded %} style="opacity:0.5;"{% endif %}>
           <td class="c">{{ loop.index }}</td>
-          <td class="l"><span{% if item.is_refunded %} style="text-decoration:line-through;"{% endif %}>{{ item.product_name }}</span>{% if item.is_refunded %} <span style="background:#fef2f2; color:#dc2626; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700; vertical-align:middle;">REFUNDED</span>{% endif %}</td>
+          <td class="l">
+            <span{% if item.is_refunded %} style="text-decoration:line-through;"{% endif %}>{{ item.product_name }}</span>
+            {% if item.is_refunded %}<span style="background:#fef2f2; color:#dc2626; font-size:0.62rem; padding:0.1rem 0.35rem; border-radius:4px; font-weight:700; vertical-align:middle; margin-left:0.3rem;">REFUNDED</span>{% endif %}
+          </td>
           <td class="c">{{ item.hsn_code or '—' }}</td>
           <td class="c">{{ item.quantity | int }}</td>
           <td class="r">{{ "%.2f"|format(item.unit_price) }}</td>
           <td class="r">{{ "%.2f"|format(item.taxable) }}</td>
-          <td class="c">{{ "%.0f"|format(item.gst_rate / 2) }}</td>
+          <td class="c">{{ "%.0f"|format(item.gst_rate / 2) }}%</td>
           <td class="r">{{ "%.2f"|format(item.cgst) }}</td>
-          <td class="c">{{ "%.0f"|format(item.gst_rate / 2) }}</td>
+          <td class="c">{{ "%.0f"|format(item.gst_rate / 2) }}%</td>
           <td class="r">{{ "%.2f"|format(item.sgst) }}</td>
           <td class="r"><strong>{{ "%.2f"|format(item.line_total) }}</strong></td>
         </tr>
@@ -574,7 +489,7 @@
       </tbody>
       <tfoot>
         <tr>
-          <td class="r tfoot" colspan="3">Total</td>
+          <td class="r tfoot" colspan="3">Total Summary</td>
           <td class="c tfoot">{{ ns.total_qty }}</td>
           <td class="tfoot"></td>
           <td class="r tfoot">{{ "%.2f"|format(ns.active_taxable) }}</td>
@@ -592,14 +507,16 @@
     <div class="inv-bottom">
       <div class="inv-bl">
         <div class="inv-words-sec">
-          <div class="inv-bsec-hd">Total in Words</div>
+          <div class="inv-bsec-hd">Invoice Amount in Words</div>
           <div class="inv-words-val">{{ amount_in_words(active_grand) }}</div>
         </div>
         <div class="inv-terms-sec">
-          <div class="inv-bsec-hd" style="margin:-0.2rem -0.5rem 0.2rem;">Terms &amp; Conditions</div>
+          <div class="inv-bsec-hd" style="margin:-0.4rem -0.65rem 0.3rem;">Terms &amp; Conditions</div>
           <div class="inv-terms-txt">
-            Subject to Pune jurisdiction. Goods once sold will not be taken back.
-            Exchange within 7 days with original bill. E &amp; O.E.
+            1. All disputes are subject to local jurisdiction only.<br>
+            2. Goods once sold will not be returned unless damaged during transit.<br>
+            3. Exchange permitted within 7 days against original invoice.<br>
+            4. This is a computer generated tax invoice. E. &amp; O.E.
           </div>
         </div>
       </div>
@@ -612,39 +529,36 @@
         {% set active_gst = active_cgst + active_sgst %}
         {% set active_grand = active_total + (bill.shipping_charge or 0) + (bill.packing_charge or 0) + (bill.round_off or 0) %}
         <table class="inv-tot-tbl">
-          <tr><td>Taxable Amount</td><td>{{ "%.2f"|format(active_taxable) }}</td></tr>
+          <tr><td>Taxable Total</td><td>{{ "%.2f"|format(active_taxable) }}</td></tr>
           {% if bill.total_line_discount and bill.total_line_discount > 0 %}
           <tr style="color:#ef4444;"><td>Line Discounts</td><td>-{{ "%.2f"|format(bill.total_line_discount) }}</td></tr>
           {% endif %}
           <tr><td>Bill Discount{% if bill.discount_percent %} ({{ "%.1f"|format(bill.discount_percent) }}%){% endif %}</td><td>{% if bill.discount_amount %}-{% endif %}{{ "%.2f"|format(bill.discount_amount or 0) }}</td></tr>
           <tr><td>Add : CGST</td><td>{{ "%.2f"|format(active_cgst) }}</td></tr>
           <tr><td>Add : SGST</td><td>{{ "%.2f"|format(active_sgst) }}</td></tr>
-          <tr><td>Total Tax</td><td>{{ "%.2f"|format(active_gst) }}</td></tr>
+          <tr><td>Total GST Tax</td><td>{{ "%.2f"|format(active_gst) }}</td></tr>
           {% if bill.shipping_charge and bill.shipping_charge > 0 %}
-          <tr><td>Shipping</td><td>{{ "%.2f"|format(bill.shipping_charge) }}</td></tr>
+          <tr><td>Shipping Charges</td><td>{{ "%.2f"|format(bill.shipping_charge) }}</td></tr>
           {% endif %}
           {% if bill.packing_charge and bill.packing_charge > 0 %}
-          <tr><td>Packing</td><td>{{ "%.2f"|format(bill.packing_charge) }}</td></tr>
+          <tr><td>Packaging Charges</td><td>{{ "%.2f"|format(bill.packing_charge) }}</td></tr>
           {% endif %}
           {% if bill.round_off and bill.round_off != 0 %}
-          <tr><td>Round-off</td><td>{{ "%+.2f"|format(bill.round_off) }}</td></tr>
+          <tr><td>Round Off</td><td>{{ "%+.2f"|format(bill.round_off) }}</td></tr>
           {% endif %}
           <tr class="grand">
-            <td>Total After Tax</td>
+            <td>Grand Total (₹)</td>
             <td>{{ format_currency(active_grand) }}</td>
           </tr>
-          {% if bill.free_total and bill.free_total > 0 %}
-          <tr style="color:#16a34a;"><td>Free Supply Value</td><td>{{ format_currency(bill.free_total) }}</td></tr>
-          {% endif %}
           {% if bill.payment_status != 'REFUNDED' %}
-          <tr><td>Amount Paid</td><td style="color:#16a34a;">{{ format_currency(bill.amount_paid or active_grand) }}</td></tr>
-          <tr><td>Amount Due</td><td style="{% if (bill.amount_due or 0) > 0 %}color:#ef4444;font-weight:900;{% endif %}">{{ format_currency(bill.amount_due or 0) }}</td></tr>
+          <tr><td>Amount Received</td><td style="color:#15803d;">{{ format_currency(bill.amount_paid or active_grand) }}</td></tr>
+          <tr><td>Balance Due</td><td style="{% if (bill.amount_due or 0) > 0 %}color:#dc2626;font-weight:900;{% endif %}">{{ format_currency(bill.amount_due or 0) }}</td></tr>
           {% endif %}
         </table>
         <div class="inv-cert">
           <div>
-            Certified that the particulars given above are true and correct.
-            <strong>For StockSetu</strong>
+            Certified that particulars are true and correct.
+            <strong>For StockSetu Retail</strong>
           </div>
           <div class="inv-sig">Authorized Signatory</div>
         </div>
@@ -652,17 +566,112 @@
     </div>
 
   </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════
+   VIEW 2: POS THERMAL RECEIPT (80mm / 3-inch Continuous Roll)
+   ══════════════════════════════════════════════════════════════════ #}
+<div id="thermal-slip-view" class="thermal-slip-container">
+  <div class="thermal-slip-header">
+    <div class="thermal-store-name">StockSetu</div>
+    <div style="font-size: 0.65rem;">G/456, Ring Road, Jaipur</div>
+    <div style="font-size: 0.65rem;">GSTIN: 08AABCU9603R1ZM · Ph: 9876543210</div>
   </div>
 
+  <div class="thermal-row-flex" style="font-size: 0.68rem;">
+    <span>Bill: <strong>{{ bill.bill_number }}</strong></span>
+    <span>{{ bill.created_at.strftime('%d/%m/%y %H:%M') if bill.created_at else '' }}</span>
+  </div>
+  <div class="thermal-row-flex" style="font-size: 0.68rem;">
+    <span>Customer: {{ bill.customer_name[:18] }}</span>
+    <span>Mode: {{ bill.payment_method }}</span>
+  </div>
 
+  <div class="thermal-divider"></div>
 
-{% endif %}
+  <table class="thermal-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th style="text-align: center;">Qty</th>
+        <th style="text-align: right;">Rate</th>
+        <th style="text-align: right;">Amt</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in bill.line_items %}
+      {% if not item.is_refunded %}
+      <tr>
+        <td colspan="4" style="font-weight: 700; padding-bottom: 0;">{{ item.product_name }}</td>
+      </tr>
+      <tr>
+        <td style="font-size: 0.62rem; color: #4b5563;">HSN: {{ item.hsn_code or '-' }}</td>
+        <td style="text-align: center;">{{ item.quantity | int }}</td>
+        <td style="text-align: right;">{{ "%.2f"|format(item.unit_price) }}</td>
+        <td style="text-align: right; font-weight: 700;">{{ "%.2f"|format(item.line_total) }}</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="thermal-divider"></div>
+
+  <div class="thermal-row-flex">
+    <span>Taxable Amount:</span>
+    <span>₹{{ "%.2f"|format(active_taxable) }}</span>
+  </div>
+  <div class="thermal-row-flex">
+    <span>CGST + SGST:</span>
+    <span>₹{{ "%.2f"|format(active_gst) }}</span>
+  </div>
+  {% if bill.discount_amount and bill.discount_amount > 0 %}
+  <div class="thermal-row-flex" style="color: #dc2626;">
+    <span>Discount:</span>
+    <span>-₹{{ "%.2f"|format(bill.discount_amount) }}</span>
+  </div>
+  {% endif %}
+  {% if bill.round_off and bill.round_off != 0 %}
+  <div class="thermal-row-flex">
+    <span>Round Off:</span>
+    <span>{{ "%+.2f"|format(bill.round_off) }}</span>
+  </div>
+  {% endif %}
+
+  <div class="thermal-divider"></div>
+
+  <div class="thermal-row-flex" style="font-size: 0.95rem; font-weight: 900;">
+    <span>NET PAYABLE:</span>
+    <span>₹{{ "%.2f"|format(active_grand) }}</span>
+  </div>
+
+  <div class="thermal-row-flex" style="font-size: 0.7rem; margin-top: 0.2rem;">
+    <span>Paid: ₹{{ "%.2f"|format(bill.amount_paid or active_grand) }}</span>
+    <span>Due: ₹{{ "%.2f"|format(bill.amount_due or 0) }}</span>
+  </div>
+
+  {# ── UPI QR Code ── #}
+  {% set upi_payload = "upi://pay?pa=stocksetu@upi&pn=StockSetu&am=" ~ ("%.2f"|format(active_grand)) ~ "&cu=INR&tn=Bill%20" ~ bill.bill_number %}
+  <div class="thermal-qr-box">
+    <div style="font-size: 0.65rem; font-weight: 700; margin-bottom: 0.3rem;">SCAN TO PAY VIA UPI</div>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data={{ upi_payload|urlencode }}" alt="UPI QR Code" style="width: 100px; height: 100px; border: 1px solid #000; padding: 2px;">
+    <div style="font-size: 0.58rem; color: #4b5563; margin-top: 0.2rem;">GPay · PhonePe · Paytm · BHIM</div>
+  </div>
+
+  <div class="thermal-divider"></div>
+
+  <div style="text-align: center; font-size: 0.62rem; line-height: 1.4;">
+    <strong>THANK YOU FOR SHOPPING!</strong><br>
+    Exchange within 7 days with this receipt.
+  </div>
+</div>
+
 
 {% if current_user.role in ['admin', 'inventory_manager'] and bill.payment_status != 'REFUNDED' %}
 <div id="refundModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
   <div class="modal-card" style="max-width: 460px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-      <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #ef4444;"><i class="fa-solid fa-ban" style="margin-right: 0.4rem;"></i>Refund & Cancel Invoice</h3>
+      <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #ef4444;"><i class="ri-prohibited-line" style="margin-right: 0.4rem;"></i>Refund & Cancel Invoice</h3>
       <button class="um-modal-close" onclick="document.getElementById('refundModal').classList.remove('active')">&times;</button>
     </div>
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
@@ -687,7 +696,7 @@
 <div id="payModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
   <div class="modal-card" style="max-width: 420px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;"><i class="fa-solid fa-money-bill-wave" style="margin-right: 0.4rem; color: var(--primary);"></i>Record Payment</h3>
+      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;"><i class="ri-money-dollar-circle-line" style="margin-right: 0.4rem; color: var(--primary);"></i>Record Payment</h3>
       <button class="um-modal-close" onclick="document.getElementById('payModal').classList.remove('active')">&times;</button>
     </div>
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
@@ -724,7 +733,7 @@
 <div id="refundItemModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
   <div class="modal-card" style="max-width: 500px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #f97316;"><i class="fa-solid fa-rotate-left" style="margin-right: 0.4rem;"></i>Refund Selected Lines</h3>
+      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #f97316;"><i class="ri-refund-2-line" style="margin-right: 0.4rem;"></i>Refund Selected Lines</h3>
       <button class="um-modal-close" onclick="document.getElementById('refundItemModal').classList.remove('active')">&times;</button>
     </div>
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Select the line(s) to refund. Stock will be restored for refunded items.</p>
@@ -768,7 +777,7 @@
 <div id="editModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
   <div class="modal-card" style="max-width: 550px; max-height: 80vh; overflow-y: auto;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;"><i class="fa-solid fa-pen-to-square" style="margin-right: 0.4rem;"></i>Edit Bill</h3>
+      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;"><i class="ri-edit-line" style="margin-right: 0.4rem;"></i>Edit Bill</h3>
       <button class="um-modal-close" onclick="document.getElementById('editModal').classList.remove('active')">&times;</button>
     </div>
     <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">

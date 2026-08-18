@@ -1,74 +1,95 @@
 <aside class="sidebar">
   <div class="sidebar-brand">
-    <a href="{{ url_for('dashboard.index') }}" style="display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: inherit; flex: 1; min-width: 0;">
-      <div class="sidebar-brand-icon" style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 16C4 11.58 7.58 8 12 8C16.42 8 20 11.58 20 16" stroke="var(--jklc-red)" stroke-width="3" stroke-linecap="round"/>
-          <rect x="2" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue-light)"/>
-          <rect x="18" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue-light)"/>
-          <rect x="1" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
-          <rect x="17" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+    <a href="{{ url_for('dashboard.index') }}" style="display: flex; align-items: center; gap: 0.7rem; text-decoration: none; color: inherit; flex: 1; min-width: 0;">
+      <div class="sidebar-brand-icon" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0;">
+        <svg width="30" height="30" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sbHexTop" x1="8" y1="4" x2="32" y2="18" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fdba74"/>
+              <stop offset="100%" stop-color="#fb923c"/>
+            </linearGradient>
+            <linearGradient id="sbHexLeft" x1="8" y1="18" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ea580c"/>
+              <stop offset="100%" stop-color="#881337"/>
+            </linearGradient>
+            <linearGradient id="sbHexRight" x1="20" y1="18" x2="32" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#c2410c"/>
+              <stop offset="100%" stop-color="#450a0a"/>
+            </linearGradient>
+          </defs>
+          <path d="M20 4.5L33 12L20 19.5L7 12L20 4.5Z" fill="url(#sbHexTop)"/>
+          <path d="M7 12.5L20 20V35L7 27.5V12.5Z" fill="url(#sbHexLeft)"/>
+          <path d="M33 12.5L20 20V35L33 27.5V12.5Z" fill="url(#sbHexRight)"/>
+          <path d="M20 8L27.5 12.3L20 16.6L12.5 12.3L20 8Z" fill="white" fill-opacity="0.3"/>
+          <path d="M20 20L20 31L29.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.12"/>
+          <path d="M20 20L20 31L10.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.18"/>
         </svg>
       </div>
       <span style="font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; line-height: 1;">
-        <span style="color: var(--text-sidebar-active, #ffffff);">Stock</span><span style="color: var(--jklc-red);">Setu</span>
+        <span style="color: #ffffff;">Stock</span><span style="color: #fb923c;">Setu</span>
       </span>
     </a>
     <button class="sidebar-pin-btn" id="sidebar-pin-toggle" title="Pin / Unpin Sidebar" aria-label="Pin sidebar">
-      <i class="fa-solid fa-thumbtack"></i>
+      <i class="ri-pushpin-line"></i>
     </button>
   </div>
   
   <ul class="sidebar-menu">
     <li>
       <a href="{{ url_for('dashboard.index') }}" class="sidebar-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
-        <i class="fa-solid fa-chart-pie"></i>
+        <i class="ri-dashboard-3-line"></i>
         <span>Dashboard</span>
       </a>
     </li>
     <li>
       <a href="{{ url_for('products.list_products') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('products.') %}active{% endif %}">
-        <i class="fa-solid fa-box"></i>
+        <i class="ri-archive-stack-line"></i>
         <span>Products</span>
       </a>
     </li>
     {% if current_user.role in ['admin', 'inventory_manager'] %}
     <li>
       <a href="{{ url_for('inventory.bulk_stock_in') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('inventory.bulk_stock_in') %}active{% endif %}">
-        <i class="fa-solid fa-file-import"></i>
+        <i class="ri-upload-cloud-2-line"></i>
         <span>Bulk Stock In</span>
       </a>
     </li>
     <li>
       <a href="{{ url_for('inventory.adjust_stock') }}" class="sidebar-link {% if request.endpoint == 'inventory.adjust_stock' %}active{% endif %}">
-        <i class="fa-solid fa-sliders"></i>
+        <i class="ri-equalizer-2-line"></i>
         <span>Adjust Stock</span>
       </a>
     </li>
     {% endif %}
     <li>
       <a href="{{ url_for('inventory.view_transactions') }}" class="sidebar-link {% if request.endpoint == 'inventory.view_transactions' %}active{% endif %}">
-        <i class="fa-solid fa-list-check"></i>
+        <i class="ri-history-line"></i>
         <span>Transactions</span>
       </a>
     </li>
     <li>
-      <a href="{{ url_for('billing.pos') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('billing.') %}active{% endif %}">
-        <i class="fa-solid fa-cash-register"></i>
+      <a href="{{ url_for('billing.pos') }}" class="sidebar-link {% if request.endpoint == 'billing.pos' %}active{% endif %}">
+        <i class="ri-funds-box-line"></i>
         <span>Billing (POS)</span>
       </a>
     </li>
     <li>
       <a href="{{ url_for('billing.list_bills') }}" class="sidebar-link {% if request.endpoint == 'billing.list_bills' %}active{% endif %}">
-        <i class="fa-solid fa-file-invoice"></i>
+        <i class="ri-receipt-line"></i>
         <span>Bill History</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('billing.sales_analytics') }}" class="sidebar-link {% if request.endpoint == 'billing.sales_analytics' %}active{% endif %}">
+        <i class="ri-arrow-up-circle-line"></i>
+        <span>Sales Analytics</span>
       </a>
     </li>
 
     {% if current_user.role == 'admin' %}
     <li style="margin-top: 1rem; border-top: 1px solid var(--bg-card-border); padding-top: 1rem;">
       <a href="{{ url_for('users.list_users') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('users.') and request.endpoint not in ['users.profile', 'users.request_promotion'] %}active{% endif %}">
-        <i class="fa-solid fa-users-gear"></i>
+        <i class="ri-user-settings-line"></i>
         <span>User Management</span>
         {% if pending_requests_count > 0 %}
           <span class="badge-requests-count" style="margin-left: auto; background: #ef4444; color: white; padding: 0.15rem 0.45rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; line-height: 1;">{{ pending_requests_count }}</span>
@@ -78,14 +99,21 @@
     {% endif %}
 
     <li>
+      <a href="javascript:void(0)" onclick="if(window.openCommandPalette)window.openCommandPalette()" class="sidebar-link" title="Open Spotlight (Ctrl + K)">
+        <i class="ri-flashlight-line" style="color: #ea580c;"></i>
+        <span>Spotlight</span>
+        <kbd style="margin-left: auto; background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); padding: 0.05rem 0.35rem; border-radius: 4px; font-size: 0.62rem; font-family: var(--font-mono); font-weight: 700; color: var(--color-on-surface-variant);">Ctrl K</kbd>
+      </a>
+    </li>
+    <li>
       <a href="{{ url_for('users.profile') }}" class="sidebar-link {% if request.endpoint == 'users.profile' %}active{% endif %}">
-        <i class="fa-solid fa-user"></i>
+        <i class="ri-account-circle-line"></i>
         <span>My Profile</span>
       </a>
     </li>
     <li>
       <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color: #f87171;">
-        <i class="fa-solid fa-right-from-bracket"></i>
+        <i class="ri-logout-box-r-line"></i>
         <span>Logout</span>
       </a>
     </li>

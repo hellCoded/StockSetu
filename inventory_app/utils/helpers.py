@@ -58,10 +58,21 @@ def format_currency(value) -> str:
         return "₹0.00"
 
 def format_datetime(dt) -> str:
-    """Formats datetime object to standard human readable string."""
+    """Formats datetime object or ISO string to standard human readable string."""
+    if not dt:
+        return "N/A"
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+        except Exception:
+            try:
+                clean_str = dt.split('.')[0] if '.' in dt else dt
+                dt = datetime.strptime(clean_str, "%Y-%m-%d %H:%M:%S")
+            except Exception:
+                return dt
     if isinstance(dt, datetime):
         return dt.strftime("%b %d, %Y %I:%M %p")
-    return str(dt) if dt else "N/A"
+    return str(dt)
 
 _ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
          "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",

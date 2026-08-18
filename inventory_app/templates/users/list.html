@@ -3,27 +3,28 @@
 {% block title %}User Management - StockSetu{% endblock %}
 
 {% block content %}
-{% set active_count = users | selectattr('is_active', 'equalto', True) | list | length %}
-{% set admin_count = users | selectattr('role', 'equalto', 'admin') | list | length %}
-{% set manager_count = users | selectattr('role', 'equalto', 'inventory_manager') | list | length %}
-{% set staff_count = users | selectattr('role', 'equalto', 'staff') | list | length %}
-{% set inactive_count = users | length - active_count %}
+{% set total_count = user_stats.total if user_stats else (users | length) %}
+{% set active_count = user_stats.active if user_stats else (users | selectattr('is_active', 'equalto', True) | list | length) %}
+{% set admin_count = user_stats.admins if user_stats else (users | selectattr('role', 'equalto', 'admin') | list | length) %}
+{% set manager_count = user_stats.managers if user_stats else (users | selectattr('role', 'equalto', 'inventory_manager') | list | length) %}
+{% set staff_count = user_stats.staff if user_stats else (users | selectattr('role', 'equalto', 'staff') | list | length) %}
+{% set inactive_count = user_stats.inactive if user_stats else (total_count - active_count) %}
 
 <!-- Page Hero -->
 <div class="um-hero">
   <div class="um-hero-left">
-    <div class="um-hero-icon"><i class="fa-solid fa-users-gear"></i></div>
+    <div class="um-hero-icon"><i class="ri-user-settings-line"></i></div>
     <div>
       <h1>System User Management</h1>
       <p>Review staff requests, manage user roles, and monitor account activity</p>
     </div>
   </div>
   <div class="um-hero-actions">
-    <button id="btn-open-add-user" type="button" class="btn btn-primary btn-sm" onclick="openAddUserModal(event)" title="Manually Register User">
-      <i class="fa-solid fa-user-plus"></i> Add User
+    <button id="btn-open-add-user" type="button" class="btn btn-primary btn-sm" onclick="openAddUserModal('single', event)" title="Add Single or Bulk Import Staff">
+      <i class="ri-user-add-line"></i> Add / Import Staff
     </button>
     <button id="btn-open-inbox" type="button" class="btn um-btn-glass btn-sm um-inbox-btn" onclick="openInboxModal(event)" title="Review Staff Requests">
-      <i class="fa-solid fa-inbox"></i> Staff Requests
+      <i class="ri-inbox-line"></i> Staff Requests
       {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
       {% if pending_reqs | length > 0 %}
         <span class="um-inbox-count">{{ pending_reqs | length }}</span>
@@ -35,21 +36,21 @@
 <!-- Interactive KPI Stats -->
 <div class="kpi-grid">
   <div class="kpi-card um-kpi-total um-kpi-card is-active" data-role-filter="all" title="Show all accounts">
-    <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+    <div class="kpi-icon"><i class="ri-team-line"></i></div>
     <div>
-      <div class="kpi-value" data-counter="{{ users | length }}">{{ users | length }}</div>
+      <div class="kpi-value" data-counter="{{ total_count }}">{{ total_count }}</div>
       <div class="kpi-label">Total Accounts</div>
     </div>
   </div>
   <div class="kpi-card um-kpi-active um-kpi-card" data-role-filter="active" title="Show active accounts">
-    <div class="kpi-icon"><i class="fa-solid fa-user-check"></i></div>
+    <div class="kpi-icon"><i class="ri-user-follow-line"></i></div>
     <div>
       <div class="kpi-value" data-counter="{{ active_count }}">{{ active_count }}</div>
       <div class="kpi-label">Active Accounts</div>
     </div>
   </div>
   <div class="kpi-card um-kpi-pending um-kpi-card" data-role-filter="pending" title="Open staff requests inbox">
-    <div class="kpi-icon"><i class="fa-solid fa-inbox"></i></div>
+    <div class="kpi-icon"><i class="ri-inbox-line"></i></div>
     <div>
       {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
       <div class="kpi-value" data-counter="{{ pending_reqs | length }}">{{ pending_reqs | length }}</div>
@@ -57,7 +58,7 @@
     </div>
   </div>
   <div class="kpi-card um-kpi-off um-kpi-card" data-role-filter="inactive" title="Show deactivated accounts">
-    <div class="kpi-icon"><i class="fa-solid fa-user-slash"></i></div>
+    <div class="kpi-icon"><i class="ri-user-unfollow-line"></i></div>
     <div>
       <div class="kpi-value" data-counter="{{ inactive_count }}">{{ inactive_count }}</div>
       <div class="kpi-label">Deactivated</div>
@@ -68,14 +69,14 @@
 <!-- Toolbar: Role Filter Pills + Quick Search -->
 <div class="um-toolbar">
   <div class="um-pills" id="um-filter-pills">
-    <button type="button" class="um-pill is-active" data-role-filter="all">All <span class="um-pill-count">{{ users | length }}</span></button>
+    <button type="button" class="um-pill is-active" data-role-filter="all">All <span class="um-pill-count">{{ total_count }}</span></button>
     <button type="button" class="um-pill" data-role-filter="admin">Admins <span class="um-pill-count">{{ admin_count }}</span></button>
     <button type="button" class="um-pill" data-role-filter="inventory_manager">Managers <span class="um-pill-count">{{ manager_count }}</span></button>
     <button type="button" class="um-pill" data-role-filter="staff">Staff <span class="um-pill-count">{{ staff_count }}</span></button>
     <button type="button" class="um-pill" data-role-filter="inactive">Deactivated <span class="um-pill-count">{{ inactive_count }}</span></button>
   </div>
   <div class="instant-search-wrap">
-    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+    <i class="ri-search-2-line search-icon"></i>
     <input type="text" id="um-search" class="form-control instant-search-input" data-table="user-table" placeholder="Quick filter users…" autocomplete="off">
   </div>
 </div>
@@ -86,12 +87,12 @@
     <table class="data-table sortable" id="user-table">
       <thead>
         <tr>
-          <th data-sort><i class="fa-solid fa-user"></i> User</th>
-          <th data-sort><i class="fa-solid fa-envelope"></i> Email Address</th>
-          <th data-sort><i class="fa-solid fa-shield-halved"></i> Current Role</th>
-          <th data-sort><i class="fa-solid fa-circle-dot"></i> Status</th>
-          <th data-sort><i class="fa-solid fa-calendar"></i> Created Date</th>
-          <th style="text-align: right;"><i class="fa-solid fa-ellipsis-vertical"></i> Actions</th>
+          <th data-sort><i class="ri-user-3-line"></i> User</th>
+          <th data-sort><i class="ri-mail-line"></i> Email Address</th>
+          <th data-sort><i class="ri-shield-check-line"></i> Current Role</th>
+          <th data-sort><i class="ri-record-circle-line"></i> Status</th>
+          <th data-sort><i class="ri-calendar-line"></i> Created Date</th>
+          <th style="text-align: right;"><i class="ri-more-2-fill"></i> Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -112,7 +113,7 @@
                     <span style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.35rem;">
                       @{{ u.username }}
                       {% if u._id == current_user.id %}
-                        <span class="um-you-chip"><i class="fa-solid fa-crown" style="font-size: 0.6rem;"></i> You</span>
+                        <span class="um-you-chip"><i class="ri-vip-crown-line" style="font-size: 0.6rem;"></i> You</span>
                       {% endif %}
                     </span>
                   </div>
@@ -120,17 +121,17 @@
               </td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
-                  <i class="fa-solid fa-envelope" style="font-size: 0.78rem; color: var(--text-faint);"></i>
+                  <i class="ri-mail-line" style="font-size: 0.78rem; color: var(--text-faint);"></i>
                   {{ u.email }}
                 </span>
               </td>
               <td>
                 {% if u.role == 'admin' %}
-                  <span class="um-role-chip um-role-admin"><i class="fa-solid fa-user-shield"></i> Admin</span>
+                  <span class="um-role-chip um-role-admin"><i class="ri-shield-user-line"></i> Admin</span>
                 {% elif u.role == 'inventory_manager' %}
-                  <span class="um-role-chip um-role-manager"><i class="fa-solid fa-boxes-packing"></i> Manager</span>
+                  <span class="um-role-chip um-role-manager"><i class="ri-archive-stack-line"></i> Manager</span>
                 {% else %}
-                  <span class="um-role-chip um-role-staff"><i class="fa-solid fa-user-tag"></i> Staff</span>
+                  <span class="um-role-chip um-role-staff"><i class="ri-profile-line"></i> Staff</span>
                 {% endif %}
               </td>
               <td>
@@ -145,12 +146,12 @@
                 {% if u._id != current_user.id %}
                   <div class="um-actions">
                     <button type="button" class="btn btn-primary btn-sm" onclick='openUpdateRoleModal("{{ u._id }}", {{ (u.name if u.name else u.username)|tojson }}, {{ u.username|tojson }}, {{ u.role|tojson }})' title="Update User Role">
-                      <i class="fa-solid fa-user-gear"></i> Edit Role
+                      <i class="ri-user-settings-line"></i> Edit Role
                     </button>
                   </div>
                 {% else %}
                   <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: var(--text-muted); font-size: 0.72rem; font-weight: 600;">
-                    <i class="fa-solid fa-lock"></i> Protected Account
+                    <i class="ri-lock-2-line"></i> Protected Account
                   </span>
                 {% endif %}
               </td>
@@ -159,7 +160,7 @@
           <tr class="empty-row" style="display: none;">
             <td colspan="6">
               <div class="um-empty">
-                <i class="fa-solid fa-user-slash"></i>
+                <i class="ri-user-unfollow-line"></i>
                 <h4>No Users Found</h4>
                 <p>No accounts match the current filter or search.</p>
               </div>
@@ -169,7 +170,7 @@
           <tr>
             <td colspan="6">
               <div class="um-empty">
-                <i class="fa-solid fa-users-slash"></i>
+                <i class="ri-user-forbid-line"></i>
                 <h4>No Registered Users</h4>
                 <p>Register your first user account to get started.</p>
               </div>
@@ -179,11 +180,42 @@
       </tbody>
     </table>
   </div>
+
+  {% include 'components/pagination.html' %}
 </div>
 
 <script>
 // ── Modal open/close helpers ────────────────────────────────
-function openAddUserModal(e) {
+function switchAddUserTab(tabName, e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+  const singleTab = document.getElementById('user-modal-single-tab');
+  const bulkTab = document.getElementById('user-modal-bulk-tab');
+  const singleBtn = document.getElementById('tab-btn-single-user');
+  const bulkBtn = document.getElementById('tab-btn-bulk-user');
+  
+  if (tabName === 'bulk') {
+    if (singleTab) singleTab.style.display = 'none';
+    if (bulkTab) bulkTab.style.display = 'block';
+    if (singleBtn) singleBtn.classList.remove('is-active');
+    if (bulkBtn) bulkBtn.classList.add('is-active');
+  } else {
+    if (singleTab) singleTab.style.display = 'block';
+    if (bulkTab) bulkTab.style.display = 'none';
+    if (singleBtn) singleBtn.classList.add('is-active');
+    if (bulkBtn) bulkBtn.classList.remove('is-active');
+  }
+}
+
+function openAddUserModal(tabOrEvent, e) {
+  let targetTab = 'single';
+  if (typeof tabOrEvent === 'string') {
+    targetTab = tabOrEvent;
+  } else if (tabOrEvent && tabOrEvent.target) {
+    e = tabOrEvent;
+  }
   if (e) {
     if (typeof e.preventDefault === 'function') e.preventDefault();
     if (typeof e.stopPropagation === 'function') e.stopPropagation();
@@ -192,6 +224,7 @@ function openAddUserModal(e) {
   if (modal) {
     modal.classList.add('active-modal');
     modal.style.setProperty('display', 'flex', 'important');
+    switchAddUserTab(targetTab);
   }
 }
 
@@ -200,6 +233,14 @@ function closeAddUserModal() {
   if (modal) {
     modal.classList.remove('active-modal');
     modal.style.setProperty('display', 'none', 'important');
+    const fi = document.getElementById('staff-import-file');
+    if (fi) fi.value = '';
+    const fileCard = document.getElementById('staff-selected-card');
+    const idleView = document.getElementById('staff-drop-idle');
+    const submitBtn = document.getElementById('staff-import-submit-btn');
+    if (fileCard) fileCard.style.display = 'none';
+    if (idleView) idleView.style.display = 'flex';
+    if (submitBtn) submitBtn.disabled = true;
   }
 }
 
@@ -342,13 +383,13 @@ function updateRoleSelection(role) {
     chipEl.className = 'um-role-chip';
     if (role === 'admin') {
       chipEl.classList.add('um-role-admin');
-      chipEl.innerHTML = '<i class="fa-solid fa-user-shield"></i> Admin';
+      chipEl.innerHTML = '<i class="ri-shield-user-line"></i> Admin';
     } else if (role === 'inventory_manager') {
       chipEl.classList.add('um-role-manager');
-      chipEl.innerHTML = '<i class="fa-solid fa-boxes-packing"></i> Manager';
+      chipEl.innerHTML = '<i class="ri-archive-stack-line"></i> Manager';
     } else {
       chipEl.classList.add('um-role-staff');
-      chipEl.innerHTML = '<i class="fa-solid fa-user-tag"></i> Staff';
+      chipEl.innerHTML = '<i class="ri-profile-line"></i> Staff';
     }
   }
 
@@ -363,17 +404,17 @@ function updateRoleSelection(role) {
   const hintEl = document.getElementById('role-permission-hint');
   if (!hintEl) return;
   if (role === 'admin') {
-    hintEl.innerHTML = '<i class="fa-solid fa-user-shield"></i> <strong>Administrator</strong>: Full system administrative privileges, user management, audit logs, catalog & POS billing.';
+    hintEl.innerHTML = '<i class="ri-shield-user-line"></i> <strong>Administrator</strong>: Full system administrative privileges, user management, audit logs, catalog & POS billing.';
     hintEl.style.background = '#f3e8ff';
     hintEl.style.borderColor = '#9333ea';
     hintEl.style.color = '#6b21a8';
   } else if (role === 'inventory_manager') {
-    hintEl.innerHTML = '<i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager</strong>: Full access to product catalog, stock inward/outward adjustments, transactions, and POS billing.';
+    hintEl.innerHTML = '<i class="ri-archive-stack-line"></i> <strong>Inventory Manager</strong>: Full access to product catalog, stock inward/outward adjustments, transactions, and POS billing.';
     hintEl.style.background = '#e0f2fe';
     hintEl.style.borderColor = '#0284c7';
     hintEl.style.color = '#075985';
   } else {
-    hintEl.innerHTML = '<i class="fa-solid fa-user-tag"></i> <strong>Staff</strong>: Access restricted to POS billing counter and catalog view.';
+    hintEl.innerHTML = '<i class="ri-profile-line"></i> <strong>Staff</strong>: Access restricted to POS billing counter and catalog view.';
     hintEl.style.background = '#f0fdf4';
     hintEl.style.borderColor = '#16a34a';
     hintEl.style.color = '#166534';
@@ -514,9 +555,11 @@ window.addEventListener("click", function(event) {
   const addUserModal = document.getElementById('add-user-modal');
   const inboxModal = document.getElementById('inbox-modal');
   const updateRoleModal = document.getElementById('update-role-modal');
+  const bulkImportModal = document.getElementById('bulk-import-modal');
   if (addUserModal && event.target === addUserModal) closeAddUserModal();
   if (inboxModal && event.target === inboxModal) closeInboxModal();
   if (updateRoleModal && event.target === updateRoleModal) closeUpdateRoleModal();
+  if (bulkImportModal && event.target === bulkImportModal) closeBulkImportModal();
 });
 
 window.addEventListener("keydown", function(e) {
@@ -524,75 +567,210 @@ window.addEventListener("keydown", function(e) {
     closeAddUserModal();
     closeInboxModal();
     closeUpdateRoleModal();
+    closeBulkImportModal();
   }
 });
+
+function handleStaffFile(files) {
+  if (!files || !files.length) return;
+  const file = files[0];
+  const allowed = ['xlsx', 'xls', 'csv'];
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!allowed.includes(ext)) {
+    alert('Please select an Excel (.xlsx, .xls) or CSV file.');
+    return;
+  }
+
+  const nameEl = document.getElementById('staff-selected-name');
+  const sizeEl = document.getElementById('staff-selected-size');
+  const card = document.getElementById('staff-selected-card');
+  const idle = document.getElementById('staff-drop-idle');
+  const submitBtn = document.getElementById('staff-import-submit-btn');
+
+  if (nameEl) nameEl.textContent = file.name;
+  if (sizeEl) {
+    const kb = (file.size / 1024).toFixed(1);
+    sizeEl.textContent = `${kb} KB · Ready to import`;
+  }
+  if (idle) idle.style.display = 'none';
+  if (card) card.style.display = 'flex';
+  if (submitBtn) submitBtn.disabled = false;
+}
+
+function clearStaffFile(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const fi = document.getElementById('staff-import-file');
+  if (fi) fi.value = '';
+  const card = document.getElementById('staff-selected-card');
+  const idle = document.getElementById('staff-drop-idle');
+  const submitBtn = document.getElementById('staff-import-submit-btn');
+  if (card) card.style.display = 'none';
+  if (idle) idle.style.display = 'flex';
+  if (submitBtn) submitBtn.disabled = true;
+}
 </script>
 
-<!-- Modal: Register New User -->
+<!-- Modal: Register / Bulk Import Staff -->
 <div id="add-user-modal" class="modal-backdrop app-modal">
-  <div class="um-modal-card" style="max-width: 480px;">
+  <div class="um-modal-card" style="max-width: 580px;">
     <div class="um-modal-head">
-      <h3 class="um-modal-title"><i class="fa-solid fa-user-plus"></i> Register New User Account</h3>
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <i class="ri-user-settings-line" style="font-size: 1.2rem; color: var(--color-primary, #0284c7);"></i>
+        <h3 class="um-modal-title" style="border: none; padding: 0; margin: 0;">Add &amp; Import Staff</h3>
+      </div>
       <button type="button" class="um-modal-close" onclick="closeAddUserModal()" title="Close">&times;</button>
     </div>
 
-    <form method="POST" action="{{ url_for('users.add_user') }}" onsubmit="return validateAddUserForm(this)">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <!-- Segmented Mode Tabs -->
+    <div class="um-pills" style="margin-bottom: 1.25rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; display: flex; gap: 0.5rem;">
+      <button type="button" id="tab-btn-single-user" class="um-pill is-active" onclick="switchAddUserTab('single', event)">
+        <i class="ri-user-add-line"></i> Single User
+      </button>
+      <button type="button" id="tab-btn-bulk-user" class="um-pill" onclick="switchAddUserTab('bulk', event)">
+        <i class="ri-file-excel-2-line"></i> Bulk Import (Excel / CSV)
+      </button>
+    </div>
 
-      <div class="form-group">
-        <label for="new_name" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
-        <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex" required oninput="autoGenModalUsername()">
-      </div>
+    <!-- Tab 1: Single User Form -->
+    <div id="user-modal-single-tab">
+      <form method="POST" action="{{ url_for('users.add_user') }}" onsubmit="return validateAddUserForm(this)">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-      <div class="form-group">
-        <label for="new_surname" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
-        <input type="text" id="new_surname" name="surname" class="form-control" placeholder="e.g. Smith" oninput="autoGenModalUsername()">
-      </div>
+        <div class="form-group">
+          <label for="new_name" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
+          <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex" required oninput="autoGenModalUsername()">
+        </div>
 
-      <div class="form-group">
-        <label for="new_username" class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated)</span></label>
-        <input type="text" id="new_username" name="username" class="form-control" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
-      </div>
+        <div class="form-group">
+          <label for="new_surname" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
+          <input type="text" id="new_surname" name="surname" class="form-control" placeholder="e.g. Smith" oninput="autoGenModalUsername()">
+        </div>
 
-      <div class="form-group">
-        <label for="new_email" class="form-label"><i class="fa-solid fa-envelope" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
-        <input type="email" id="new_email" name="email" class="form-control" placeholder="alex@inventory.com" required>
-      </div>
+        <div class="form-group">
+          <label for="new_username" class="form-label"><i class="ri-at-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated)</span></label>
+          <input type="text" id="new_username" name="username" class="form-control" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
+        </div>
 
-      <div class="form-group">
-        <label for="new_role" class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Initial Assigned Role <span style="color: #dc2626;">*</span></label>
-        <select id="new_role" name="role" class="form-select" required>
-          <option value="staff">Staff</option>
-          <option value="inventory_manager">Inventory Manager</option>
-          <option value="admin">Administrator</option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label for="new_email" class="form-label"><i class="ri-mail-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
+          <input type="email" id="new_email" name="email" class="form-control" placeholder="alex@inventory.com" required>
+        </div>
 
-      <div class="form-group">
-        <label for="new_password" class="form-label"><i class="fa-solid fa-lock" style="color: var(--primary); margin-right: 0.3rem;"></i> Initial Password <span style="color: #dc2626;">*</span></label>
-        <div class="password-input-group">
-          <input type="password" id="new_password" name="password" class="form-control" placeholder="At least 6 characters" required>
-          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_password', this)" title="Show/Hide Password">
-            <i class="fa-solid fa-eye"></i>
-          </button>
+        <div class="form-group">
+          <label for="new_role" class="form-label"><i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Initial Assigned Role <span style="color: #dc2626;">*</span></label>
+          <select id="new_role" name="role" class="form-select" required>
+            <option value="staff">Staff</option>
+            <option value="inventory_manager">Inventory Manager</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="new_password" class="form-label"><i class="ri-lock-2-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Initial Password <span style="color: #dc2626;">*</span></label>
+          <div class="password-input-group">
+            <input type="password" id="new_password" name="password" class="form-control" placeholder="At least 6 characters" required>
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_password', this)" title="Show/Hide Password">
+              <i class="ri-eye-line"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="new_confirm_password" class="form-label"><i class="ri-key-2-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm Password <span style="color: #dc2626;">*</span></label>
+          <div class="password-input-group">
+            <input type="password" id="new_confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_confirm_password', this)" title="Show/Hide Password">
+              <i class="ri-eye-line"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="um-modal-footer" style="margin-top: 1.25rem; border-top: 1px solid #f1f5f9; padding-top: 0.9rem;">
+          <button type="submit" class="btn btn-primary"><i class="ri-user-follow-line"></i> Create User</button>
+          <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()"><i class="ri-close-line"></i> Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tab 2: Bulk Import Form -->
+    <div id="user-modal-bulk-tab" style="display: none;">
+      <!-- Template Guide Banner -->
+      <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+        <div>
+          <strong style="color: #0369a1; font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">
+            <i class="ri-information-line"></i> Standardized Spreadsheet Format
+          </strong>
+          <span style="font-size: 0.78rem; color: #0c4a6e; line-height: 1.4; display: block;">
+            Include columns: <code>Name</code>, <code>Surname</code>, <code>Username</code>, <code>Email</code>, <code>Role</code>, <code>Password</code>.
+          </span>
+        </div>
+        <div style="display: flex; gap: 0.4rem;">
+          <a href="{{ url_for('users.download_staff_template', format='xlsx') }}" class="btn btn-sm" style="background: #0284c7; color: #ffffff; font-size: 0.75rem; padding: 0.3rem 0.6rem; font-weight: 600;" title="Download sample Excel (.xlsx) file">
+            <i class="ri-file-excel-2-line"></i> Excel Sample
+          </a>
+          <a href="{{ url_for('users.download_staff_template', format='csv') }}" class="btn btn-sm" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 0.75rem; padding: 0.3rem 0.6rem; font-weight: 600;" title="Download sample CSV file">
+            <i class="ri-file-text-line"></i> CSV
+          </a>
         </div>
       </div>
 
-      <div class="form-group" style="margin-bottom: 0;">
-        <label for="new_confirm_password" class="form-label"><i class="fa-solid fa-key" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm Password <span style="color: #dc2626;">*</span></label>
-        <div class="password-input-group">
-          <input type="password" id="new_confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
-          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_confirm_password', this)" title="Show/Hide Password">
-            <i class="fa-solid fa-eye"></i>
-          </button>
-        </div>
-      </div>
+      <form method="POST" action="{{ url_for('users.bulk_import_users') }}" enctype="multipart/form-data" id="staff-bulk-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-      <div class="um-modal-footer">
-        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-check"></i> Create User</button>
-        <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
-      </div>
-    </form>
+        <!-- File Select Container -->
+        <div class="form-group">
+          <label class="form-label" style="font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 0.4rem; display: block;">
+            <i class="ri-file-upload-line" style="color: var(--color-primary, #0284c7); margin-right: 0.3rem;"></i> Select Spreadsheet File <span style="color: #dc2626;">*</span>
+          </label>
+          
+          <div id="staff-drop-container" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1.25rem; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s;" onclick="document.getElementById('staff-import-file').click();">
+            <input type="file" id="staff-import-file" name="staff_file" accept=".xlsx,.xls,.csv" style="display: none;" required onchange="handleStaffFile(this.files)">
+            
+            <!-- Idle View -->
+            <div id="staff-drop-idle" style="display: flex; flex-direction: column; align-items: center; gap: 0.4rem;">
+              <div style="width: 44px; height: 44px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                <i class="ri-upload-cloud-2-line"></i>
+              </div>
+              <strong style="color: #0f172a; font-size: 0.9rem;">Click to select staff spreadsheet</strong>
+              <span style="color: #64748b; font-size: 0.78rem;">Supports Excel (.xlsx, .xls) and CSV (Up to 10 MB)</span>
+            </div>
+
+            <!-- Selected Card View -->
+            <div id="staff-selected-card" style="display: none; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.65rem 0.9rem; text-align: left;">
+              <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <i class="ri-file-excel-2-line" style="font-size: 1.5rem; color: #10b981;"></i>
+                <div>
+                  <strong id="staff-selected-name" style="color: #0f172a; font-size: 0.85rem; display: block;">file.xlsx</strong>
+                  <span id="staff-selected-size" style="color: #64748b; font-size: 0.75rem;">12.4 KB</span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearStaffFile(event)" title="Remove file" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+                <i class="ri-delete-bin-line"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Default Fallback Password -->
+        <div class="form-group" style="margin-top: 1rem;">
+          <label for="default_password" class="form-label" style="font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem; display: block;">
+            <i class="ri-key-2-line" style="color: #6366f1; margin-right: 0.3rem;"></i> Default Password (if missing in file)
+          </label>
+          <input type="text" id="default_password" name="default_password" class="form-control" value="Staff@123" placeholder="Staff@123" style="font-size: 0.85rem;">
+          <span style="font-size: 0.72rem; color: #64748b; margin-top: 0.2rem; display: block;">Staff members can change their password anytime in their profile settings.</span>
+        </div>
+
+        <div class="um-modal-footer" style="margin-top: 1.25rem; border-top: 1px solid #f1f5f9; padding-top: 0.9rem;">
+          <button type="submit" class="btn btn-primary" id="staff-import-submit-btn" disabled style="display: inline-flex; align-items: center; gap: 0.4rem;">
+            <i class="ri-user-add-line"></i> Import Staff Members
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()"><i class="ri-close-line"></i> Cancel</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -601,7 +779,7 @@ window.addEventListener("keydown", function(e) {
   <div class="um-modal-card" style="max-width: 820px;">
     <div class="um-modal-head">
       <div style="display: flex; align-items: center; gap: 0.6rem;">
-        <i class="fa-solid fa-inbox" style="font-size: 1.15rem; color: #d97706;"></i>
+        <i class="ri-inbox-line" style="font-size: 1.15rem; color: #d97706;"></i>
         <h3 class="um-modal-title" style="border: none; padding: 0; margin: 0;">Staff Requests Inbox</h3>
         {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
         {% if pending_reqs %}
@@ -645,18 +823,18 @@ window.addEventListener("keydown", function(e) {
                   <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                     <strong style="color: #0f172a; font-size: 0.98rem;">@{{ req.username }}</strong>
                     {% if req.requested_role == 'admin' %}
-                      <span class="um-role-chip um-role-admin"><i class="fa-solid fa-user-shield"></i> Requested: Admin</span>
+                      <span class="um-role-chip um-role-admin"><i class="ri-shield-user-line"></i> Requested: Admin</span>
                     {% else %}
-                      <span class="um-role-chip um-role-manager"><i class="fa-solid fa-boxes-packing"></i> Requested: Manager</span>
+                      <span class="um-role-chip um-role-manager"><i class="ri-archive-stack-line"></i> Requested: Manager</span>
                     {% endif %}
                   </div>
                   <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 3px;">
-                    <i class="fa-solid fa-envelope" style="color: #6366f1;"></i> {{ req.email }} &nbsp;&bull;&nbsp;
-                    <i class="fa-solid fa-clock" style="color: #6366f1;"></i> {{ format_datetime(req.created_at) }}
+                    <i class="ri-mail-line" style="color: #6366f1;"></i> {{ req.email }} &nbsp;&bull;&nbsp;
+                    <i class="ri-time-line" style="color: #6366f1;"></i> {{ format_datetime(req.created_at) }}
                   </div>
                   {% if req.reason %}
                     <div class="um-request-reason" style="margin-top: 0.5rem; font-size: 0.85rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border-left: 3px solid #6366f1;">
-                      <i class="fa-solid fa-comment-dots" style="color: #6366f1; margin-right: 0.25rem;"></i> Justification: <em>"{{ req.reason }}"</em>
+                      <i class="ri-chat-3-line" style="color: #6366f1; margin-right: 0.25rem;"></i> Justification: <em>"{{ req.reason }}"</em>
                     </div>
                   {% endif %}
                 </div>
@@ -666,11 +844,11 @@ window.addEventListener("keydown", function(e) {
                 <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
                   <div>
                     {% if req.status == 'APPROVED' %}
-                      <span class="role-pill role-admin" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;"><i class="fa-solid fa-check"></i> Approved</span>
+                      <span class="role-pill role-admin" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;"><i class="ri-check-line"></i> Approved</span>
                     {% elif req.status == 'REJECTED' %}
-                      <span class="role-pill role-danger" style="background: #fee2e2; color: #991b1b; border-color: #fecaca;"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                      <span class="role-pill role-danger" style="background: #fee2e2; color: #991b1b; border-color: #fecaca;"><i class="ri-close-line"></i> Rejected</span>
                     {% elif req.status == 'CANCELLED' %}
-                      <span class="role-pill" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;"><i class="fa-solid fa-ban"></i> Cancelled</span>
+                      <span class="role-pill" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;"><i class="ri-prohibited-line"></i> Cancelled</span>
                     {% endif %}
                   </div>
                   {% if req.processed_by %}
@@ -684,16 +862,16 @@ window.addEventListener("keydown", function(e) {
               <div style="border-top: 1px solid #f1f5f9; padding-top: 0.75rem; margin-top: 0.5rem;">
                 <div style="margin-bottom: 0.5rem;">
                   <label class="form-label" style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">
-                    <i class="fa-solid fa-comment-medical"></i> Add Admin Review Note / Comment (Optional)
+                    <i class="ri-feedback-line"></i> Add Admin Review Note / Comment (Optional)
                   </label>
                   <input type="text" name="admin_comment" class="form-control admin-comment-input-field" placeholder="e.g., Request approved based on department allocation" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
                 </div>
                 <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;">
                   <button type="button" onclick="submitRequestAction('{{ req._id }}', 'approve', this)" class="btn btn-sm" style="background: #10b981; border-color: #059669; color: white; padding: 0.45rem 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;" title="Approve Request">
-                    <i class="fa-solid fa-check"></i> Approve
+                    <i class="ri-check-line"></i> Approve
                   </button>
                   <button type="button" onclick="submitRequestAction('{{ req._id }}', 'reject', this)" class="btn btn-sm" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #ef4444; padding: 0.45rem 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;" title="Reject Request">
-                    <i class="fa-solid fa-xmark"></i> Reject
+                    <i class="ri-close-line"></i> Reject
                   </button>
                 </div>
               </div>
@@ -706,13 +884,13 @@ window.addEventListener("keydown", function(e) {
         {% endfor %}
         
         <div id="inbox-empty-notice" class="um-empty" style="display: none;">
-          <i class="fa-solid fa-envelope-open"></i>
+          <i class="ri-mail-open-line"></i>
           <h4>Nothing to Display</h4>
           <p>There are no requests matching this status tab.</p>
         </div>
       {% else %}
         <div class="um-empty">
-          <i class="fa-solid fa-envelope-open"></i>
+          <i class="ri-mail-open-line"></i>
           <h4>Your Inbox is Empty</h4>
           <p>There are currently no role requests in the system.</p>
         </div>
@@ -720,7 +898,7 @@ window.addEventListener("keydown", function(e) {
     </div>
 
     <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem; border-top: 1px solid #f1f5f9; padding-top: 0.9rem;">
-      <button type="button" class="btn btn-secondary" onclick="closeInboxModal()"><i class="fa-solid fa-circle-xmark"></i> Close Inbox</button>
+      <button type="button" class="btn btn-secondary" onclick="closeInboxModal()"><i class="ri-close-circle-line"></i> Close Inbox</button>
     </div>
   </div>
 </div>
@@ -729,7 +907,7 @@ window.addEventListener("keydown", function(e) {
 <div id="update-role-modal" class="modal-backdrop app-modal">
   <div class="um-modal-card" style="max-width: 500px;">
     <div class="um-modal-head">
-      <h3 class="um-modal-title"><i class="fa-solid fa-user-gear"></i> Update Account Role</h3>
+      <h3 class="um-modal-title"><i class="ri-user-settings-line"></i> Update Account Role</h3>
       <button type="button" class="um-modal-close" onclick="closeUpdateRoleModal()" title="Close">&times;</button>
     </div>
 
@@ -742,38 +920,38 @@ window.addEventListener("keydown", function(e) {
           <strong id="role-modal-name" style="color: #0f172a; display: block; font-size: 0.95rem;">User Name</strong>
           <span id="role-modal-username" style="font-size: 0.8rem; color: var(--text-muted);">@username</span>
         </div>
-        <span id="role-modal-chip" class="um-role-chip um-role-staff" style="flex-shrink: 0;"><i class="fa-solid fa-user-tag"></i> Staff</span>
+        <span id="role-modal-chip" class="um-role-chip um-role-staff" style="flex-shrink: 0;"><i class="ri-profile-line"></i> Staff</span>
       </div>
 
-      <label class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Select New Role <span style="color: #dc2626;">*</span></label>
+      <label class="form-label"><i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Select New Role <span style="color: #dc2626;">*</span></label>
 
       <div class="um-role-options">
         <label class="um-role-option" data-role-value="staff">
           <input type="radio" name="role" value="staff" class="um-role-radio">
-          <span class="um-role-option-icon um-role-option-icon-staff"><i class="fa-solid fa-user-tag"></i></span>
+          <span class="um-role-option-icon um-role-option-icon-staff"><i class="ri-profile-line"></i></span>
           <span class="um-role-option-body">
             <strong>Staff</strong>
             <span>POS billing counter &amp; catalog view</span>
           </span>
-          <span class="um-role-option-check"><i class="fa-solid fa-circle-check"></i></span>
+          <span class="um-role-option-check"><i class="ri-checkbox-circle-fill"></i></span>
         </label>
         <label class="um-role-option" data-role-value="inventory_manager">
           <input type="radio" name="role" value="inventory_manager" class="um-role-radio">
-          <span class="um-role-option-icon um-role-option-icon-manager"><i class="fa-solid fa-boxes-packing"></i></span>
+          <span class="um-role-option-icon um-role-option-icon-manager"><i class="ri-archive-stack-line"></i></span>
           <span class="um-role-option-body">
             <strong>Inventory Manager</strong>
             <span>Catalog, stock operations &amp; transactions</span>
           </span>
-          <span class="um-role-option-check"><i class="fa-solid fa-circle-check"></i></span>
+          <span class="um-role-option-check"><i class="ri-checkbox-circle-fill"></i></span>
         </label>
         <label class="um-role-option" data-role-value="admin">
           <input type="radio" name="role" value="admin" class="um-role-radio">
-          <span class="um-role-option-icon um-role-option-icon-admin"><i class="fa-solid fa-user-shield"></i></span>
+          <span class="um-role-option-icon um-role-option-icon-admin"><i class="ri-shield-user-line"></i></span>
           <span class="um-role-option-body">
             <strong>Administrator</strong>
             <span>Full system &amp; user management privileges</span>
           </span>
-          <span class="um-role-option-check"><i class="fa-solid fa-circle-check"></i></span>
+          <span class="um-role-option-check"><i class="ri-checkbox-circle-fill"></i></span>
         </label>
       </div>
 
@@ -781,8 +959,8 @@ window.addEventListener("keydown", function(e) {
       </div>
 
       <div class="um-modal-footer">
-        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Role Changes</button>
-        <button type="button" class="btn btn-secondary" onclick="closeUpdateRoleModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="ri-check-line"></i> Save Role Changes</button>
+        <button type="button" class="btn btn-secondary" onclick="closeUpdateRoleModal()"><i class="ri-close-line"></i> Cancel</button>
       </div>
     </form>
   </div>

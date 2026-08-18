@@ -7,28 +7,36 @@ product_bp = Blueprint('products', __name__)
 @login_required
 def list_products():
     from inventory_app.services.product_service import search_products, get_distinct_categories, get_distinct_locations
+    from inventory_app.utils.pagination import Pagination
     query = request.args.get('q', '').strip()
     category = request.args.get('category', '').strip()
     location = request.args.get('location', '').strip()
     stock_status = request.args.get('status', '').strip()
     show_inactive = request.args.get('show_inactive', '0') == '1'
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
     
     is_active_filter = None if show_inactive else True
     
-    products = search_products(
+    products, total_count = search_products(
         query=query,
         category=category,
         location=location,
         stock_status=stock_status,
-        is_active=is_active_filter
+        is_active=is_active_filter,
+        page=page,
+        per_page=per_page,
+        return_total=True
     )
     
+    pagination = Pagination(page=page, per_page=per_page, total=total_count)
     categories = get_distinct_categories()
     locations = get_distinct_locations()
     
     return render_template(
         'products/list.html',
         products=products,
+        pagination=pagination,
         categories=categories,
         locations=locations,
         current_query=query,
@@ -340,3 +348,60 @@ def toggle_active(product_name):
     else:
         flash(msg, "danger")
     return redirect(url_for('products.view_product', product_name=product_name))
+
+
+@product_bp.route('/api/global-search')
+@login_required
+def api_global_search():
+    import re
+    from flask import jsonify
+    from inventory_app.database import get_db
+    
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify({"products": [], "bills": []})
+        
+    db = get_db()
+    regex = re.compile(re.escape(q), re.IGNORECASE)
+    
+    prods = list(db.products.find(
+        {"$or": [
+            {"product_name": {"$regex": regex}},
+            {"category": {"$regex": regex}},
+            {"hsn_code": {"$regex": regex}}
+        ]}
+    ).limit(6))
+    
+    prod_results = [{
+        "name": p.get("product_name"),
+        "category": p.get("category", ""),
+        "quantity": p.get("quantity", 0),
+        "unit": p.get("unit", "pcs"),
+        "price": p.get("price", 0),
+        "hsn": p.get("hsn_code", ""),
+        "status": "In Stock" if (p.get("quantity", 0) > (p.get("minimum_stock", 5))) else ("Low Stock" if p.get("quantity", 0) > 0 else "Out of Stock"),
+        "url": url_for('products.view_product', product_name=p.get("product_name"))
+    } for p in prods]
+    
+    bills = list(db.invoices.find(
+        {"$or": [
+            {"bill_number": {"$regex": regex}},
+            {"customer_name": {"$regex": regex}},
+            {"customer_phone": {"$regex": regex}}
+        ]}
+    ).sort("created_at", -1).limit(5))
+    
+    bill_results = [{
+        "id": str(b.get("_id")),
+        "number": b.get("bill_number"),
+        "customer": b.get("customer_name"),
+        "grand_total": b.get("grand_total", 0),
+        "status": b.get("payment_status", "PAID"),
+        "url": url_for('billing.view_bill', bill_id=str(b.get("_id")))
+    } for b in bills]
+    
+    return jsonify({
+        "products": prod_results,
+        "bills": bill_results
+    })
+

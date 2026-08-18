@@ -64,26 +64,31 @@
 
 <!-- Real Content -->
 <div class="products-real-content fade-in" style="display:none">
-  <!-- Page Header & Action Buttons -->
-  <div class="prod-header-wrap" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--color-on-surface, #0f172a); font-family: var(--font-display, inherit); margin: 0; line-height: 1.2;">
-        Product Inventory
-      </h1>
-      <p style="color: var(--color-on-surface-variant, #64748b); font-size: 0.85rem; margin: 0.25rem 0 0 0;">
-        Browse, search, and manage your complete product catalog &amp; stock levels
-      </p>
+  <!-- Executive Gradient Hero Banner -->
+  <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
+        <i class="ri-archive-stack-line"></i>
+      </div>
+      <div>
+        <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
+          Product Inventory &amp; Catalog
+        </h1>
+        <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
+          Browse, search, edit, and export complete product SKUs &amp; real-time quantities
+        </p>
+      </div>
     </div>
-    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-      <a href="{{ url_for('products.export_pdf', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Formatted PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
-        <i class="fa-solid fa-file-pdf" style="color: #dc2626; margin-right: 0.35rem;"></i> Export PDF
+    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+      <a href="{{ url_for('products.export_pdf', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Formatted PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+        <i class="ri-file-pdf-2-line" style="color: #fca5a5; margin-right: 0.35rem;"></i> Export PDF
       </a>
-      <a href="{{ url_for('products.export_excel', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Microsoft Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
-        <i class="fa-solid fa-file-excel" style="color: #107c41; margin-right: 0.35rem;"></i> Export Excel
+      <a href="{{ url_for('products.export_excel', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Microsoft Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+        <i class="ri-file-excel-2-line" style="color: #86efac; margin-right: 0.35rem;"></i> Export Excel
       </a>
       {% if current_user.role in ['admin', 'inventory_manager'] %}
-        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; box-shadow: 0 4px 12px rgba(11, 61, 110, 0.2);">
-          <i class="fa-solid fa-plus" style="margin-right: 0.35rem;"></i> Add Product
+        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; background: linear-gradient(135deg, #ea580c, #c2410c); color: #ffffff; font-weight: 700; border: none; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);">
+          <i class="ri-add-line" style="margin-right: 0.35rem;"></i> Add Product
         </a>
       {% endif %}
     </div>
@@ -104,7 +109,7 @@
   <div class="prod-kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
     <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-primary, #0b3d6e); display: flex; align-items: center; gap: 0.85rem;">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-primary-light, rgba(11,61,110,0.1)); display: flex; align-items: center; justify-content: center; color: var(--color-primary, #0b3d6e); font-size: 1.1rem;">
-        <i class="fa-solid fa-boxes-stacked"></i>
+        <i class="ri-archive-stack-line"></i>
       </div>
       <div>
         <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Total Products</div>
@@ -114,7 +119,7 @@
 
     <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-success, #10b981); display: flex; align-items: center; gap: 0.85rem;">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-success-bg, #dcfce7); display: flex; align-items: center; justify-content: center; color: var(--color-success, #10b981); font-size: 1.1rem;">
-        <i class="fa-solid fa-circle-check"></i>
+        <i class="ri-checkbox-circle-fill"></i>
       </div>
       <div>
         <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">In Stock</div>
@@ -124,7 +129,7 @@
 
     <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-warning, #f59e0b); display: flex; align-items: center; gap: 0.85rem;">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-warning-bg, #fef9c3); display: flex; align-items: center; justify-content: center; color: var(--color-warning, #f59e0b); font-size: 1.1rem;">
-        <i class="fa-solid fa-triangle-exclamation"></i>
+        <i class="ri-alert-line"></i>
       </div>
       <div>
         <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Low Stock Alerts</div>
@@ -134,7 +139,7 @@
 
     <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid #059669; display: flex; align-items: center; gap: 0.85rem;">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: rgba(5, 150, 105, 0.1); display: flex; align-items: center; justify-content: center; color: #059669; font-size: 1.1rem;">
-        <i class="fa-solid fa-indian-rupee-sign"></i>
+        <i class="ri-money-rupee-circle-line"></i>
       </div>
       <div>
         <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Inventory Value</div>
@@ -177,8 +182,8 @@
     </div>
 
     <div class="filter-item" style="flex: 0 0 auto; display: flex; gap: 0.4rem;">
-      <button type="submit" class="btn btn-secondary" style="font-size: 0.82rem;"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
+      <button type="submit" class="btn btn-secondary" style="font-size: 0.82rem;"><i class="ri-search-2-line"></i> Filter</button>
+      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="ri-refund-2-line"></i></a>
     </div>
   </form>
 
@@ -186,19 +191,19 @@
   <div class="card">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
       <span style="font-size: 0.82rem; color: var(--color-on-surface-variant, #64748b); font-weight: 500;">
-        <i class="fa-solid fa-list-check" style="margin-right: 0.35rem; color: var(--color-primary, #0b3d6e);"></i> Showing <strong>{{ products|length }}</strong> matching items
+        <i class="ri-task-line" style="margin-right: 0.35rem; color: var(--color-primary, #0b3d6e);"></i> Showing <strong>{{ products|length }}</strong> matching items
       </span>
       <div style="display: flex; align-items: center; gap: 0.6rem;">
         <div class="instant-search-wrap">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <i class="ri-search-2-line search-icon"></i>
           <input type="text" id="instant-search" data-table="product-table" class="form-control instant-search-input" placeholder="Quick filter rows…" autocomplete="off">
         </div>
         <div class="view-toggle" role="group" aria-label="View mode">
           <button type="button" class="view-toggle-btn view-toggle-list is-active" title="List view" data-view="list">
-            <i class="fa-solid fa-table-list"></i>
+            <i class="ri-table-line"></i>
           </button>
           <button type="button" class="view-toggle-btn view-toggle-grid" title="Card view" data-view="grid">
-            <i class="fa-solid fa-table-cells-large"></i>
+            <i class="ri-grid-fill"></i>
           </button>
         </div>
       </div>
@@ -210,15 +215,15 @@
         <table class="data-table sortable" id="product-table">
           <thead>
             <tr>
-              <th data-sort><i class="fa-solid fa-box"></i> Product Name</th>
-              <th data-sort><i class="fa-solid fa-layer-group"></i> Category</th>
-              <th data-sort><i class="fa-solid fa-cubes"></i> Stock Level</th>
-              <th data-sort><i class="fa-solid fa-ruler"></i> Unit</th>
-              <th data-sort><i class="fa-solid fa-indian-rupee-sign"></i> Unit Price</th>
-              <th data-sort><i class="fa-solid fa-calculator"></i> Total Value</th>
-              <th data-sort><i class="fa-solid fa-triangle-exclamation"></i> Min Stock</th>
-              <th data-sort><i class="fa-solid fa-location-dot"></i> Location</th>
-              <th data-sort><i class="fa-solid fa-circle-dot"></i> Status</th>
+              <th data-sort><i class="ri-box-3-line"></i> Product Name</th>
+              <th data-sort><i class="ri-stack-line"></i> Category</th>
+              <th data-sort><i class="ri-archive-stack-line"></i> Stock Level</th>
+              <th data-sort><i class="ri-ruler-line"></i> Unit</th>
+              <th data-sort><i class="ri-money-rupee-circle-line"></i> Unit Price</th>
+              <th data-sort><i class="ri-calculator-line"></i> Total Value</th>
+              <th data-sort><i class="ri-alert-line"></i> Min Stock</th>
+              <th data-sort><i class="ri-map-pin-2-line"></i> Location</th>
+              <th data-sort><i class="ri-record-circle-line"></i> Status</th>
             </tr>
           </thead>
           <tbody>
@@ -268,7 +273,7 @@
             {% else %}
               <tr class="empty-row">
                 <td colspan="9" style="text-align: center; color: var(--color-on-surface-variant, #64748b); padding: 3rem;">
-                  <i class="fa-solid fa-box-open" style="font-size: 2.2rem; margin-bottom: 0.5rem; display: block; opacity: 0.5;"></i>
+                  <i class="ri-inbox-archive-line" style="font-size: 2.2rem; margin-bottom: 0.5rem; display: block; opacity: 0.5;"></i>
                   No products found matching your search criteria.
                 </td>
               </tr>
@@ -306,7 +311,7 @@
               <div class="product-card-meta">
                 <span class="badge badge-secondary">{{ p.category }}</span>
                 {% if p.location %}
-                  <span class="product-card-loc"><i class="fa-solid fa-location-dot"></i> {{ p.location }}</span>
+                  <span class="product-card-loc"><i class="ri-map-pin-2-line"></i> {{ p.location }}</span>
                 {% endif %}
               </div>
               <div class="product-card-stock">
@@ -337,11 +342,13 @@
         </div>
       {% else %}
         <div class="empty-table">
-          <i class="fa-solid fa-box-open"></i>
+          <i class="ri-inbox-archive-line"></i>
           <div>No products found matching your search criteria.</div>
         </div>
       {% endif %}
     </div><!-- /product-view-grid -->
+
+    {% include 'components/pagination.html' %}
   </div>
 </div><!-- /products-real-content -->
 {% endblock %}

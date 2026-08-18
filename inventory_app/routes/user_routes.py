@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, send_file
 from inventory_app.utils.validators import validate_user_registration
 from inventory_app.utils.decorators import login_required, roles_required, csrf_protected
 
@@ -8,10 +8,33 @@ user_bp = Blueprint('users', __name__)
 @login_required
 @roles_required('admin')
 def list_users():
-    from inventory_app.services.auth_service import get_all_users, get_all_role_requests
-    users = get_all_users()
+    from inventory_app.services.auth_service import get_all_users, get_all_role_requests, get_user_stats
+    from inventory_app.utils.pagination import Pagination
+    search = request.args.get('q', '').strip()
+    role = request.args.get('role', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    users, total_count = get_all_users(
+        search=search,
+        role=role,
+        page=page,
+        per_page=per_page,
+        return_total=True
+    )
+    pagination = Pagination(page=page, per_page=per_page, total=total_count)
     role_requests = get_all_role_requests()
-    return render_template('users/list.html', users=users, role_requests=role_requests)
+    user_stats = get_user_stats()
+
+    return render_template(
+        'users/list.html',
+        users=users,
+        pagination=pagination,
+        role_requests=role_requests,
+        user_stats=user_stats,
+        current_search=search,
+        current_role=role
+    )
 
 @user_bp.route('/users/add', methods=['POST'])
 @login_required
@@ -213,3 +236,38 @@ def profile():
                 flash(msg, "danger")
                 
     return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history)
+
+
+@user_bp.route('/users/bulk-import', methods=['POST'])
+@login_required
+@roles_required('admin')
+@csrf_protected
+def bulk_import_users():
+    from inventory_app.services.auth_service import import_staff_bulk
+    file = request.files.get('staff_file')
+    default_pw = request.form.get('default_password', 'Staff@123').strip() or 'Staff@123'
+    current_admin = session.get('username', 'admin')
+
+    success, msg, details = import_staff_bulk(file, default_password=default_pw, imported_by=current_admin)
+    if success:
+        flash(msg, "success")
+    else:
+        flash(msg, "danger")
+        
+    return redirect(url_for('users.list_users'))
+
+
+@user_bp.route('/users/template', methods=['GET'])
+@login_required
+@roles_required('admin')
+def download_staff_template():
+    from inventory_app.services.auth_service import generate_staff_template
+    file_format = request.args.get('format', 'xlsx').lower()
+    mem, filename, mimetype = generate_staff_template(file_format=file_format)
+    return send_file(
+        mem,
+        as_attachment=True,
+        download_name=filename,
+        mimetype=mimetype
+    )
+

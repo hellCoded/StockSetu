@@ -36,22 +36,23 @@
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bundle.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}" media="print">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-  <div id="toast-container"></div>
+  <a href="#main-content" class="skip-link no-print">Skip to main content</a>
+  <div id="toast-container" class="no-print"></div>
   {% if current_user.id %}
     <div class="app-container">
-      <div class="sidebar-overlay" id="sidebar-overlay"></div>
-      <div class="sidebar-hover-zone" id="sidebar-hover-zone"></div>
+      <div class="sidebar-overlay no-print" id="sidebar-overlay"></div>
+      <div class="sidebar-hover-zone no-print" id="sidebar-hover-zone"></div>
       {% include 'components/sidebar.html' %}
-      <button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="Toggle sidebar">
-        <i class="fa-solid fa-bars"></i>
+      <button class="mobile-sidebar-toggle no-print" id="mobile-sidebar-toggle" aria-label="Toggle sidebar">
+        <i class="ri-menu-line"></i>
       </button>
-      <button class="sidebar-reveal-tab" id="sidebar-reveal-tab" aria-label="Show sidebar">
-        <i class="fa-solid fa-angles-right"></i>
+      <button class="sidebar-reveal-tab no-print" id="sidebar-reveal-tab" aria-label="Show sidebar">
+        <i class="ri-arrow-right-double-line"></i>
       </button>
       <div class="main-wrapper">
         {% include 'components/navbar.html' %}
@@ -62,7 +63,7 @@
       </div>
     </div>
   {% else %}
-    <div class="auth-wrapper">
+    <div class="auth-wrapper no-print">
       <div style="width:100%; max-width: 440px;">
         {% include 'components/flash_messages.html' %}
         {% block auth_content %}{% endblock %}
@@ -70,7 +71,10 @@
     </div>
   {% endif %}
 
-  {% include 'components/user_credentials_modal.html' %}
+  <div class="no-print">
+    {% include 'components/user_credentials_modal.html' %}
+    {% include 'components/command_palette.html' %}
+  </div>
   <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/toasts.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/app-base.js') }}"></script>

@@ -3,44 +3,53 @@
 {% block title %}User Profile - StockSetu{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-  <div>
-    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">My Account Profile</h1>
-    <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your credentials, update your personal profile, and change security settings</p>
+  <!-- Executive Gradient Hero Banner -->
+  <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
+        <i class="ri-shield-user-line"></i>
+      </div>
+      <div>
+        <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
+          My Account Profile
+        </h1>
+        <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
+          Manage personal details, update credentials, review permissions, and change password
+        </p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(239, 68, 68, 0.2); color: #fee2e2; border: 1px solid rgba(239, 68, 68, 0.4); backdrop-filter: blur(8px);" title="Logout of current session">
+        <i class="ri-logout-box-r-line"></i> Logout
+      </a>
+    </div>
   </div>
-  
-  <div>
-    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary" style="color: #dc2626; border-color: #fca5a5;" title="Logout of current session">
-      <i class="fa-solid fa-right-from-bracket"></i> Logout
-    </a>
-  </div>
-</div>
 
 <div class="form-grid" style="max-width: 900px;">
   <!-- Edit Account Profile Card -->
   <div class="card">
-    <h3 class="card-title"><i class="fa-solid fa-id-card"></i> Edit Personal Info</h3>
+    <h3 class="card-title"><i class="ri-id-card-line"></i> Edit Personal Info</h3>
     <form method="POST" action="{{ url_for('users.profile') }}" style="margin-top: 1rem;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="action_type" value="update_profile">
 
       <div class="form-group">
-        <label for="profile_name" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
+        <label for="profile_name" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
         <input type="text" id="profile_name" name="name" class="form-control" value="{{ user.name if user.name else user.username }}" required>
       </div>
 
       <div class="form-group">
-        <label class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size:0.75rem; color:var(--text-muted);">(cannot be changed)</span></label>
+        <label class="form-label"><i class="ri-at-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size:0.75rem; color:var(--text-muted);">(cannot be changed)</span></label>
         <input type="text" class="form-control" value="{{ user.username }}" readonly disabled style="background: #f8fafc; font-weight: 600;">
       </div>
 
       <div class="form-group">
-        <label for="profile_email" class="form-label"><i class="fa-solid fa-envelope" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
+        <label for="profile_email" class="form-label"><i class="ri-mail-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
         <input type="email" id="profile_email" name="email" class="form-control" value="{{ user.email }}" required>
       </div>
 
       <div class="form-group">
-        <label class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Assigned Role</label>
+        <label class="form-label"><i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Assigned Role</label>
         <div>
           <span class="role-pill role-{{ user.role }}" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">
             {{ user.role | replace('_', ' ') }}
@@ -49,52 +58,52 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label"><i class="fa-solid fa-clock" style="color: var(--primary); margin-right: 0.3rem;"></i> Account Created</label>
+        <label class="form-label"><i class="ri-time-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Account Created</label>
         <input type="text" class="form-control" value="{{ format_datetime(user.created_at) }}" readonly disabled style="background: #f8fafc;">
       </div>
 
-      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="fa-solid fa-floppy-disk"></i> Save Profile Details</button>
+      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="ri-save-3-line"></i> Save Profile Details</button>
     </form>
   </div>
 
   <!-- Change Password Card -->
   <div class="card">
-    <h3 class="card-title"><i class="fa-solid fa-key"></i> Change Password</h3>
+    <h3 class="card-title"><i class="ri-key-2-line"></i> Change Password</h3>
     <form method="POST" action="{{ url_for('users.profile') }}" style="margin-top: 1rem;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="action_type" value="change_password">
 
       <div class="form-group">
-        <label for="current_password" class="form-label"><i class="fa-solid fa-lock" style="color: var(--primary); margin-right: 0.3rem;"></i> Current Password <span style="color: #dc2626;">*</span></label>
+        <label for="current_password" class="form-label"><i class="ri-lock-2-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Current Password <span style="color: #dc2626;">*</span></label>
         <div class="password-input-group">
           <input type="password" id="current_password" name="current_password" class="form-control" placeholder="••••••••" required>
           <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('current_password', this)" title="Show/Hide Password">
-            <i class="fa-solid fa-eye"></i>
+            <i class="ri-eye-line"></i>
           </button>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="new_password" class="form-label"><i class="fa-solid fa-key" style="color: var(--primary); margin-right: 0.3rem;"></i> New Password <span style="color: #dc2626;">*</span></label>
+        <label for="new_password" class="form-label"><i class="ri-key-2-line" style="color: var(--primary); margin-right: 0.3rem;"></i> New Password <span style="color: #dc2626;">*</span></label>
         <div class="password-input-group">
           <input type="password" id="new_password" name="password" class="form-control" placeholder="At least 6 characters" required>
           <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_password', this)" title="Show/Hide Password">
-            <i class="fa-solid fa-eye"></i>
+            <i class="ri-eye-line"></i>
           </button>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="confirm_password" class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm New Password <span style="color: #dc2626;">*</span></label>
+        <label for="confirm_password" class="form-label"><i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm New Password <span style="color: #dc2626;">*</span></label>
         <div class="password-input-group">
           <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat new password" required>
           <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm_password', this)" title="Show/Hide Password">
-            <i class="fa-solid fa-eye"></i>
+            <i class="ri-eye-line"></i>
           </button>
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="fa-solid fa-lock"></i> Update Password</button>
+      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="ri-lock-2-line"></i> Update Password</button>
     </form>
   </div>
 
@@ -103,7 +112,7 @@
   <div class="card" style="grid-column: 1 / -1; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem;">
     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
       <div style="width: 38px; height: 38px; border-radius: 10px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-        <i class="fa-solid fa-user-gear"></i>
+        <i class="ri-user-settings-line"></i>
       </div>
       <div>
         <h3 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0;">Request Role Change</h3>
@@ -117,13 +126,13 @@
       <div class="alert alert-warning" style="margin-top: 1rem; margin-bottom: 0; padding: 1.25rem; border-radius: 10px; border-left: 4px solid #f59e0b; background: #fffbeb;">
         <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; width: 100%;">
           <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-            <i class="fa-solid fa-hourglass-half" style="font-size: 1.4rem; color: #d97706; margin-top: 2px;"></i>
+            <i class="ri-hourglass-line" style="font-size: 1.4rem; color: #d97706; margin-top: 2px;"></i>
             <div>
               <h4 style="font-size: 0.95rem; font-weight: 700; color: #92400e; margin: 0 0 0.25rem 0;">
                 Request Pending
               </h4>
               <div style="font-size: 0.85rem; color: #b45309; line-height: 1.5;">
-                Requested Role: <strong><i class="fa-solid fa-shield-halved"></i> {{ pending_request.requested_role | replace('_', ' ') | title }}</strong><br>
+                Requested Role: <strong><i class="ri-shield-check-line"></i> {{ pending_request.requested_role | replace('_', ' ') | title }}</strong><br>
                 Submitted Date: {{ format_datetime(pending_request.created_at) }}<br>
                 Justification: <em>"{{ pending_request.reason or 'No note provided' }}"</em>
               </div>
@@ -133,7 +142,7 @@
             <form method="POST" action="{{ url_for('users.cancel_promotion_request', request_id=pending_request._id) }}" style="margin: 0;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-secondary btn-sm" style="color: #dc2626; border-color: #fca5a5; background: white; font-weight: 600;" onclick="return confirm('Are you sure you want to withdraw this role request?');">
-                <i class="fa-solid fa-xmark"></i> Withdraw
+                <i class="ri-close-line"></i> Withdraw
               </button>
             </form>
           </div>
@@ -146,7 +155,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
           <div>
             <label for="requested_role" class="form-label">
-              <i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Requested Role <span style="color: #dc2626;">*</span>
+              <i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Requested Role <span style="color: #dc2626;">*</span>
             </label>
             <select id="requested_role" name="requested_role" class="form-select" required onchange="profileRoleHint(this.value)">
               {% if user.role == 'staff' %}
@@ -158,18 +167,18 @@
 
           <div>
             <label for="reason" class="form-label">
-              <i class="fa-solid fa-pen-to-square" style="color: var(--primary); margin-right: 0.3rem;"></i> Reason for Request <span style="color: #dc2626;">*</span>
+              <i class="ri-edit-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Reason for Request <span style="color: #dc2626;">*</span>
             </label>
             <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., Assigned to manage catalog, stock counts & transactions" required>
           </div>
         </div>
 
         <div id="profile-role-hint-box" style="background: #e0f2fe; border-left: 3px solid #0284c7; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; color: #075985; margin-bottom: 1.25rem; line-height: 1.5;">
-          <i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager</strong>: Full access to manage products, post stock adjustments, view audit logs, and create bills.
+          <i class="ri-archive-stack-line"></i> <strong>Inventory Manager</strong>: Full access to manage products, post stock adjustments, view audit logs, and create bills.
         </div>
 
         <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.25rem;">
-          <i class="fa-solid fa-paper-plane"></i> Submit Request
+          <i class="ri-send-plane-line"></i> Submit Request
         </button>
       </form>
       
@@ -178,12 +187,12 @@
         const hintBox = document.getElementById('profile-role-hint-box');
         if (!hintBox) return;
         if (role === 'admin') {
-          hintBox.innerHTML = '<i class="fa-solid fa-user-shield"></i> <strong>Administrator</strong>: Full access to manage users, approve role changes, view audit logs, and configure settings.';
+          hintBox.innerHTML = '<i class="ri-shield-user-line"></i> <strong>Administrator</strong>: Full access to manage users, approve role changes, view audit logs, and configure settings.';
           hintBox.style.background = '#f3e8ff';
           hintBox.style.borderColor = '#9333ea';
           hintBox.style.color = '#6b21a8';
         } else {
-          hintBox.innerHTML = '<i class="fa-solid fa-boxes-packing"></i> <strong>Inventory Manager</strong>: Full access to manage products, post stock adjustments, view audit logs, and create bills.';
+          hintBox.innerHTML = '<i class="ri-archive-stack-line"></i> <strong>Inventory Manager</strong>: Full access to manage products, post stock adjustments, view audit logs, and create bills.';
           hintBox.style.background = '#e0f2fe';
           hintBox.style.borderColor = '#0284c7';
           hintBox.style.color = '#075985';
@@ -195,7 +204,7 @@
     <!-- Request History Section -->
     {% if requests_history %}
       <div style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
-        <h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.75rem;"><i class="fa-solid fa-clock-rotate-left"></i> My Requests History</h4>
+        <h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.75rem;"><i class="ri-history-line"></i> My Requests History</h4>
         <div class="table-responsive">
           <table class="data-table" style="font-size: 0.85rem; width: 100%;">
             <thead>
@@ -213,13 +222,13 @@
                   <td><strong>{{ req.requested_role | replace('_', ' ') | title }}</strong></td>
                   <td>
                     {% if req.status == 'PENDING' %}
-                      <span class="role-pill role-staff" style="background: #fef3c7; color: #d97706; border-color: #fde68a;"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
+                      <span class="role-pill role-staff" style="background: #fef3c7; color: #d97706; border-color: #fde68a;"><i class="ri-hourglass-line"></i> Pending</span>
                     {% elif req.status == 'APPROVED' %}
-                      <span class="role-pill role-admin" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;"><i class="fa-solid fa-check"></i> Approved</span>
+                      <span class="role-pill role-admin" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;"><i class="ri-check-line"></i> Approved</span>
                     {% elif req.status == 'REJECTED' %}
-                      <span class="role-pill role-danger" style="background: #fee2e2; color: #991b1b; border-color: #fecaca;"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                      <span class="role-pill role-danger" style="background: #fee2e2; color: #991b1b; border-color: #fecaca;"><i class="ri-close-line"></i> Rejected</span>
                     {% elif req.status == 'CANCELLED' %}
-                      <span class="role-pill" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;"><i class="fa-solid fa-ban"></i> Cancelled</span>
+                      <span class="role-pill" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;"><i class="ri-prohibited-line"></i> Cancelled</span>
                     {% else %}
                       <span class="role-pill">{{ req.status | title }}</span>
                     {% endif %}

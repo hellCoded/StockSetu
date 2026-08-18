@@ -9,10 +9,10 @@
     <div class="inv-header-text">
       <div class="inv-badge-wrap">
         <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm inv-back-btn">
-          <i class="fa-solid fa-arrow-left"></i> Products Catalog
+          <i class="ri-arrow-left-line"></i> Products Catalog
         </a>
         <span class="badge badge-success" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">
-          <i class="fa-solid fa-arrow-trend-up"></i> Stock Addition
+          <i class="ri-arrow-up-circle-line"></i> Stock Addition
         </span>
       </div>
       <h1 class="inv-page-title">Record Stock In</h1>
@@ -20,10 +20,10 @@
     </div>
     <div class="inv-header-actions">
       <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-primary btn-sm" title="Upload Supplier Invoice">
-        <i class="fa-solid fa-file-invoice"></i> Bulk Stock In from Bill
+        <i class="ri-bill-line"></i> Bulk Stock In from Bill
       </a>
       <a href="{{ url_for('inventory.view_transactions', type='STOCK_IN') }}" class="btn btn-secondary btn-sm" title="View Transaction History">
-        <i class="fa-solid fa-clock-rotate-left"></i> Stock In History
+        <i class="ri-history-line"></i> Stock In History
       </a>
     </div>
   </div>
@@ -48,7 +48,7 @@
     <div class="card inv-form-card">
       <div class="inv-card-header">
         <div class="inv-icon-circle in-theme">
-          <i class="fa-solid fa-boxes-stacked"></i>
+          <i class="ri-archive-stack-line"></i>
         </div>
         <div>
           <h3 class="inv-card-title">Stock Receipt Entry</h3>
@@ -61,7 +61,7 @@
 
         <div class="form-group">
           <label for="product_name" class="form-label">
-            <i class="fa-solid fa-box" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
+            <i class="ri-box-3-line" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
           </label>
           <select id="product_name" name="product_name" class="form-select inv-select" required>
             <option value="">-- Choose Product to Receive --</option>
@@ -75,7 +75,7 @@
 
         <div class="form-group">
           <label for="quantity" class="form-label">
-            <i class="fa-solid fa-plus-circle" style="color: var(--color-success, #10b981); margin-right: 0.35rem;"></i> Quantity Received <span class="req">*</span>
+            <i class="ri-add-circle-line" style="color: var(--color-success, #10b981); margin-right: 0.35rem;"></i> Quantity Received <span class="req">*</span>
           </label>
           <div class="input-with-icon">
             <input type="number" step="any" min="0.01" id="quantity" name="quantity" class="form-control inv-num-input" placeholder="e.g., 50" required style="font-family: 'JetBrains Mono', monospace;">
@@ -87,17 +87,17 @@
 
         <div class="form-group">
           <label for="reason" class="form-label">
-            <i class="fa-solid fa-receipt" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Supplier Reference / PO Number
+            <i class="ri-receipt-line" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Supplier Reference / PO Number
           </label>
           <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., PO #45091 received from ABC Suppliers">
         </div>
 
         <div class="inv-form-footer">
           <button type="submit" class="btn btn-primary inv-submit-btn">
-            <i class="fa-solid fa-plus"></i> Submit Stock In
+            <i class="ri-add-line"></i> Submit Stock In
           </button>
           <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
-            <i class="fa-solid fa-xmark"></i> Cancel
+            <i class="ri-close-line"></i> Cancel
           </a>
         </div>
       </form>
@@ -106,25 +106,25 @@
     <!-- Right: Helpful Guidelines & Direct Links -->
     <div class="inv-sidebar-col">
       <div class="card inv-guide-card">
-        <h4 class="inv-guide-title"><i class="fa-solid fa-shield-halved" style="color: var(--color-success, #10b981);"></i> Stock In Protocol</h4>
+        <h4 class="inv-guide-title"><i class="ri-shield-check-line" style="color: var(--color-success, #10b981);"></i> Stock In Protocol</h4>
         
         <ul class="inv-guide-list">
           <li>
-            <i class="fa-solid fa-check-double text-success"></i>
+            <i class="ri-check-double-line text-success"></i>
             <div>
               <strong>Instant Ledger Update</strong>
               <p>Inventory level increments immediately and creates an immutable audit transaction record.</p>
             </div>
           </li>
           <li>
-            <i class="fa-solid fa-receipt text-primary"></i>
+            <i class="ri-receipt-line text-primary"></i>
             <div>
               <strong>Supplier Invoices</strong>
               <p>Have an entire PDF or Excel invoice? Use <a href="{{ url_for('inventory.bulk_stock_in') }}">Bulk Stock In</a> to auto-parse all line items at once.</p>
             </div>
           </li>
           <li>
-            <i class="fa-solid fa-bell text-warning"></i>
+            <i class="ri-notification-3-line text-warning"></i>
             <div>
               <strong>Low Stock Resolving</strong>
               <p>If the item is flagged as low stock, receiving items will automatically clear the alert.</p>

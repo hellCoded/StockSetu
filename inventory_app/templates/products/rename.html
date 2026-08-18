@@ -5,7 +5,7 @@
 {% block content %}
 <div style="margin-bottom: 1.5rem;">
   <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm">
-    <i class="fa-solid fa-arrow-left"></i> Back to Product Details
+    <i class="ri-arrow-left-line"></i> Back to Product Details
   </a>
   <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem;">Rename Product</h1>
   <p style="color: var(--text-muted); font-size: 0.9rem;">Change the product name used across all records.</p>
@@ -13,7 +13,7 @@
 
 <div class="card" style="max-width: 650px;">
   <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
-    <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.2rem; margin-right: 0.5rem;"></i>
+    <i class="ri-alert-line" style="font-size: 1.2rem; margin-right: 0.5rem;"></i>
     <div>
       <strong>Note:</strong> Renaming updates the product name across all records. Historical transactions are preserved.
     </div>
@@ -23,18 +23,18 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="form-group">
-      <label class="form-label"><i class="fa-solid fa-tag" style="color: var(--primary); margin-right: 0.3rem;"></i> Current Product Name</label>
+      <label class="form-label"><i class="ri-price-tag-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Current Product Name</label>
       <input type="text" class="form-control" value="{{ product.product_name }}" readonly disabled style="opacity: 0.7;">
     </div>
 
     <div class="form-group">
-      <label for="new_product_name" class="form-label"><i class="fa-solid fa-pen-to-square" style="color: var(--primary); margin-right: 0.3rem;"></i> New Product Name <span style="color: #dc2626;">*</span></label>
+      <label for="new_product_name" class="form-label"><i class="ri-edit-line" style="color: var(--primary); margin-right: 0.3rem;"></i> New Product Name <span style="color: #dc2626;">*</span></label>
       <input type="text" id="new_product_name" name="new_product_name" class="form-control" value="{{ new_product_name if new_product_name else '' }}" placeholder="Enter unique new product name" required maxlength="255">
     </div>
 
     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary" data-confirm="Are you sure you want to rename this product?"><i class="fa-solid fa-i-cursor"></i> Rename Product</button>
-      <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+      <button type="submit" class="btn btn-primary" data-confirm="Are you sure you want to rename this product?"><i class="ri-cursor-line"></i> Rename Product</button>
+      <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary"><i class="ri-close-line"></i> Cancel</a>
     </div>
   </form>
 </div>

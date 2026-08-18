@@ -50,22 +50,27 @@
 
 <!-- Real Content -->
 <div class="tx-real-content fade-in" style="display:none">
-  <!-- Page Header & Actions -->
-  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--color-on-surface, #0f172a); font-family: var(--font-display, inherit); margin: 0; line-height: 1.2;">
-        Inventory Transaction Log
-      </h1>
-      <p style="color: var(--color-on-surface-variant, #64748b); font-size: 0.85rem; margin: 0.25rem 0 0 0;">
-        Complete chronological ledger of all stock ins, stock outs, and quantity adjustments
-      </p>
+  <!-- Executive Gradient Hero Banner -->
+  <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
+        <i class="ri-history-line"></i>
+      </div>
+      <div>
+        <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
+          Inventory Transaction Ledger
+        </h1>
+        <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
+          Chronological audit trail of all warehouse stock ins, stock outs, adjustments, and receipts
+        </p>
+      </div>
     </div>
-    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-      <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
-        <i class="fa-solid fa-file-pdf" style="color: #dc2626; margin-right: 0.35rem;"></i> Export PDF
+    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+      <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+        <i class="ri-file-pdf-2-line" style="color: #fca5a5; margin-right: 0.35rem;"></i> Export PDF
       </a>
-      <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
-        <i class="fa-solid fa-file-excel" style="color: #107c41; margin-right: 0.35rem;"></i> Export Excel
+      <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+        <i class="ri-file-excel-2-line" style="color: #86efac; margin-right: 0.35rem;"></i> Export Excel
       </a>
     </div>
   </div>
@@ -83,7 +88,7 @@
   <div class="tx-kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
     <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-primary, #0b3d6e); display: flex; align-items: center; gap: 0.85rem;">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-primary-light, rgba(11,61,110,0.1)); display: flex; align-items: center; justify-content: center; color: var(--color-primary, #0b3d6e); font-size: 1.1rem;">
-        <i class="fa-solid fa-clock-rotate-left"></i>
+        <i class="ri-history-line"></i>
       </div>
       <div>
         <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Total Logged</div>
@@ -93,7 +98,7 @@
 
     <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-success, #10b981); display: flex; align-items: center; gap: 0.85rem;">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-success-bg, #dcfce7); display: flex; align-items: center; justify-content: center; color: var(--color-success, #10b981); font-size: 1.1rem;">
-        <i class="fa-solid fa-arrow-down"></i>
+        <i class="ri-arrow-down-line"></i>
       </div>
       <div>
         <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Stock In Events</div>
@@ -103,7 +108,7 @@
 
     <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-danger, #ef4444); display: flex; align-items: center; gap: 0.85rem;">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-danger-bg, #fee2e2); display: flex; align-items: center; justify-content: center; color: var(--color-danger, #ef4444); font-size: 1.1rem;">
-        <i class="fa-solid fa-arrow-up"></i>
+        <i class="ri-arrow-up-line"></i>
       </div>
       <div>
         <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Stock Out Events</div>
@@ -113,7 +118,7 @@
 
     <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-warning, #f59e0b); display: flex; align-items: center; gap: 0.85rem;">
       <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-warning-bg, #fef9c3); display: flex; align-items: center; justify-content: center; color: var(--color-warning, #f59e0b); font-size: 1.1rem;">
-        <i class="fa-solid fa-sliders"></i>
+        <i class="ri-equalizer-2-line"></i>
       </div>
       <div>
         <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Adjustments</div>
@@ -140,8 +145,8 @@
     </div>
 
     <div class="filter-item" style="flex: 0 0 auto; display: flex; gap: 0.4rem;">
-      <button type="submit" class="btn btn-secondary" style="font-size: 0.82rem;"><i class="fa-solid fa-filter"></i> Filter</button>
-      <a href="{{ url_for('inventory.view_transactions') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
+      <button type="submit" class="btn btn-secondary" style="font-size: 0.82rem;"><i class="ri-filter-3-line"></i> Filter</button>
+      <a href="{{ url_for('inventory.view_transactions') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="ri-refund-2-line"></i></a>
     </div>
   </form>
 
@@ -150,13 +155,13 @@
       <table class="data-table clickable-rows">
         <thead>
           <tr>
-            <th><i class="fa-solid fa-clock"></i> Date & Time</th>
-            <th><i class="fa-solid fa-box"></i> Product Name</th>
-            <th><i class="fa-solid fa-arrow-right-arrow-left"></i> Type</th>
-            <th><i class="fa-solid fa-hashtag"></i> Quantity Changed</th>
-            <th><i class="fa-solid fa-clock-rotate-left"></i> Previous</th>
-            <th><i class="fa-solid fa-layer-group"></i> New Qty</th>
-            <th><i class="fa-solid fa-note-sticky"></i> Reason / Operator</th>
+            <th><i class="ri-time-line"></i> Date & Time</th>
+            <th><i class="ri-box-3-line"></i> Product Name</th>
+            <th><i class="ri-exchange-line"></i> Type</th>
+            <th><i class="ri-hashtag"></i> Quantity Changed</th>
+            <th><i class="ri-history-line"></i> Previous</th>
+            <th><i class="ri-stack-line"></i> New Qty</th>
+            <th><i class="ri-sticky-note-line"></i> Reason / Operator</th>
           </tr>
         </thead>
         <tbody>
@@ -171,15 +176,15 @@
                 </td>
                 <td>
                   {% if tx.transaction_type == 'STOCK_IN' %}
-                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-plus"></i> STOCK IN</span>
+                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-add-line"></i> STOCK IN</span>
                   {% elif tx.transaction_type == 'STOCK_OUT' %}
-                    <span class="badge badge-danger" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
+                    <span class="badge badge-danger" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-subtract-line"></i> STOCK OUT</span>
                   {% elif tx.transaction_type == 'ADJUSTMENT' %}
-                    <span class="badge badge-warning" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-sliders"></i> ADJUST</span>
+                    <span class="badge badge-warning" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-equalizer-2-line"></i> ADJUST</span>
                   {% elif tx.transaction_type == 'INITIAL_STOCK' %}
-                    <span class="badge badge-info" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
+                    <span class="badge badge-info" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-play-circle-line"></i> INITIAL</span>
                   {% elif tx.transaction_type == 'PRODUCT_RENAME' %}
-                    <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-pen"></i> RENAME</span>
+                    <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-pencil-line"></i> RENAME</span>
                   {% else %}
                     <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;">{{ tx.transaction_type }}</span>
                   {% endif %}
@@ -193,7 +198,7 @@
                   <div style="color: var(--color-on-surface, #0f172a); font-size: 0.83rem;">{{ tx.reason }}</div>
                   <div style="margin-top: 0.2rem;">
                     <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: var(--color-surface-container, #e2e8f0); padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.76rem; font-weight: 500;">
-                      <i class="fa-solid fa-user" style="font-size: 0.65rem; color: var(--color-primary, #0b3d6e);"></i> {{ tx.performed_by }}
+                      <i class="ri-user-3-line" style="font-size: 0.65rem; color: var(--color-primary, #0b3d6e);"></i> {{ tx.performed_by }}
                     </span>
                   </div>
                 </td>
@@ -202,7 +207,7 @@
           {% else %}
             <tr>
               <td colspan="7" style="text-align: center; color: var(--color-on-surface-variant, #64748b); padding: 3rem;">
-                <i class="fa-solid fa-clock-rotate-left" style="font-size: 2.2rem; margin-bottom: 0.5rem; display: block; opacity: 0.5;"></i>
+                <i class="ri-history-line" style="font-size: 2.2rem; margin-bottom: 0.5rem; display: block; opacity: 0.5;"></i>
                 No transaction history found matching your filters.
               </td>
             </tr>
@@ -210,6 +215,8 @@
         </tbody>
       </table>
     </div>
+
+    {% include 'components/pagination.html' %}
   </div>
 </div><!-- /tx-real-content -->
 {% endblock %}

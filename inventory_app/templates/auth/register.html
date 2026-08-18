@@ -5,71 +5,86 @@
 {% block auth_content %}
 <div class="auth-card">
   <div style="text-align: center; margin-bottom: 2rem;">
-    <div style="margin: 0 auto 0.75rem auto; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 16C4 11.58 7.58 8 12 8C16.42 8 20 11.58 20 16" stroke="var(--jklc-red)" stroke-width="3" stroke-linecap="round"/>
-        <rect x="2" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
-        <rect x="18" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
-        <rect x="1" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
-        <rect x="17" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+    <div style="margin: 0 auto 0.75rem auto; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+      <svg width="52" height="52" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="authRegHexTop" x1="8" y1="4" x2="32" y2="18" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#fdba74"/>
+            <stop offset="100%" stop-color="#fb923c"/>
+          </linearGradient>
+          <linearGradient id="authRegHexLeft" x1="8" y1="18" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ea580c"/>
+            <stop offset="100%" stop-color="#881337"/>
+          </linearGradient>
+          <linearGradient id="authRegHexRight" x1="20" y1="18" x2="32" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#c2410c"/>
+            <stop offset="100%" stop-color="#450a0a"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 4.5L33 12L20 19.5L7 12L20 4.5Z" fill="url(#authRegHexTop)"/>
+        <path d="M7 12.5L20 20V35L7 27.5V12.5Z" fill="url(#authRegHexLeft)"/>
+        <path d="M33 12.5L20 20V35L33 27.5V12.5Z" fill="url(#authRegHexRight)"/>
+        <path d="M20 8L27.5 12.3L20 16.6L12.5 12.3L20 8Z" fill="white" fill-opacity="0.3"/>
+        <path d="M20 20L20 31L29.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.12"/>
+        <path d="M20 20L20 31L10.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.18"/>
       </svg>
     </div>
     <h1 style="font-size: 1.6rem; font-weight: 800; font-family: var(--font-display); line-height: 1.1; margin-bottom: 0.5rem;">
-      <span style="color: var(--text-main);">Stock</span><span style="color: var(--jklc-red);">Setu</span>
+      <span style="color: var(--color-on-surface);">Stock</span><span style="color: #ea580c;">Setu</span>
     </h1>
-    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Register a new user account</p>
+    <p style="color: var(--color-on-surface-variant); font-size: 0.85rem; margin-top: 0.25rem;">Register a new user account</p>
   </div>
 
   <form method="POST" action="{{ url_for('auth.register') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="form-group">
-      <label for="name" class="form-label"><i class="fa-solid fa-id-card" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
+      <label for="name" class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
       <input type="text" id="name" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}" placeholder="e.g. John" required oninput="autoGenerateUsername()">
     </div>
 
     <div class="form-group">
-      <label for="surname" class="form-label"><i class="fa-solid fa-id-card" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
+      <label for="surname" class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
       <input type="text" id="surname" name="surname" class="form-control" value="{{ form_data.surname if form_data else '' }}" placeholder="e.g. Doe" oninput="autoGenerateUsername()">
     </div>
 
     <div class="form-group">
-      <label for="username" class="form-label"><i class="fa-solid fa-at" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated with name + 2 random digits)</span></label>
+      <label for="username" class="form-label"><i class="ri-at-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated with name + 2 random digits)</span></label>
       <input type="text" id="username" name="username" class="form-control" value="{{ form_data.username if form_data else '' }}" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
     </div>
 
     <div class="form-group">
-      <label for="email" class="form-label"><i class="fa-solid fa-envelope" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
+      <label for="email" class="form-label"><i class="ri-mail-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
       <input type="email" id="email" name="email" class="form-control" value="{{ form_data.email if form_data else '' }}" placeholder="john@example.com" required>
     </div>
 
     <div class="form-group">
-      <label for="password" class="form-label"><i class="fa-solid fa-lock" style="color: var(--primary); margin-right: 0.3rem;"></i> Password <span style="color: #dc2626;">*</span></label>
+      <label for="password" class="form-label"><i class="ri-lock-2-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Password <span style="color: #dc2626;">*</span></label>
       <div class="password-input-group">
         <input type="password" id="password" name="password" class="form-control" placeholder="At least 6 characters" required>
         <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show/Hide Password">
-          <i class="fa-solid fa-eye"></i>
+          <i class="ri-eye-line"></i>
         </button>
       </div>
     </div>
 
     <div class="form-group">
-      <label for="confirm_password" class="form-label"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm Password <span style="color: #dc2626;">*</span></label>
+      <label for="confirm_password" class="form-label"><i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm Password <span style="color: #dc2626;">*</span></label>
       <div class="password-input-group">
         <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
         <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm_password', this)" title="Show/Hide Password">
-          <i class="fa-solid fa-eye"></i>
+          <i class="ri-eye-line"></i>
         </button>
       </div>
     </div>
 
     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">
-      <i class="fa-solid fa-user-check"></i> Register Account
+      <i class="ri-user-follow-line"></i> Register Account
     </button>
   </form>
 
   <div style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
-    Already registered? <a href="{{ url_for('auth.login') }}"><i class="fa-solid fa-arrow-left"></i> Back to Login</a>
+    Already registered? <a href="{{ url_for('auth.login') }}"><i class="ri-arrow-left-line"></i> Back to Login</a>
   </div>
 </div>
 

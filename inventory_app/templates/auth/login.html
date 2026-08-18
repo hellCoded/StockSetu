@@ -5,46 +5,61 @@
 {% block auth_content %}
 <div class="auth-card">
   <div style="text-align: center; margin-bottom: 2rem;">
-    <div style="margin: 0 auto 0.75rem auto; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 16C4 11.58 7.58 8 12 8C16.42 8 20 11.58 20 16" stroke="var(--jklc-red)" stroke-width="3" stroke-linecap="round"/>
-        <rect x="2" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
-        <rect x="18" y="16" width="4" height="6" rx="1" fill="var(--jklc-blue)"/>
-        <rect x="1" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
-        <rect x="17" y="14" width="6" height="2" rx="0.5" fill="var(--jklc-blue)"/>
+    <div style="margin: 0 auto 0.75rem auto; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+      <svg width="52" height="52" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="authHexTop" x1="8" y1="4" x2="32" y2="18" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#fdba74"/>
+            <stop offset="100%" stop-color="#fb923c"/>
+          </linearGradient>
+          <linearGradient id="authHexLeft" x1="8" y1="18" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ea580c"/>
+            <stop offset="100%" stop-color="#881337"/>
+          </linearGradient>
+          <linearGradient id="authHexRight" x1="20" y1="18" x2="32" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#c2410c"/>
+            <stop offset="100%" stop-color="#450a0a"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 4.5L33 12L20 19.5L7 12L20 4.5Z" fill="url(#authHexTop)"/>
+        <path d="M7 12.5L20 20V35L7 27.5V12.5Z" fill="url(#authHexLeft)"/>
+        <path d="M33 12.5L20 20V35L33 27.5V12.5Z" fill="url(#authHexRight)"/>
+        <path d="M20 8L27.5 12.3L20 16.6L12.5 12.3L20 8Z" fill="white" fill-opacity="0.3"/>
+        <path d="M20 20L20 31L29.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.12"/>
+        <path d="M20 20L20 31L10.5 25.5V14.5L20 20Z" fill="white" fill-opacity="0.18"/>
       </svg>
     </div>
     <h1 style="font-size: 1.6rem; font-weight: 800; font-family: var(--font-display); line-height: 1.1; margin-bottom: 0.5rem;">
-      <span style="color: var(--text-main);">Stock</span><span style="color: var(--jklc-red);">Setu</span>
+      <span style="color: var(--color-on-surface);">Stock</span><span style="color: #ea580c;">Setu</span>
     </h1>
-    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Log in to access your inventory portal</p>
+    <p style="color: var(--color-on-surface-variant); font-size: 0.85rem; margin-top: 0.25rem;">Log in to access your inventory portal</p>
   </div>
 
   <form method="POST" action="{{ url_for('auth.login') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     
     <div class="form-group">
-      <label for="identifier" class="form-label"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 0.3rem;"></i> Username or Email</label>
+      <label for="identifier" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Username or Email</label>
       <input type="text" id="identifier" name="identifier" class="form-control" value="{{ prefilled_identifier if prefilled_identifier else '' }}" placeholder="e.g. johndoe749102" required autofocus>
     </div>
 
     <div class="form-group">
-      <label for="password" class="form-label"><i class="fa-solid fa-key" style="color: var(--primary); margin-right: 0.3rem;"></i> Password</label>
+      <label for="password" class="form-label"><i class="ri-key-2-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Password</label>
       <div class="password-input-group">
         <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
         <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show/Hide Password">
-          <i class="fa-solid fa-eye"></i>
+          <i class="ri-eye-line"></i>
         </button>
       </div>
     </div>
 
     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">
-      <i class="fa-solid fa-right-to-bracket"></i> Sign In
+      <i class="ri-login-box-line"></i> Sign In
     </button>
   </form>
 
   <div style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
-    Don't have an account? <a href="{{ url_for('auth.register') }}"><i class="fa-solid fa-user-plus"></i> Register Staff Account</a>
+    Don't have an account? <a href="{{ url_for('auth.register') }}"><i class="ri-user-add-line"></i> Register Staff Account</a>
   </div>
 </div>
 {% endblock %}

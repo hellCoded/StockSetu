@@ -12,7 +12,7 @@
   --pos-panel-bg: var(--color-surface);
   --pos-card-bg: var(--color-surface);
   --pos-border: var(--color-outline-variant);
-  --pos-header-gradient: linear-gradient(135deg, #0b2545 0%, #134074 50%, #0077b6 100%);
+  --pos-header-gradient: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%);
 }
 
 /* Category Accent Palette */
@@ -39,7 +39,7 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  box-shadow: 0 4px 18px rgba(11, 61, 110, 0.15);
+  box-shadow: 0 4px 18px rgba(69, 10, 10, 0.25);
   position: relative;
   overflow: hidden;
 }
@@ -54,13 +54,13 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, #fb923c, #ea580c);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.15rem;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
   flex-shrink: 0;
 }
 .pos-hero-title-group h1 {
@@ -362,6 +362,16 @@
   animation: badgePop 0.2s var(--ease-spring);
 }
 @keyframes badgePop { from { transform: scale(0); } to { transform: scale(1); } }
+.q-prod-scan-highlight {
+  animation: scanPulse 0.75s ease !important;
+  border-color: #ea580c !important;
+  box-shadow: 0 0 0 3px #ea580c, 0 8px 24px rgba(234, 88, 12, 0.35) !important;
+}
+@keyframes scanPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
 .q-prod-name {
   font-size: 0.76rem;
   font-weight: 700;
@@ -798,7 +808,7 @@
 .q-submit-btn {
   width: 100%;
   height: 40px;
-  background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
   color: #ffffff;
   border: none;
   border-radius: var(--r-sm);
@@ -809,12 +819,13 @@
   justify-content: center;
   gap: 0.45rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(11, 61, 110, 0.25);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
   transition: all 0.2s;
 }
 .q-submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(11, 61, 110, 0.35);
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
 }
 .q-submit-btn:disabled {
   opacity: 0.5;
@@ -900,7 +911,7 @@
 <!-- Mobile Cart Overlay & Floating Button -->
 <div class="q-cart-overlay" id="cart-overlay"></div>
 <button type="button" class="q-cart-toggle-btn" id="cart-toggle" title="Open Cart">
-  <i class="fa-solid fa-receipt"></i>
+  <i class="ri-receipt-line"></i>
   <span class="q-toggle-badge" id="toggle-badge">0</span>
 </button>
 
@@ -908,7 +919,7 @@
 <div class="pos-hero-container">
   <div class="pos-hero-left">
     <div class="pos-hero-badge-icon">
-      <i class="fa-solid fa-cash-register"></i>
+      <i class="ri-funds-box-line"></i>
     </div>
     <div class="pos-hero-title-group">
       <h1>Quick POS Billing Counter</h1>
@@ -925,7 +936,7 @@
       GSTIN: 27AABCU9603R1ZM | State: 27-MH
     </div>
     <a href="{{ url_for('billing.list_bills') }}" class="pos-hero-btn">
-      <i class="fa-solid fa-file-invoice"></i> Past Bills
+      <i class="ri-bill-line"></i> Past Bills
     </a>
   </div>
 </div>
@@ -939,7 +950,7 @@
     <div class="q-pos-products">
       <div class="q-pos-toolbar">
         <div class="q-pos-search-wrap">
-          <i class="fa-solid fa-magnifying-glass"></i>
+          <i class="ri-search-2-line"></i>
           <input type="text" id="live-search" class="form-control" placeholder="Search products, HSN, category (Ctrl+K or /)..." autocomplete="off">
         </div>
         <span class="q-pos-result-count" id="q-pos-result-count">Loading items...</span>
@@ -968,7 +979,7 @@
               {% if (p.quantity or 0) > 0 %}
                 <div class="q-prod-add-row">
                   <input type="number" class="q-prod-qty-input" min="1" max="{{ p.quantity }}" value="1" data-name="{{ p.product_name }}" onclick="event.stopPropagation()" title="Quantity">
-                  <button type="button" class="q-prod-add" title="Add to cart"><i class="fa-solid fa-plus"></i></button>
+                  <button type="button" class="q-prod-add" title="Add to cart"><i class="ri-add-line"></i></button>
                 </div>
               {% endif %}
             </div>
@@ -980,16 +991,16 @@
             <div class="q-prod-price">&#8377;{{ '%.2f'|format(p.price or 0) }}</div>
             <div class="q-prod-incl">incl. &#8377;{{ '%.2f'|format((p.price or 0) * (1 + (p.gst_rate or 0) / 100)) }}</div>
             {% if (p.quantity or 0) <= 0 %}
-              <span class="q-prod-stock out"><i class="fa-solid fa-ban"></i> Out of Stock</span>
+              <span class="q-prod-stock out"><i class="ri-prohibited-line"></i> Out of Stock</span>
             {% elif (p.quantity or 0) <= 5 %}
-              <span class="q-prod-stock low"><i class="fa-solid fa-triangle-exclamation"></i> {{ p.quantity }} {{ p.unit }} left</span>
+              <span class="q-prod-stock low"><i class="ri-alert-line"></i> {{ p.quantity }} {{ p.unit }} left</span>
             {% else %}
-              <span class="q-prod-stock ok"><i class="fa-solid fa-box"></i> {{ p.quantity }} {{ p.unit }}</span>
+              <span class="q-prod-stock ok"><i class="ri-box-3-line"></i> {{ p.quantity }} {{ p.unit }}</span>
             {% endif %}
           </div>
         {% endfor %}
         <div class="q-pos-none" id="q-pos-none" style="display: none;">
-          <i class="fa-solid fa-box-open"></i>
+          <i class="ri-inbox-archive-line"></i>
           No products match your search.
         </div>
       </div>
@@ -998,26 +1009,26 @@
     <!-- Right: Bill Cart Panel (Customer Details + Purchase Items Listing Unified) -->
     <div class="q-pos-cart" id="pos-cart">
       <div class="q-cart-head">
-        <div class="q-cart-title"><i class="fa-solid fa-receipt"></i> Bill Invoice</div>
+        <div class="q-cart-title"><i class="ri-receipt-line"></i> Bill Invoice</div>
         <span class="q-cart-badge" id="cart-badge">0 items</span>
-        <button type="button" class="q-cart-clear" id="clear-cart" title="Clear cart"><i class="fa-solid fa-trash-can"></i></button>
+        <button type="button" class="q-cart-clear" id="clear-cart" title="Clear cart"><i class="ri-delete-bin-line"></i></button>
       </div>
 
       <!-- Integrated Customer & Billing Configuration inside Cart -->
       <div class="cart-customer-section">
         <div class="cart-customer-name-row">
           <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Customer Name *" required maxlength="120">
-          <button type="button" class="q-walkin-btn" id="walkin-btn" title="Quick walk-in customer"><i class="fa-solid fa-user"></i> Walk-in</button>
+          <button type="button" class="q-walkin-btn" id="walkin-btn" title="Quick walk-in customer"><i class="ri-user-3-line"></i> Walk-in</button>
         </div>
         <div class="cart-customer-subrow">
           <input type="text" id="customer_phone" name="customer_phone" class="form-control" placeholder="Phone (Optional)">
           <input type="text" id="customer_gstin" name="customer_gstin" class="form-control" placeholder="GSTIN (Optional)" maxlength="15">
         </div>
         <div class="cart-payment-methods">
-          <label class="q-pay-opt q-pay-cash is-active"><input type="radio" name="payment_method" value="CASH" checked><i class="fa-solid fa-money-bill-wave"></i> Cash</label>
-          <label class="q-pay-opt q-pay-upi"><input type="radio" name="payment_method" value="UPI"><i class="fa-solid fa-mobile-screen-button"></i> UPI</label>
-          <label class="q-pay-opt q-pay-card"><input type="radio" name="payment_method" value="CARD"><i class="fa-solid fa-credit-card"></i> Card</label>
-          <label class="q-pay-opt q-pay-credit"><input type="radio" name="payment_method" value="CREDIT"><i class="fa-solid fa-clock"></i> Credit</label>
+          <label class="q-pay-opt q-pay-cash is-active"><input type="radio" name="payment_method" value="CASH" checked><i class="ri-money-dollar-circle-line"></i> Cash</label>
+          <label class="q-pay-opt q-pay-upi"><input type="radio" name="payment_method" value="UPI"><i class="ri-smartphone-line"></i> UPI</label>
+          <label class="q-pay-opt q-pay-card"><input type="radio" name="payment_method" value="CARD"><i class="ri-bank-card-line"></i> Card</label>
+          <label class="q-pay-opt q-pay-credit"><input type="radio" name="payment_method" value="CREDIT"><i class="ri-time-line"></i> Credit</label>
         </div>
 
         <div class="cart-charges-inline">
@@ -1044,13 +1055,13 @@
 
       <!-- Section Header for Purchased Items -->
       <div class="cart-items-head">
-        <span><i class="fa-solid fa-boxes-stacked" style="margin-right:0.3rem;"></i> Items In Bill</span>
+        <span><i class="ri-archive-stack-line" style="margin-right:0.3rem;"></i> Items In Bill</span>
       </div>
 
       <!-- Scrollable Purchased Items List -->
       <div class="q-cart-items" id="cart-items">
         <div class="q-cart-empty">
-          <i class="fa-solid fa-cart-shopping"></i>
+          <i class="ri-shopping-cart-2-line"></i>
           Cart is empty.<br>
           <span style="font-size:0.68rem; color:var(--color-on-surface-variant);">Click products on the left to add</span>
         </div>
@@ -1072,14 +1083,50 @@
 
       <!-- Submit Checkout Action -->
       <div class="q-cart-submit">
-        <button type="submit" class="q-submit-btn" id="submit-bill" disabled>
-          <i class="fa-solid fa-file-invoice"></i> Generate Invoice (Ctrl+Enter)
+        <button type="button" class="q-submit-btn" id="submit-bill" disabled>
+          <i class="ri-bill-line"></i> Generate Invoice (Ctrl+Enter)
         </button>
         <div class="q-submit-hint" id="submit-hint">Add products to enable invoice generation</div>
       </div>
     </div>
   </div>
 </form>
+
+<!-- On-Screen Dynamic UPI Payment Modal -->
+<div id="pos-upi-modal" class="modal-backdrop no-print" onclick="if(event.target===this)closeUpiModal()">
+  <div class="modal-card" style="max-width: 420px; text-align: center; border-radius: var(--r-xl, 16px); overflow: hidden; padding: 0; box-shadow: 0 20px 48px rgba(0,0,0,0.35);">
+    <!-- Modal Gradient Header -->
+    <div style="background: linear-gradient(135deg, #450a0a 0%, #881337 60%, #ea580c 100%); padding: 1.25rem 1.5rem; color: #ffffff;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.04em;">
+        <i class="ri-qr-code-line"></i> Dynamic UPI Payment
+      </div>
+      <div style="font-size: 1.85rem; font-weight: 900; color: #fb923c; margin-top: 0.35rem; font-family: var(--font-display);" id="upi-modal-amount">₹0.00</div>
+      <div style="font-size: 0.78rem; opacity: 0.9; margin-top: 0.15rem;" id="upi-modal-customer">Customer: Walk-in</div>
+    </div>
+
+    <!-- Modal Body with QR Code & Apps -->
+    <div style="padding: 1.25rem 1.5rem; background: var(--color-surface, #ffffff);">
+      <div style="display: flex; justify-content: center; margin: 0.25rem 0 0.75rem 0;">
+        <div style="padding: 8px; background: #ffffff; border: 2px solid var(--color-outline-variant, #cbd5e1); border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+          <img id="upi-modal-qr-img" src="" alt="Scan UPI QR" style="width: 150px; height: 150px; display: block;">
+        </div>
+      </div>
+      
+      <div style="font-size: 0.76rem; color: var(--color-on-surface-variant); font-weight: 600;">
+        Customer can scan with Google Pay, PhonePe, Paytm, BHIM, or any UPI app
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-top: 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeUpiModal()" style="flex: 1;">
+          <i class="ri-arrow-left-line"></i> Back
+        </button>
+        <button type="button" class="btn btn-primary" id="upi-confirm-submit-btn" onclick="confirmUpiAndSubmit()" style="flex: 1.5; background: #16a34a; border-color: #16a34a; font-weight: 700;">
+          <i class="ri-check-double-line"></i> Paid · Generate Bill
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -1201,7 +1248,7 @@
   function renderCart() {
     /* ── Cart Items ── */
     if (cart.length === 0) {
-      cartEl.innerHTML = '<div class="q-cart-empty"><i class="fa-solid fa-cart-shopping"></i>Cart is empty.<br><span style="font-size:0.68rem; color:var(--color-on-surface-variant);">Click products on the left to add</span></div>';
+      cartEl.innerHTML = '<div class="q-cart-empty"><i class="ri-shopping-cart-2-line"></i>Cart is empty.<br><span style="font-size:0.68rem; color:var(--color-on-surface-variant);">Click products on the left to add</span></div>';
     } else {
       cartEl.innerHTML = '';
       cart.forEach(item => {
@@ -1227,7 +1274,7 @@
             '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',-1)">&minus;</button>' +
             '<span class="qty-val">' + item.qty + '</span>' +
             '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',1)"' + (atMax ? ' disabled' : '') + '>+</button>' +
-            '<button type="button" class="trash-btn" onclick="window.__posRemove(\'' + esc(item.name) + '\')"><i class="fa-solid fa-trash-can"></i></button>' +
+            '<button type="button" class="trash-btn" onclick="window.__posRemove(\'' + esc(item.name) + '\')"><i class="ri-delete-bin-line"></i></button>' +
             '<span class="q-cart-row-total">' + fmt(total) + '</span>' +
           '</div>';
         cartEl.appendChild(row);
@@ -1329,6 +1376,9 @@
 
     submitBtn.disabled = cart.length === 0;
     if (submitHint) submitHint.style.display = cart.length === 0 ? '' : 'none';
+    window.__currentGrandTotal = grand;
+    updatePaymentUI();
+    if (typeof saveCartToStorage === 'function') saveCartToStorage();
   }
 
   /* ── Search & Category Filters ── */
@@ -1372,6 +1422,7 @@
 
   /* ── Payment Method ── */
   const dueDateRow = document.getElementById('due-date-row');
+
   function updatePaymentUI() {
     const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
     if (method === 'CREDIT') {
@@ -1385,8 +1436,30 @@
     radio.addEventListener('change', () => {
       document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
       updatePaymentUI();
+      if (typeof saveCartToStorage === 'function') saveCartToStorage();
     });
   });
+
+  /* ── UPI Checkout Modal Handlers ── */
+  window.closeUpiModal = function() {
+    const modal = document.getElementById('pos-upi-modal');
+    if (modal) modal.classList.remove('active');
+  };
+
+  window.confirmUpiAndSubmit = function() {
+    const btn = document.getElementById('upi-confirm-submit-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Generating Tax Invoice...';
+    }
+    submitBillForm();
+  };
+
+  function submitBillForm() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    const form = document.getElementById('pos-bill-form') || document.querySelector('form[action*="billing/create"]');
+    if (form) form.submit();
+  }
 
   /* ── Line Discount & Free Toggle ── */
   window.__posLineDisc = function(name, val) {
@@ -1410,19 +1483,152 @@
   if (cartToggle) cartToggle.addEventListener('click', openCart);
   if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
 
+  /* ── Cart Persistence (localStorage Auto-Save & Recovery) ── */
+  const STORAGE_KEY = 'stocksetu_pos_cart_state_v1';
+
+  function saveCartToStorage() {
+    try {
+      const payload = {
+        cart: cart,
+        customer_name: (document.getElementById('customer_name') || {}).value || '',
+        customer_phone: (document.getElementById('customer_phone') || {}).value || '',
+        customer_gstin: (document.getElementById('customer_gstin') || {}).value || '',
+        discount_percent: (document.getElementById('discount_percent') || {}).value || '0',
+        shipping_charge: (document.getElementById('shipping_charge') || {}).value || '0',
+        packing_charge: (document.getElementById('packing_charge') || {}).value || '0',
+        payment_method: ((document.querySelector('input[name="payment_method"]:checked') || {}).value) || 'CASH',
+        timestamp: Date.now()
+      };
+      if (cart.length > 0 || payload.customer_name) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch (e) {
+      console.warn('POS Cart Save Error:', e);
+    }
+  }
+
+  function restoreCartFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data) return;
+
+      if (Array.isArray(data.cart) && data.cart.length > 0) {
+        cart.length = 0;
+        data.cart.forEach(item => {
+          const matchedCard = cardEls.find(c => c.dataset.name === item.name);
+          const currentStock = matchedCard ? parseFloat(matchedCard.dataset.stock) : item.stock;
+          cart.push({
+            name: item.name,
+            price: parseFloat(item.price),
+            gst: parseFloat(item.gst || 0),
+            qty: Math.min(item.qty, currentStock > 0 ? currentStock : item.qty),
+            stock: currentStock,
+            disc: item.disc || 0,
+            isFree: !!item.isFree
+          });
+        });
+      }
+
+      if (data.customer_name && document.getElementById('customer_name')) document.getElementById('customer_name').value = data.customer_name;
+      if (data.customer_phone && document.getElementById('customer_phone')) document.getElementById('customer_phone').value = data.customer_phone;
+      if (data.customer_gstin && document.getElementById('customer_gstin')) document.getElementById('customer_gstin').value = data.customer_gstin;
+      if (data.discount_percent && document.getElementById('discount_percent')) document.getElementById('discount_percent').value = data.discount_percent;
+      if (data.shipping_charge && document.getElementById('shipping_charge')) document.getElementById('shipping_charge').value = data.shipping_charge;
+      if (data.packing_charge && document.getElementById('packing_charge')) document.getElementById('packing_charge').value = data.packing_charge;
+
+      if (data.payment_method) {
+        const radio = document.querySelector('input[name="payment_method"][value="' + data.payment_method + '"]');
+        if (radio) {
+          radio.checked = true;
+          document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
+        }
+      }
+
+      if (cart.length > 0 && typeof showToast === 'function') {
+        showToast('Restored ' + cart.length + ' item(s) from previous counter session', 'info', 2400);
+      }
+    } catch (e) {
+      console.warn('POS Cart Restore Error:', e);
+    }
+  }
+
+  /* ── Hardware / USB Barcode Scanner Auto-Intake ── */
+  let barcodeBuffer = '';
+  let lastKeyTime = 0;
+  const SCAN_CHAR_INTERVAL_MS = 60;
+
+  window.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    const now = Date.now();
+    const delta = now - lastKeyTime;
+    lastKeyTime = now;
+
+    if (e.key === 'Enter') {
+      if (barcodeBuffer.length >= 2 && delta < SCAN_CHAR_INTERVAL_MS * 2.5) {
+        const scannedCode = barcodeBuffer.trim();
+        barcodeBuffer = '';
+        const match = cardEls.find(c => {
+          const name = (c.dataset.name || '').toLowerCase();
+          const search = (c.dataset.search || '').toLowerCase();
+          const q = scannedCode.toLowerCase();
+          return name === q || search.includes(q);
+        });
+
+        if (match) {
+          e.preventDefault();
+          addProduct(match.dataset.name, match.dataset.price, match.dataset.gst, match.dataset.stock);
+          match.classList.add('q-prod-scan-highlight');
+          setTimeout(() => match.classList.remove('q-prod-scan-highlight'), 800);
+          if (typeof showToast === 'function') {
+            showToast('⚡ Scanned: ' + match.dataset.name, 'success', 1800);
+          }
+          return;
+        }
+      }
+      barcodeBuffer = '';
+    } else if (e.key.length === 1) {
+      if (delta > SCAN_CHAR_INTERVAL_MS && barcodeBuffer.length > 0) {
+        barcodeBuffer = '';
+      }
+      barcodeBuffer += e.key;
+    }
+  }, true);
+
   /* ── Clear & Walk-in ── */
   clearBtn.addEventListener('click', async () => {
     if (cart.length === 0) return;
     let ok = true;
     if (typeof showConfirm === 'function') ok = await showConfirm('Remove all items from the cart?', 'Clear Cart');
-    if (ok) { clearCart(); if (typeof showToast === 'function') showToast('Cart cleared', 'info', 1800); }
+    if (ok) {
+      clearCart();
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      if (typeof showToast === 'function') showToast('Cart cleared', 'info', 1800);
+    }
   });
 
   walkinBtn.addEventListener('click', () => {
     const nameEl = document.getElementById('customer_name');
     if (nameEl) nameEl.value = 'Walk-in Customer';
+    saveCartToStorage();
     if (typeof showToast === 'function') showToast('Walk-in customer selected', 'info', 1800);
   });
+
+  /* ── Form Inputs Change Listener for Auto-Save ── */
+  ['customer_name', 'customer_phone', 'customer_gstin', 'discount_percent', 'shipping_charge', 'packing_charge'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', saveCartToStorage);
+  });
+
+  const billForm = document.getElementById('pos-bill-form') || document.querySelector('form[action*="billing/create"]');
+  if (billForm) {
+    billForm.addEventListener('submit', () => {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    });
+  }
 
   /* ── Product Tile Interactions ── */
   window.__posQty = updateQty;
@@ -1444,11 +1650,47 @@
   });
 
   updateChipCounts();
+  restoreCartFromStorage();
   renderCart();
   applyFilters();
   updatePaymentUI();
 
-  /* ── Keyboard Shortcuts ── */
+  /* ── Submit Button & Keyboard Shortcuts ── */
+  submitBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (cart.length === 0) return;
+
+    const nameInput = document.getElementById('customer_name');
+    if (!nameInput || !nameInput.value.trim()) {
+      if (typeof showToast === 'function') showToast('Please enter customer name or select Walk-in', 'warning');
+      if (nameInput) { nameInput.focus(); nameInput.style.borderColor = '#ef4444'; }
+      return;
+    }
+    if (nameInput) nameInput.style.borderColor = '';
+
+    const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
+
+    if (method === 'UPI') {
+      const modal = document.getElementById('pos-upi-modal');
+      const upiAmt = document.getElementById('upi-modal-amount');
+      const upiCust = document.getElementById('upi-modal-customer');
+      const upiImg = document.getElementById('upi-modal-qr-img');
+      const currentTotal = window.__currentGrandTotal || 0;
+
+      if (upiAmt) upiAmt.textContent = '₹' + currentTotal.toFixed(2);
+      if (upiCust) upiCust.textContent = 'Customer: ' + (nameInput.value.trim() || 'Walk-in');
+      if (upiImg) {
+        const payload = 'upi://pay?pa=stocksetu@upi&pn=StockSetu&am=' + currentTotal.toFixed(2) + '&cu=INR&tn=POS%20Bill';
+        upiImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(payload);
+      }
+      if (modal) modal.classList.add('active');
+    } else {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Generating Tax Invoice...';
+      submitBillForm();
+    }
+  });
+
   document.addEventListener('keydown', function(e) {
     if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
       e.preventDefault();

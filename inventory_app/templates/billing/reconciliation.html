@@ -6,16 +6,16 @@
 <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.75rem; gap: 1rem; flex-wrap: wrap;">
   <div>
     <h1 style="font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
-      <i class="fa-solid fa-magnifying-glass-chart" style="color: var(--primary); margin-right: 0.5rem; font-size: 1.4rem;"></i>Reconciliation Report
+      <i class="ri-file-search-line" style="color: var(--primary); margin-right: 0.5rem; font-size: 1.4rem;"></i>Reconciliation Report
     </h1>
     <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.3rem;">Cross-checks invoices vs inventory transactions vs audit logs to flag anomalies.</p>
   </div>
   <div style="display: flex; gap: 0.5rem; align-items: center;">
     <button type="button" class="btn btn-secondary no-print" onclick="window.print()">
-      <i class="fa-solid fa-print"></i> Print Report
+      <i class="ri-printer-line"></i> Print Report
     </button>
     <a href="{{ url_for('billing.list_bills') }}" class="btn btn-primary btn-sm">
-      <i class="fa-solid fa-file-invoice"></i> Back to Bills
+      <i class="ri-bill-line"></i> Back to Bills
     </a>
   </div>
 </div>
@@ -24,11 +24,11 @@
   {% if anomalies %}
   <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
     <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
+      <i class="ri-alert-line" style="color: #ef4444;"></i>
       <span style="font-weight: 700; color: #991b1b;">{{ anomalies | length }} anomalies found</span>
     </div>
     <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
-      <i class="fa-solid fa-circle-info" style="color: #16a34a;"></i>
+      <i class="ri-information-line" style="color: #16a34a;"></i>
       <span style="font-weight: 600; color: #166534;">Review each anomaly below and take corrective action.</span>
     </div>
   </div>
@@ -78,7 +78,7 @@
   </div>
   {% else %}
   <div style="text-align: center; padding: 3rem 2rem; color: var(--text-muted);">
-    <i class="fa-solid fa-circle-check" style="font-size: 2.5rem; margin-bottom: 0.75rem; display: block; color: #16a34a; opacity: 0.5;"></i>
+    <i class="ri-checkbox-circle-fill" style="font-size: 2.5rem; margin-bottom: 0.75rem; display: block; color: #16a34a; opacity: 0.5;"></i>
     <p style="font-weight: 600; color: var(--text-sub); margin-bottom: 0.35rem;">No anomalies detected</p>
     <p style="font-size: 0.85rem;">All invoices, stock transactions, and payments are consistent.</p>
   </div>

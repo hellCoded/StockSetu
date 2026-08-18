@@ -1,0 +1,635 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Analytics &amp; Staff Performance - StockSetu{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── Sales Dashboard Executive Styling ── */
+.sales-hero {
+  background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%);
+  color: #ffffff;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--r-lg, 12px);
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25);
+}
+.sales-hero h1 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+.sales-hero p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.2rem 0 0;
+}
+.sales-filter-pills {
+  display: flex;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--r-md, 8px);
+  padding: 0.2rem;
+  gap: 0.2rem;
+}
+.sales-filter-pill {
+  color: #ffffff;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: var(--r-sm, 6px);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.sales-filter-pill:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+.sales-filter-pill.active {
+  background: #ffffff;
+  color: #0b3d6e;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* ── KPI Grid ── */
+.sales-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.sales-kpi-card {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-radius: var(--r-lg, 12px);
+  padding: 1rem 1.15rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.sales-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3.5px;
+}
+.sales-kpi-card.kpi-blue::before { background: #0284c7; }
+.sales-kpi-card.kpi-green::before { background: #10b981; }
+.sales-kpi-card.kpi-purple::before { background: #8b5cf6; }
+.sales-kpi-card.kpi-amber::before { background: #f59e0b; }
+.sales-kpi-card.kpi-rose::before { background: #f43f5e; }
+
+.sales-kpi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+.sales-kpi-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-on-surface-variant, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.sales-kpi-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+.kpi-blue .sales-kpi-icon { background: #e0f2fe; color: #0284c7; }
+.kpi-green .sales-kpi-icon { background: #dcfce7; color: #166534; }
+.kpi-purple .sales-kpi-icon { background: #ede9fe; color: #6d28d9; }
+.kpi-amber .sales-kpi-icon { background: #fef3c7; color: #b45309; }
+.kpi-rose .sales-kpi-icon { background: #ffe4e6; color: #be123c; }
+
+.sales-kpi-val {
+  font-size: 1.45rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-on-surface, #0f172a);
+  line-height: 1.2;
+}
+.sales-kpi-sub {
+  font-size: 0.72rem;
+  color: var(--color-on-surface-variant, #64748b);
+  margin-top: 0.25rem;
+}
+
+/* ── Charts Dual Layout ── */
+.sales-charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 1024px) {
+  .sales-charts-row { grid-template-columns: 1fr; }
+}
+
+.chart-card {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-radius: var(--r-lg, 12px);
+  padding: 1.2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.chart-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.chart-card-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-on-surface, #0f172a);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* ── Leaderboard Table ── */
+.sales-dual-tables {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 1024px) {
+  .sales-dual-tables { grid-template-columns: 1fr; }
+}
+
+.staff-rank-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rank-1 { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
+.rank-2 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.rank-3 { background: #fed7aa; color: #9a3412; border: 1px solid #fdba74; }
+.rank-other { background: #f8fafc; color: #64748b; }
+#staff-leaderboard-table th, #staff-leaderboard-table td { padding: 0.52rem 0.6rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Hero with Filters -->
+<div class="sales-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <i class="ri-line-chart-line" style="font-size: 1.25rem;"></i>
+      <h1>Sales Analytics &amp; Staff Performance</h1>
+    </div>
+    <p>Executive revenue overview, cashier leaderboards, and sales velocity metrics</p>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+    <!-- Date Range Presets -->
+    <div class="sales-filter-pills">
+      <a href="{{ url_for('billing.sales_analytics', range='today', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'today' %}active{% endif %}">Today</a>
+      <a href="{{ url_for('billing.sales_analytics', range='7d', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == '7d' %}active{% endif %}">7 Days</a>
+      <a href="{{ url_for('billing.sales_analytics', range='30d', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == '30d' %}active{% endif %}">30 Days</a>
+      <a href="{{ url_for('billing.sales_analytics', range='this_month', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'this_month' %}active{% endif %}">This Month</a>
+      <a href="{{ url_for('billing.sales_analytics', range='all', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'all' %}active{% endif %}">All Time</a>
+    </div>
+
+    <!-- Export Buttons -->
+    <div style="display: flex; gap: 0.35rem;">
+      <a href="{{ url_for('billing.export_sales_excel', range=current_range, cashier=current_cashier, start_date=start_date, end_date=end_date) }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.9); color: #0b3d6e; font-weight: 700;" title="Export as Excel">
+        <i class="ri-file-excel-2-line"></i> Excel
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 5 Key Performance Indicators -->
+{% set kpi = analytics.kpi %}
+<div class="sales-kpi-grid">
+  <!-- Gross Sales -->
+  <div class="sales-kpi-card kpi-blue">
+    <div class="sales-kpi-head">
+      <span class="sales-kpi-title">Gross Sales</span>
+      <div class="sales-kpi-icon"><i class="ri-money-rupee-circle-line"></i></div>
+    </div>
+    <div class="sales-kpi-val">{{ format_currency(kpi.total_sales or 0) }}</div>
+    <div class="sales-kpi-sub">Across {{ kpi.total_bills or 0 }} tax invoices</div>
+  </div>
+
+  <!-- Average Bill Ticket -->
+  <div class="sales-kpi-card kpi-green">
+    <div class="sales-kpi-head">
+      <span class="sales-kpi-title">Avg. Bill Ticket</span>
+      <div class="sales-kpi-icon"><i class="ri-receipt-line"></i></div>
+    </div>
+    <div class="sales-kpi-val">{{ format_currency(kpi.avg_bill_value or 0) }}</div>
+    <div class="sales-kpi-sub">Per completed transaction</div>
+  </div>
+
+  <!-- Tax Collected -->
+  <div class="sales-kpi-card kpi-purple">
+    <div class="sales-kpi-head">
+      <span class="sales-kpi-title">Tax (GST) Collected</span>
+      <div class="sales-kpi-icon"><i class="ri-bank-line"></i></div>
+    </div>
+    <div class="sales-kpi-val">{{ format_currency(kpi.total_tax or 0) }}</div>
+    <div class="sales-kpi-sub">CGST + SGST tax pool</div>
+  </div>
+
+  <!-- Total Paid vs Due -->
+  <div class="sales-kpi-card kpi-amber">
+    <div class="sales-kpi-head">
+      <span class="sales-kpi-title">Net Collected</span>
+      <div class="sales-kpi-icon"><i class="ri-hand-coin-line"></i></div>
+    </div>
+    <div class="sales-kpi-val" style="color: #166534;">{{ format_currency(kpi.total_paid or 0) }}</div>
+    <div class="sales-kpi-sub">
+      {% if (kpi.total_due or 0) > 0 %}
+        <span style="color: #b45309; font-weight: 700;">{{ format_currency(kpi.total_due) }}</span> pending credit
+      {% else %}
+        100% payments cleared
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Total Refunds / Returns -->
+  <div class="sales-kpi-card kpi-rose">
+    <div class="sales-kpi-head">
+      <span class="sales-kpi-title">Returns / Refunds</span>
+      <div class="sales-kpi-icon"><i class="ri-refund-2-line"></i></div>
+    </div>
+    <div class="sales-kpi-val" style="color: #be123c;">{{ format_currency(kpi.total_refunded or 0) }}</div>
+    <div class="sales-kpi-sub">{{ kpi.refund_count or 0 }} items returned</div>
+  </div>
+</div>
+
+<!-- Charts Row: Revenue Timeline + Payment Method Donut -->
+<div class="sales-charts-row">
+  <!-- Revenue & Invoices Trend -->
+  <div class="chart-card">
+    <div class="chart-card-head">
+      <span class="chart-card-title"><i class="ri-line-chart-line" style="color: #0284c7;"></i> Revenue &amp; Order Volume Trend</span>
+      <span style="font-size: 0.74rem; color: var(--color-on-surface-variant, #64748b);">Daily aggregate</span>
+    </div>
+    <div style="position: relative; height: 260px; width: 100%;">
+      <canvas id="salesTrendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Payment Methods Distribution -->
+  <div class="chart-card">
+    <div class="chart-card-head">
+      <span class="chart-card-title"><i class="ri-pie-chart-2-line" style="color: #8b5cf6;"></i> Payment Modes</span>
+      <span style="font-size: 0.74rem; color: var(--color-on-surface-variant, #64748b);">By revenue share</span>
+    </div>
+    <div style="position: relative; height: 260px; width: 100%;">
+      <canvas id="paymentDonutChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Dual Tables Row: Staff Leaderboard + Top Products -->
+<div class="sales-dual-tables">
+  <!-- Staff / Cashier Sales Leaderboard -->
+  <div class="card" style="padding: 1.15rem; margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 800; margin: 0; color: var(--color-on-surface, #0f172a); display: flex; align-items: center; gap: 0.4rem;">
+            <i class="ri-trophy-line" style="color: #f59e0b;"></i> Staff / Cashier Performance Leaderboard
+          </h3>
+          <span style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b);">All registered staff ranked by gross sales</span>
+        </div>
+        <div style="position: relative; width: 190px;">
+          <i class="ri-search-2-line" style="position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); font-size: 0.72rem; color: #94a3b8; pointer-events: none;"></i>
+          <input type="text" id="staff-quick-search" class="form-control" placeholder="Search staff…" style="padding: 0.22rem 0.5rem 0.22rem 1.8rem; font-size: 0.76rem; height: 28px; border-radius: var(--r-sm, 6px); background: #f8fafc; border: 1px solid #e2e8f0;" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" id="staff-leaderboard-table" style="font-size: 0.82rem; width: 100%;">
+          <thead style="background: #f8fafc;">
+            <tr>
+              <th style="width: 38px; text-align: center;">#</th>
+              <th style="width: 28%;">Staff Member</th>
+              <th style="width: 12%; text-align: center;">Bills</th>
+              <th style="width: 18%; text-align: right;">Total Sales</th>
+              <th style="width: 18%; text-align: right;">Avg Ticket</th>
+              <th style="width: 24%; text-align: right;">Cash / Digital</th>
+            </tr>
+          </thead>
+          <tbody id="staff-table-body">
+            {% if analytics.staff_leaderboard %}
+              {% for s in analytics.staff_leaderboard %}
+                <tr class="staff-leaderboard-row" data-index="{{ loop.index }}">
+                  <td style="text-align: center;">
+                    <span class="staff-rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% else %}rank-other{% endif %}">
+                      {{ loop.index }}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <div style="width: 28px; height: 28px; border-radius: 50%; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 0.74rem; font-weight: 700; flex-shrink: 0;">
+                        {{ (s.name or s.cashier or 'A')[0]|upper }}
+                      </div>
+                      <div style="min-width: 0;">
+                        <strong style="color: var(--color-on-surface, #0f172a); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.name if s.name else s.cashier }}</strong>
+                        <span style="color: #64748b; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+                          @{{ s.cashier }}
+                          {% if s.role == 'admin' %}
+                            <span style="background: #fee2e2; color: #991b1b; padding: 0.05rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">Admin</span>
+                          {% elif s.role == 'inventory_manager' %}
+                            <span style="background: #fef3c7; color: #92400e; padding: 0.05rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">Manager</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align: center; font-weight: 700;">{{ s.bill_count }}</td>
+                  <td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--color-on-surface, #0f172a);">
+                    {{ format_currency(s.total_sales) }}
+                  </td>
+                  <td style="text-align: right; font-family: 'JetBrains Mono', monospace; color: #64748b; font-size: 0.76rem;">
+                    {{ format_currency(s.avg_sale) }}
+                  </td>
+                  <td style="text-align: right; font-size: 0.74rem; white-space: nowrap;">
+                    <span style="color: #166534; font-weight: 600;">{{ format_currency(s.cash_sales) }}</span> /
+                    <span style="color: #4338ca; font-weight: 600;">{{ format_currency(s.upi_sales + s.card_sales) }}</span>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">No staff registered yet.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Staff Pagination Footer (10 per page) -->
+    <div id="staff-pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 0.5rem;">
+      <span id="staff-pagination-info" style="font-size: 0.75rem; color: #64748b;"></span>
+      <div id="staff-page-buttons" style="display: flex; gap: 0.3rem; align-items: center;"></div>
+    </div>
+  </div>
+
+  <!-- Top 10 Selling Products -->
+  <div class="card" style="padding: 1.15rem; margin: 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+      <h3 style="font-size: 0.95rem; font-weight: 800; margin: 0; color: var(--color-on-surface, #0f172a); display: flex; align-items: center; gap: 0.4rem;">
+        <i class="ri-fire-line" style="color: #ef4444;"></i> Top Selling Products
+      </h3>
+      <span style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b);">By units sold</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table" style="font-size: 0.82rem;">
+        <thead style="background: #f8fafc;">
+          <tr>
+            <th>Product Name</th>
+            <th style="text-align: center;">Qty Sold</th>
+            <th style="text-align: right;">Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if analytics.top_products %}
+            {% for p in analytics.top_products %}
+              <tr>
+                <td>
+                  <strong style="color: var(--color-on-surface, #0f172a); display: block;">{{ p.product_name }}</strong>
+                  <small style="color: #64748b; font-size: 0.7rem;">In {{ p.bill_count }} invoices</small>
+                </td>
+                <td style="text-align: center; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+                  <span style="background: #f0fdf4; color: #166534; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.76rem;">
+                    {{ p.quantity_sold }}
+                  </span>
+                </td>
+                <td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--color-on-surface, #0f172a);">
+                  {{ format_currency(p.revenue) }}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="3" style="text-align: center; color: #64748b; padding: 2rem;">No product items sold yet.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ── 1. Revenue & Invoices Trend Line Chart ──
+  const trendLabels = {{ analytics.timeline.labels | tojson }};
+  const trendSales = {{ analytics.timeline.sales | tojson }};
+  const trendBills = {{ analytics.timeline.bills | tojson }};
+
+  const trendCtx = document.getElementById('salesTrendChart');
+  if (trendCtx && trendLabels.length > 0) {
+    new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: trendLabels,
+        datasets: [
+          {
+            label: 'Sales Revenue (₹)',
+            data: trendSales,
+            borderColor: '#0284c7',
+            backgroundColor: 'rgba(2, 132, 199, 0.12)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.35,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Invoices Count',
+            data: trendBills,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.0)',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            tension: 0.35,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: 600 } } }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            ticks: {
+              callback: function(val) { return '₹' + Number(val).toLocaleString('en-IN'); },
+              font: { size: 10 }
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { precision: 0, font: { size: 10 } }
+          }
+        }
+      }
+    });
+  } else if (trendCtx) {
+    trendCtx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.85rem;"><i class="ri-line-chart-line" style="margin-right:0.4rem;"></i> Not enough sales data for trendline</div>';
+  }
+
+  // ── 2. Payment Modes Donut Chart ──
+  const pmLabels = {{ analytics.payment_methods.labels | tojson }};
+  const pmAmounts = {{ analytics.payment_methods.amounts | tojson }};
+  const pmDonutCtx = document.getElementById('paymentDonutChart');
+
+  if (pmDonutCtx && pmLabels.length > 0) {
+    new Chart(pmDonutCtx, {
+      type: 'doughnut',
+      data: {
+        labels: pmLabels,
+        datasets: [{
+          data: pmAmounts,
+          backgroundColor: ['#10b981', '#8b5cf6', '#3b82f6', '#f59e0b', '#64748b'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 600 } } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ' ' + ctx.label + ': ₹' + Number(ctx.raw).toLocaleString('en-IN');
+              }
+            }
+          }
+        },
+        cutout: '68%'
+      }
+    });
+  } else if (pmDonutCtx) {
+    pmDonutCtx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.85rem;"><i class="ri-pie-chart-2-line" style="margin-right:0.4rem;"></i> No payment distribution data</div>';
+  }
+
+  // ── 3. Staff Leaderboard Instant Search & Pagination (12 entries per page) ──
+  const allStaffRows = Array.from(document.querySelectorAll('.staff-leaderboard-row'));
+  let filteredStaffRows = [...allStaffRows];
+  const staffPerPage = 12;
+  let currentStaffPage = 1;
+
+  function renderStaffPage(page) {
+    const totalMatching = filteredStaffRows.length;
+    const totalStaffPages = Math.ceil(totalMatching / staffPerPage) || 1;
+    currentStaffPage = Math.max(1, Math.min(page, totalStaffPages));
+    const start = (currentStaffPage - 1) * staffPerPage;
+    const end = Math.min(start + staffPerPage, totalMatching);
+
+    // Hide all rows first
+    allStaffRows.forEach(row => { row.style.display = 'none'; });
+
+    // Show only the sliced items of the filtered set
+    filteredStaffRows.forEach((row, idx) => {
+      if (idx >= start && idx < end) {
+        row.style.display = '';
+      }
+    });
+
+    const infoEl = document.getElementById('staff-pagination-info');
+    if (infoEl) {
+      if (totalMatching > 0) {
+        infoEl.innerHTML = `Showing <strong>${start + 1}</strong> to <strong>${end}</strong> of <strong>${totalMatching}</strong> staff`;
+      } else {
+        infoEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">No matching staff found</span>`;
+      }
+    }
+
+    const btnContainer = document.getElementById('staff-page-buttons');
+    if (btnContainer) {
+      if (totalStaffPages <= 1) {
+        btnContainer.innerHTML = '';
+        return;
+      }
+      let html = '';
+      // Prev button
+      html += `<button type="button" class="btn btn-secondary btn-sm" style="padding:0.18rem 0.5rem;font-size:0.75rem;" ${currentStaffPage === 1 ? 'disabled' : ''} onclick="renderStaffPage(${currentStaffPage - 1})"><i class="ri-arrow-left-s-line"></i></button>`;
+      
+      // Page pills
+      for (let p = 1; p <= totalStaffPages; p++) {
+        if (p === currentStaffPage) {
+          html += `<button type="button" class="btn btn-primary btn-sm" style="padding:0.18rem 0.55rem;font-size:0.75rem;min-width:28px;">${p}</button>`;
+        } else if (p === 1 || p === totalStaffPages || Math.abs(p - currentStaffPage) <= 1) {
+          html += `<button type="button" class="btn btn-secondary btn-sm" style="padding:0.18rem 0.55rem;font-size:0.75rem;min-width:28px;" onclick="renderStaffPage(${p})">${p}</button>`;
+        } else if (p === currentStaffPage - 2 || p === currentStaffPage + 2) {
+          html += `<span style="padding:0 0.2rem;color:#94a3b8;font-size:0.75rem;">…</span>`;
+        }
+      }
+      // Next button
+      html += `<button type="button" class="btn btn-secondary btn-sm" style="padding:0.18rem 0.5rem;font-size:0.75rem;" ${currentStaffPage === totalStaffPages ? 'disabled' : ''} onclick="renderStaffPage(${currentStaffPage + 1})"><i class="ri-arrow-right-s-line"></i></button>`;
+      btnContainer.innerHTML = html;
+    }
+  }
+
+  // Instant search input listener (no extra button needed)
+  const searchInput = document.getElementById('staff-quick-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const q = this.value.trim().toLowerCase();
+      if (!q) {
+        filteredStaffRows = [...allStaffRows];
+      } else {
+        filteredStaffRows = allStaffRows.filter(row => {
+          return row.textContent.toLowerCase().includes(q);
+        });
+      }
+      renderStaffPage(1);
+    });
+  }
+
+  // Expose to window for onclick handlers
+  window.renderStaffPage = renderStaffPage;
+
+  // Initialize page 1
+  renderStaffPage(1);
+
+  // Ensure view loads at top
+  window.scrollTo({ top: 0, behavior: 'instant' });
+});
+</script>
+{% endblock %}

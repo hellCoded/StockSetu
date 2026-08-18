@@ -3,10 +3,17 @@
    ============================================================ */
 @media print {
   /* Hide non-print elements */
-  .sidebar, .top-navbar, .no-print, .mobile-sidebar-toggle,
-  .sidebar-overlay, #toast-container, .btn, .dash-head-actions,
-  .q-pos-toolbar, .q-cart-head, #theme-toggle {
+  .sidebar, .top-navbar, .no-print, .mobile-sidebar-toggle, #mobile-sidebar-toggle,
+  .sidebar-reveal-tab, #sidebar-reveal-tab, .sidebar-overlay, .sidebar-hover-zone,
+  #toast-container, .skip-link, .app-modal, .modal-backdrop, .q-cart-toggle-btn,
+  .q-cart-overlay, .btn, button, .dash-head-actions, .q-pos-toolbar, .q-cart-head,
+  #theme-toggle {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    pointer-events: none !important;
   }
 
   /* Layout */

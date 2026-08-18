@@ -1,6 +1,6 @@
 import pytest
 import mongomock
-from inventory_app import create_app
+from inventory_app import create_app, cache_flush
 from config import TestConfig
 from inventory_app.database import init_db
 from werkzeug.security import generate_password_hash
@@ -13,6 +13,7 @@ def mock_mongo():
 
 @pytest.fixture
 def app(mock_mongo):
+    cache_flush()
     app = create_app(TestConfig, custom_mongo_client=mock_mongo)
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False

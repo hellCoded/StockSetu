@@ -3,70 +3,304 @@
 {% block title %}Edit {{ product.product_name }} - StockSetu{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 1.5rem;">
-  <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm">
-    <i class="fa-solid fa-arrow-left"></i> Back to Product Details
-  </a>
-  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem;">Edit Product: {{ product.product_name }}</h1>
-  <p style="color: var(--text-muted); font-size: 0.9rem;">To change the product name, use the dedicated <a href="{{ url_for('products.rename_product', product_name=product.product_name) }}">Rename Product</a> operation (Admin only).</p>
+<!-- Executive Gradient Hero Banner -->
+<div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
+  <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
+    <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
+      <i class="ri-edit-line"></i>
+    </div>
+    <div>
+      <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
+        Edit Product: {{ product.product_name }}
+      </h1>
+      <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
+        Update pricing, Indian GST tax rates, storage warehouse location, and product specifications
+      </p>
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+    <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+      <i class="ri-arrow-left-line"></i> View Details
+    </a>
+  </div>
 </div>
 
-<div class="card" style="max-width: 800px;">
-  <form method="POST" action="{{ url_for('products.edit_product', product_name=product.product_name) }}">
+<!-- 2-Column Layout: Form & Live Preview -->
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1.25rem; align-items: start;">
+  
+  <!-- Left Column: Form Sections -->
+  <form method="POST" action="{{ url_for('products.edit_product', product_name=product.product_name) }}" id="edit-product-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="form-grid">
-      <div class="form-group">
-        <label for="category" class="form-label"><i class="fa-solid fa-layer-group" style="color: var(--primary); margin-right: 0.3rem;"></i> Category <span style="color: #dc2626;">*</span></label>
-        <input type="text" id="category" name="category" class="form-control" value="{{ product.category }}" required list="category-list">
-        <datalist id="category-list">
-          {% for cat in categories %}
-            <option value="{{ cat }}">
-          {% endfor %}
-        </datalist>
+    <!-- Section 1: General Product Details -->
+    <div class="card" style="margin-bottom: 1.25rem; border: 1px solid var(--color-outline-variant); border-top: 3.5px solid var(--color-primary); padding: 1.25rem;">
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 0.6rem;">
+        <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(136, 19, 55, 0.1); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+          <i class="ri-price-tag-3-line"></i>
+        </div>
+        <h3 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--color-on-surface);">General Product Information</h3>
       </div>
 
-      <div class="form-group">
-        <label for="unit" class="form-label"><i class="fa-solid fa-ruler-combined" style="color: var(--primary); margin-right: 0.3rem;"></i> Unit of Measure <span style="color: #dc2626;">*</span></label>
-        <input type="text" id="unit" name="unit" class="form-control" value="{{ product.unit }}" required>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: var(--color-on-surface);">
+          Product Name (SKU Identifier)
+        </label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="text" class="form-control" value="{{ product.product_name }}" disabled style="background: var(--color-surface-container); font-weight: 700; color: var(--color-on-surface);">
+          {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('products.rename_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="white-space: nowrap; font-size: 0.78rem;">
+              <i class="ri-cursor-line"></i> Rename SKU
+            </a>
+          {% endif %}
+        </div>
+        <small style="color: var(--color-on-surface-variant); font-size: 0.72rem;">To modify the SKU name, use the dedicated Rename operation.</small>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label for="category" class="form-label" style="font-size: 0.82rem; font-weight: 700; color: var(--color-on-surface);">
+            Category <span style="color: var(--color-danger);">*</span>
+          </label>
+          <input type="text" id="category" name="category" class="form-control" value="{{ product.category }}" required list="category-list">
+          <datalist id="category-list">
+            {% for cat in categories %}
+              <option value="{{ cat }}">
+            {% endfor %}
+          </datalist>
+          <small style="color: var(--color-on-surface-variant); font-size: 0.72rem;">Select existing or type new</small>
+        </div>
+
+        <div class="form-group">
+          <label for="unit" class="form-label" style="font-size: 0.82rem; font-weight: 700; color: var(--color-on-surface);">
+            Unit of Measure <span style="color: var(--color-danger);">*</span>
+          </label>
+          <input type="text" id="unit" name="unit" class="form-control" value="{{ product.unit }}" required>
+          <small style="color: var(--color-on-surface-variant); font-size: 0.72rem;">Standard unit for billing</small>
+        </div>
       </div>
     </div>
 
-    <div class="form-grid">
-      <div class="form-group">
-        <label for="price" class="form-label"><i class="fa-solid fa-indian-rupee-sign" style="color: var(--primary); margin-right: 0.3rem;"></i> Unit Price (₹)</label>
-        <input type="number" step="0.01" min="0" id="price" name="price" class="form-control" value="{{ product.price }}" required>
+    <!-- Section 2: Pricing & Indian GST Tax Classification -->
+    <div class="card" style="margin-bottom: 1.25rem; border: 1px solid var(--color-outline-variant); border-top: 3.5px solid var(--color-accent); padding: 1.25rem;">
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 0.6rem;">
+        <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(234, 88, 12, 0.1); color: var(--color-accent); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+          <i class="ri-money-rupee-circle-line"></i>
+        </div>
+        <h3 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--color-on-surface);">Pricing &amp; GST Classification</h3>
       </div>
 
-      <div class="form-group">
-        <label for="gst_rate" class="form-label"><i class="fa-solid fa-percent" style="color: var(--primary); margin-right: 0.3rem;"></i> GST Rate (%)</label>
-        <input type="number" step="0.01" min="0" max="28" id="gst_rate" name="gst_rate" class="form-control" value="{{ product.gst_rate or 0 }}">
-        <small style="color: var(--text-muted); font-size: 0.75rem;">CGST + SGST split is applied on bills. Max 28%.</small>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group">
+          <label for="price" class="form-label" style="font-size: 0.82rem; font-weight: 700; color: var(--color-on-surface);">
+            Base Unit Price (₹) <span style="color: var(--color-danger);">*</span>
+          </label>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--color-on-surface-variant);">₹</span>
+            <input type="number" step="0.01" min="0" id="price" name="price" class="form-control" value="{{ product.price }}" required style="padding-left: 2rem; font-family: var(--font-mono); font-weight: 700; font-size: 1rem;">
+          </div>
+          <small style="color: var(--color-on-surface-variant); font-size: 0.72rem;">Price per unit before GST</small>
+        </div>
+
+        <div class="form-group">
+          <label for="gst_rate" class="form-label" style="font-size: 0.82rem; font-weight: 700; color: var(--color-on-surface);">
+            GST Tax Rate (%)
+          </label>
+          <div style="position: relative;">
+            <input type="number" step="0.01" min="0" max="28" id="gst_rate" name="gst_rate" class="form-control" value="{{ product.gst_rate or 0 }}" style="font-family: var(--font-mono); font-weight: 700;">
+            <span style="position: absolute; right: 0.85rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--color-on-surface-variant);">%</span>
+          </div>
+          <!-- Quick GST Preset Badges -->
+          <div style="display: flex; gap: 0.35rem; margin-top: 0.35rem; flex-wrap: wrap;">
+            <button type="button" class="badge" onclick="setGSTRate(0)" style="cursor: pointer; background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); color: var(--color-on-surface-variant); font-size: 0.68rem; padding: 0.15rem 0.45rem;">0%</button>
+            <button type="button" class="badge" onclick="setGSTRate(5)" style="cursor: pointer; background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); color: var(--color-on-surface-variant); font-size: 0.68rem; padding: 0.15rem 0.45rem;">5%</button>
+            <button type="button" class="badge" onclick="setGSTRate(12)" style="cursor: pointer; background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); color: var(--color-on-surface-variant); font-size: 0.68rem; padding: 0.15rem 0.45rem;">12%</button>
+            <button type="button" class="badge" onclick="setGSTRate(18)" style="cursor: pointer; background: rgba(234, 88, 12, 0.15); border: 1px solid var(--color-accent); color: var(--color-accent); font-size: 0.68rem; padding: 0.15rem 0.45rem; font-weight: 700;">18%</button>
+            <button type="button" class="badge" onclick="setGSTRate(28)" style="cursor: pointer; background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); color: var(--color-on-surface-variant); font-size: 0.68rem; padding: 0.15rem 0.45rem;">28%</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label for="hsn_code" class="form-label" style="font-size: 0.82rem; font-weight: 700; color: var(--color-on-surface);">
+            HSN / SAC Code
+          </label>
+          <input type="text" id="hsn_code" name="hsn_code" class="form-control" value="{{ product.hsn_code or '' }}" placeholder="e.g., 3402, 8471" maxlength="8" style="font-family: var(--font-mono); text-transform: uppercase;">
+          <small style="color: var(--color-on-surface-variant); font-size: 0.72rem;">Indian GST classification code (max 8 digits)</small>
+        </div>
+
+        <div class="form-group">
+          <label for="location" class="form-label" style="font-size: 0.82rem; font-weight: 700; color: var(--color-on-surface);">
+            Warehouse Location
+          </label>
+          <input type="text" id="location" name="location" class="form-control" value="{{ product.location or '' }}" placeholder="e.g., Rack A-12, Bin 4">
+          <small style="color: var(--color-on-surface-variant); font-size: 0.72rem;">Storage aisle, bin, or warehouse rack</small>
+        </div>
       </div>
     </div>
 
-    <div class="form-grid">
-      <div class="form-group">
-        <label for="hsn_code" class="form-label"><i class="fa-solid fa-hashtag" style="color: var(--primary); margin-right: 0.3rem;"></i> HSN Code</label>
-        <input type="text" id="hsn_code" name="hsn_code" class="form-control" value="{{ product.hsn_code or '' }}" placeholder="e.g., 3402" maxlength="8">
-        <small style="color: var(--text-muted); font-size: 0.75rem;">Tax classification code for GST invoices (max 8 characters).</small>
+    <!-- Section 3: Description -->
+    <div class="card" style="margin-bottom: 1.25rem; border: 1px solid var(--color-outline-variant); padding: 1.25rem;">
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 0.6rem;">
+        <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(21, 128, 61, 0.1); color: var(--color-success); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+          <i class="ri-align-left"></i>
+        </div>
+        <h3 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--color-on-surface);">Description &amp; Specifications</h3>
       </div>
 
-      <div class="form-group">
-        <label for="location" class="form-label"><i class="fa-solid fa-location-dot" style="color: var(--primary); margin-right: 0.3rem;"></i> Warehouse Location</label>
-        <input type="text" id="location" name="location" class="form-control" value="{{ product.location or '' }}">
+      <div class="form-group" style="margin-bottom: 0;">
+        <textarea id="description" name="description" class="form-control" rows="3" placeholder="Technical specifications, storage instructions, batch notes, or supplier remarks...">{{ product.description or '' }}</textarea>
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="description" class="form-label"><i class="fa-solid fa-align-left" style="color: var(--primary); margin-right: 0.3rem;"></i> Description</label>
-      <textarea id="description" name="description" class="form-control" rows="3">{{ product.description or '' }}</textarea>
-    </div>
-
-    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
-      <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    <!-- Form Submit Actions -->
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+      <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.4rem; font-size: 0.9rem;">
+        <i class="ri-save-3-line"></i> Save Changes
+      </button>
+      <a href="{{ url_for('products.view_product', product_name=product.product_name) }}" class="btn btn-secondary" style="padding: 0.65rem 1.2rem; font-size: 0.9rem;">
+        <i class="ri-close-line"></i> Cancel
+      </a>
     </div>
   </form>
+
+  <!-- Right Column: Live Interactive Preview & GST Breakdown Card -->
+  <div style="position: sticky; top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+    
+    <!-- Live Product Card Preview -->
+    <div class="card" style="border: 1px solid var(--color-outline-variant); border-top: 3.5px solid var(--color-primary); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-on-surface-variant);">
+          <i class="ri-eye-line" style="margin-right: 0.25rem;"></i> Live Catalog Card
+        </span>
+        <span id="preview-status-badge" class="badge badge-success" style="font-size: 0.65rem; padding: 0.15rem 0.5rem;">
+          {{ product.status }}
+        </span>
+      </div>
+
+      <div style="margin-bottom: 0.6rem;">
+        <span id="preview-category" class="badge" style="background: rgba(234, 88, 12, 0.12); color: var(--color-accent); font-size: 0.68rem; padding: 0.15rem 0.5rem; font-weight: 700; border-radius: 999px;">
+          {{ product.category }}
+        </span>
+      </div>
+
+      <h4 id="preview-name" style="font-size: 1.05rem; font-weight: 800; color: var(--color-on-surface); margin: 0 0 0.35rem; line-height: 1.25; word-break: break-word;">
+        {{ product.product_name }}
+      </h4>
+
+      <p id="preview-desc" style="font-size: 0.74rem; color: var(--color-on-surface-variant); margin: 0 0 0.85rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+        {{ product.description or 'No description provided.' }}
+      </p>
+
+      <div style="background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); border-radius: var(--r-md); padding: 0.65rem 0.85rem; margin-bottom: 0.75rem;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div>
+            <div style="font-size: 0.65rem; color: var(--color-on-surface-variant); font-weight: 700; text-transform: uppercase;">Stock Count</div>
+            <div style="font-size: 1.1rem; font-weight: 800; font-family: var(--font-mono); color: var(--color-on-surface);">
+              <span>{{ product.quantity }}</span> <small id="preview-unit" style="font-size: 0.7rem; font-weight: 600; color: var(--color-on-surface-variant);">{{ product.unit }}</small>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.65rem; color: var(--color-on-surface-variant); font-weight: 700; text-transform: uppercase;">Unit Price</div>
+            <div style="font-size: 1.1rem; font-weight: 800; font-family: var(--font-mono); color: var(--color-primary);">
+              ₹<span id="preview-price">{{ "%.2f"|format(product.price) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--color-on-surface-variant); border-top: 1px dashed var(--color-outline-variant); padding-top: 0.5rem;">
+        <span><i class="ri-hashtag"></i> HSN: <strong id="preview-hsn" style="color: var(--color-on-surface);">{{ product.hsn_code or 'N/A' }}</strong></span>
+        <span><i class="ri-map-pin-2-line"></i> <span id="preview-location">{{ product.location or 'Warehouse' }}</span></span>
+      </div>
+    </div>
+
+    <!-- GST Tax & Valuation Breakdown Card -->
+    <div class="card" style="border: 1px solid var(--color-outline-variant); padding: 1rem; background: var(--color-surface-container);">
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem;">
+        <i class="ri-calculator-line" style="color: var(--color-accent); font-size: 0.85rem;"></i>
+        <h5 style="margin: 0; font-size: 0.8rem; font-weight: 700; color: var(--color-on-surface);">GST Tax Breakdown</h5>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.75rem;">
+        <div style="display: flex; justify-content: space-between; color: var(--color-on-surface-variant);">
+          <span>Base Price (Excl. Tax):</span>
+          <span style="font-family: var(--font-mono); font-weight: 600; color: var(--color-on-surface);">₹<span id="calc-base">0.00</span></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; color: var(--color-on-surface-variant);">
+          <span>CGST (<span id="calc-cgst-pct">9</span>%):</span>
+          <span style="font-family: var(--font-mono); color: var(--color-on-surface);">₹<span id="calc-cgst">0.00</span></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; color: var(--color-on-surface-variant);">
+          <span>SGST (<span id="calc-sgst-pct">9</span>%):</span>
+          <span style="font-family: var(--font-mono); color: var(--color-on-surface);">₹<span id="calc-sgst">0.00</span></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--color-on-surface); border-top: 1px solid var(--color-outline-variant); padding-top: 0.35rem; margin-top: 0.2rem;">
+          <span>Final Price (Incl. GST):</span>
+          <span style="font-family: var(--font-mono); color: var(--color-primary);">₹<span id="calc-total">0.00</span></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
+
+<script>
+function setGSTRate(rate) {
+  const gstInput = document.getElementById('gst_rate');
+  if (gstInput) {
+    gstInput.value = rate;
+    updateLivePreview();
+  }
+}
+
+function updateLivePreview() {
+  const catInput = document.getElementById('category');
+  const unitInput = document.getElementById('unit');
+  const priceInput = document.getElementById('price');
+  const gstInput = document.getElementById('gst_rate');
+  const hsnInput = document.getElementById('hsn_code');
+  const locInput = document.getElementById('location');
+  const descInput = document.getElementById('description');
+
+  const catVal = (catInput && catInput.value.trim()) || 'General';
+  const unitVal = (unitInput && unitInput.value.trim()) || 'pcs';
+  const priceVal = parseFloat(priceInput ? priceInput.value : 0) || 0;
+  const gstVal = parseFloat(gstInput ? gstInput.value : 0) || 0;
+  const hsnVal = (hsnInput && hsnInput.value.trim()) || 'N/A';
+  const locVal = (locInput && locInput.value.trim()) || 'Warehouse';
+  const descVal = (descInput && descInput.value.trim()) || 'No description provided.';
+
+  // Update preview elements
+  if (document.getElementById('preview-category')) document.getElementById('preview-category').textContent = catVal;
+  if (document.getElementById('preview-unit')) document.getElementById('preview-unit').textContent = unitVal;
+  if (document.getElementById('preview-price')) document.getElementById('preview-price').textContent = priceVal.toFixed(2);
+  if (document.getElementById('preview-hsn')) document.getElementById('preview-hsn').textContent = hsnVal;
+  if (document.getElementById('preview-location')) document.getElementById('preview-location').textContent = locVal;
+  if (document.getElementById('preview-desc')) document.getElementById('preview-desc').textContent = descVal;
+
+  // GST calculations
+  const cgstPct = gstVal / 2;
+  const sgstPct = gstVal / 2;
+  const cgstAmt = priceVal * (cgstPct / 100);
+  const sgstAmt = priceVal * (sgstPct / 100);
+  const totalWithTax = priceVal + cgstAmt + sgstAmt;
+
+  if (document.getElementById('calc-base')) document.getElementById('calc-base').textContent = priceVal.toFixed(2);
+  if (document.getElementById('calc-cgst-pct')) document.getElementById('calc-cgst-pct').textContent = cgstPct.toFixed(1);
+  if (document.getElementById('calc-sgst-pct')) document.getElementById('calc-sgst-pct').textContent = sgstPct.toFixed(1);
+  if (document.getElementById('calc-cgst')) document.getElementById('calc-cgst').textContent = cgstAmt.toFixed(2);
+  if (document.getElementById('calc-sgst')) document.getElementById('calc-sgst').textContent = sgstAmt.toFixed(2);
+  if (document.getElementById('calc-total')) document.getElementById('calc-total').textContent = totalWithTax.toFixed(2);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const inputs = document.querySelectorAll('#edit-product-form input, #edit-product-form textarea');
+  inputs.forEach(input => {
+    input.addEventListener('input', updateLivePreview);
+    input.addEventListener('change', updateLivePreview);
+  });
+  updateLivePreview();
+});
+</script>
 {% endblock %}

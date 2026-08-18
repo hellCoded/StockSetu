@@ -5,59 +5,60 @@
 
 [data-theme="dark"] {
   /* Core Canvas & Surfaces */
-  --color-background: #090d16;
-  --color-surface: #111827;
-  --color-surface-dim: #070b14;
-  --color-surface-bright: #1f293d;
-  --color-surface-container: #131d2e;
-  --color-surface-container-high: #1c283d;
-  --color-surface-container-highest: #28374f;
+  --color-background: #140306; /* Deep Maroon Obsidian */
+  --color-surface: #22070d; /* Royal Velvet Wine */
+  --color-surface-dim: #0d0204;
+  --color-surface-bright: #350c16;
+  --color-surface-container: #22070d;
+  --color-surface-container-high: #350c16;
+  --color-surface-container-highest: #4c1220;
 
   /* Typography & Contrasts */
-  --color-on-surface: #f8fafc;
-  --color-on-surface-variant: #94a3b8;
-  --color-on-background: #f8fafc;
-  --color-outline: #334155;
-  --color-outline-variant: #1e293b;
+  --color-on-surface: #fdf2f4;
+  --color-on-surface-variant: #d4a5af;
+  --color-on-background: #fdf2f4;
+  --color-outline: #5c1827;
+  --color-outline-variant: #350c16;
 
-  /* Radiant Accents & Brand */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #60a5fa;
-  --color-primary-light: rgba(59, 130, 246, 0.16);
-  --color-primary-glow: rgba(59, 130, 246, 0.28);
-  --color-primary-fixed: #1e3a8a;
-  --color-primary-fixed-dim: #172554;
+  /* Radiant Accents & Brand (Royal Kesariya Saffron & Gold) */
+  --color-primary: #f97316;
+  --color-primary-hover: #fb923c;
+  --color-primary-light: rgba(249, 115, 22, 0.16);
+  --color-primary-glow: rgba(249, 115, 22, 0.32);
+  --color-primary-fixed: #881337;
+  --color-primary-fixed-dim: #4c0519;
 
-  --color-accent: #f43f5e;
-  --color-accent-hover: #fb7185;
-  --color-accent-light: rgba(244, 63, 94, 0.16);
+  --color-accent: #f97316;
+  --color-accent-hover: #fb923c;
+  --color-accent-light: rgba(249, 115, 22, 0.16);
   --color-accent-fixed: #881337;
   --color-accent-fixed-dim: #4c0519;
 
   /* Vibrant Status Colors */
-  --color-success: #10b981;
-  --color-success-bg: rgba(16, 185, 129, 0.14);
-  --color-success-text: #34d399;
+  --color-success: #22c55e;
+  --color-success-bg: rgba(34, 197, 94, 0.14);
+  --color-success-text: #86efac;
   
   --color-warning: #f59e0b;
   --color-warning-bg: rgba(245, 158, 11, 0.14);
-  --color-warning-text: #fbbf24;
+  --color-warning-text: #fde047;
   
   --color-danger: #ef4444;
   --color-danger-bg: rgba(239, 68, 68, 0.14);
-  --color-danger-text: #f87171;
+  --color-danger-text: #fca5a5;
   
-  --color-info: #6366f1;
-  --color-info-bg: rgba(99, 102, 241, 0.14);
-  --color-info-text: #a5b4fc;
+  --color-info: #14b8a6;
+  --color-info-bg: rgba(20, 184, 166, 0.14);
+  --color-info-text: #5eead4;
 
   /* Aliases */
   --bg-app: var(--color-background);
   --bg-card: var(--color-surface);
   --bg-card-border: var(--color-outline-variant);
-  --text-main: #f8fafc;
-  --text-sub: #94a3b8;
-  --text-muted: #94a3b8;
+  --text-main: #fdf2f4;
+  --text-sub: #d4a5af;
+  --text-muted: #d4a5af;
+  --text-faint: #9f6572;
   --text-faint: #64748b;
   --text-sidebar: rgba(255, 255, 255, 0.7);
   --text-sidebar-active: #ffffff;
@@ -77,16 +78,18 @@
 
 /* Sidebar & Navigation */
 [data-theme="dark"] .sidebar {
-  background: #070b14;
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  background: #1a050a;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="dark"] .navbar,
 [data-theme="dark"] .topbar,
 [data-theme="dark"] .top-navbar {
-  background: #0d1322;
-  border-bottom-color: var(--color-outline-variant);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  background: rgba(34, 7, 13, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #350c16;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Cards & Containers */
@@ -122,18 +125,24 @@
 }
 
 [data-theme="dark"] th {
-  background: #0c1220;
-  color: var(--color-on-surface-variant);
-  border-bottom-color: var(--color-outline-variant);
+  background: #131d2e;
+  color: #f8fafc;
+  border-bottom: 2px solid #334155;
+  font-weight: 700;
 }
 
 [data-theme="dark"] td {
-  border-bottom-color: var(--color-outline-variant);
+  border-bottom: 1px solid #1e293b;
   color: #cbd5e1;
 }
 
+[data-theme="dark"] td strong {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
 [data-theme="dark"] tr:hover td {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(30, 41, 59, 0.7);
 }
 
 /* Forms & Inputs */
@@ -143,8 +152,8 @@
 [data-theme="dark"] textarea,
 [data-theme="dark"] select {
   background: #0f172a;
-  border-color: var(--color-outline);
-  color: var(--color-on-surface);
+  border-color: #334155;
+  color: #f8fafc;
 }
 
 [data-theme="dark"] .form-control:focus,
@@ -191,33 +200,33 @@
 
 /* Badges */
 [data-theme="dark"] .badge-success {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  background: rgba(16, 185, 129, 0.22);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.4);
 }
 
 [data-theme="dark"] .badge-warning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: rgba(245, 158, 11, 0.22);
+  color: #fcd34d;
+  border: 1px solid rgba(252, 211, 77, 0.4);
 }
 
 [data-theme="dark"] .badge-danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+  border: 1px solid rgba(252, 165, 165, 0.4);
 }
 
 [data-theme="dark"] .badge-info {
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
-  border: 1px solid rgba(165, 180, 252, 0.3);
+  background: rgba(99, 102, 241, 0.22);
+  color: #c7d2fe;
+  border: 1px solid rgba(199, 210, 254, 0.4);
 }
 
 [data-theme="dark"] .badge-secondary {
-  background: rgba(148, 163, 184, 0.12);
-  color: #cbd5e1;
-  border: 1px solid rgba(203, 213, 225, 0.2);
+  background: rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.3);
 }
 
 /* Modals & Dropdowns */

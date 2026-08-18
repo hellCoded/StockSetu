@@ -136,21 +136,28 @@ def invalidate_product_cache(product_name: str = None):
         # Flush all product caches (only works with redis/redislite, not dict)
         pass
 
-def search_products(query: str = "", category: str = "", location: str = "", stock_status: str = "", is_active: bool = True, sort_by: str = "product_name", sort_dir: int = 1, limit: int = 50) -> list:
+def search_products(query: str = "", category: str = "", location: str = "", stock_status: str = "", is_active: bool = True, sort_by: str = "product_name", sort_dir: int = 1, limit: int = 50, page: int = None, per_page: int = 25, return_total: bool = False):
     """
     Searches and filters products using server-side MongoDB query.
-    Stock status filtering is pushed to MongoDB via $expr to avoid Python-side iteration.
+    Supports server-side pagination (page & per_page) with total count projection.
     Results are cached for 15 seconds to avoid redundant DB hits across routes.
     """
     import hashlib
+    effective_page = page if page is not None else 1
+    effective_limit = per_page if page is not None else limit
+    effective_skip = (effective_page - 1) * effective_limit if page is not None else 0
+
     # Build a stable cache key from all filter parameters
-    _key_parts = f"{query}|{category}|{location}|{stock_status}|{is_active}|{sort_by}|{sort_dir}|{limit}"
+    _key_parts = f"{query}|{category}|{location}|{stock_status}|{is_active}|{sort_by}|{sort_dir}|{effective_limit}|{effective_skip}|{return_total}"
     _cache_key = "products:search:" + hashlib.md5(_key_parts.encode()).hexdigest()
 
     cached = cache_get(_cache_key)
     if cached is not None:
         try:
-            return json.loads(cached)
+            cached_data = json.loads(cached)
+            if return_total:
+                return cached_data.get("items", []), cached_data.get("total", 0)
+            return cached_data if isinstance(cached_data, list) else cached_data.get("items", [])
         except (TypeError, ValueError):
             pass
 
@@ -198,7 +205,18 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         "location": 1,
         "is_active": 1,
     }
-    products = list(db.products.find(filter_query, projection).sort(sort_by, sort_dir).limit(limit))
+
+    total_count = 0
+    if return_total:
+        total_count = db.products.count_documents(filter_query)
+
+    cursor = db.products.find(filter_query, projection).sort(sort_by, sort_dir)
+    if effective_skip > 0:
+        cursor = cursor.skip(effective_skip)
+    if effective_limit is not None and effective_limit > 0:
+        cursor = cursor.limit(effective_limit)
+
+    products = list(cursor)
     
     result = []
     for p in products:
@@ -206,8 +224,12 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         p["status"] = calculate_stock_status(p.get("quantity", 0))
         result.append(p)
 
-    cache_set(_cache_key, json.dumps(result, default=str), ttl=15)
-    return result
+    if return_total:
+        cache_set(_cache_key, json.dumps({"items": result, "total": total_count}, default=str), ttl=15)
+        return result, total_count
+    else:
+        cache_set(_cache_key, json.dumps(result, default=str), ttl=15)
+        return result
 
 def update_product(product_name: str, update_data: dict, performed_by: str) -> tuple[bool, str, dict]:
     """Updates product attributes (excluding product_name)."""

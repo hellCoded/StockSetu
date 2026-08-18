@@ -35,28 +35,49 @@
   </div>
 
   <!-- Real Content -->
-  <div class="dash-real-content fade-in" style="display:none">
-  <div class="dash-head" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <h1 class="dash-head-title" style="font-size: 1.5rem; font-weight: 800; color: var(--color-on-surface, #0f172a); font-family: var(--font-display, inherit); margin: 0; line-height: 1.2;">
-        Inventory Overview
-      </h1>
-      <p class="dash-head-sub" style="color: var(--color-on-surface-variant, #64748b); font-size: 0.85rem; margin: 0.25rem 0 0 0;">
-        Real-time inventory levels, critical stock alerts, and recent warehouse activity
-      </p>
+  <!-- Executive Gradient Hero Banner -->
+  <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
+        <i class="ri-pie-chart-2-line"></i>
+      </div>
+      <div>
+        <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
+          Inventory Overview &amp; Control
+        </h1>
+        <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
+          Real-time stock valuation, inventory health, and fast warehouse action center
+        </p>
+      </div>
     </div>
-    <div class="dash-head-actions" style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-      <a href="{{ url_for('products.export_pdf') }}" class="btn btn-secondary no-print" title="Export Full Catalog to PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
-        <i class="fa-solid fa-file-pdf" style="color: #dc2626; margin-right: 0.35rem;"></i> Export PDF
+    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+      <a href="{{ url_for('products.export_pdf') }}" class="btn btn-secondary no-print" title="Export Full Catalog to PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+        <i class="ri-file-pdf-2-line" style="color: #fca5a5; margin-right: 0.35rem;"></i> Export PDF
       </a>
-      <a href="{{ url_for('products.export_excel') }}" class="btn btn-secondary no-print" title="Export Inventory to Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
-        <i class="fa-solid fa-file-excel" style="color: #107c41; margin-right: 0.35rem;"></i> Export Excel
+      <a href="{{ url_for('products.export_excel') }}" class="btn btn-secondary no-print" title="Export Inventory to Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+        <i class="ri-file-excel-2-line" style="color: #86efac; margin-right: 0.35rem;"></i> Export Excel
       </a>
       {% if current_user.role in ['admin', 'inventory_manager'] %}
-        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; box-shadow: 0 4px 12px rgba(11, 61, 110, 0.2);">
-          <i class="fa-solid fa-plus" style="margin-right: 0.35rem;"></i> Add Product
+        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; background: linear-gradient(135deg, #ea580c, #c2410c); color: #ffffff; font-weight: 700; border: none; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);">
+          <i class="ri-add-line" style="margin-right: 0.35rem;"></i> Add Product
         </a>
       {% endif %}
+    </div>
+  </div>
+
+  <!-- Spotlight Command Palette Shortcut Tip -->
+  <div class="spotlight-quicktip-bar no-print" onclick="if(window.openCommandPalette)window.openCommandPalette()" style="background: var(--color-surface); border: 1px solid var(--color-outline-variant); border-radius: var(--r-lg, 12px); padding: 0.65rem 1.15rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(69, 10, 10, 0.04);">
+    <div style="display: flex; align-items: center; gap: 0.65rem;">
+      <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(234, 88, 12, 0.12); color: #ea580c; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;">
+        <i class="ri-flashlight-line"></i>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--color-on-surface);">
+        <strong style="color: #ea580c;">Spotlight Navigation:</strong> Press <kbd style="background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 700; font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-on-surface);">Ctrl + K</kbd> anywhere in the app to instantly search products, invoices, or perform quick actions.
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; font-weight: 700; color: #ea580c; white-space: nowrap;">
+      <span>Open Spotlight</span>
+      <i class="ri-arrow-right-line"></i>
     </div>
   </div>
 
@@ -64,7 +85,7 @@
   <div class="kpi-grid" style="margin-bottom: 1.25rem;">
     <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
       <div class="kpi-card kpi-products">
-        <div class="kpi-icon"><i class="fa-solid fa-box"></i></div>
+        <div class="kpi-icon"><i class="ri-box-3-line"></i></div>
         <div class="kpi-body">
           <div class="kpi-value" data-counter="{{ metrics.total_products }}">{{ metrics.total_products }}</div>
           <div class="kpi-label">Active Products</div>
@@ -74,7 +95,7 @@
 
     <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
       <div class="kpi-card kpi-quantity">
-        <div class="kpi-icon"><i class="fa-solid fa-cubes"></i></div>
+        <div class="kpi-icon"><i class="ri-archive-stack-line"></i></div>
         <div class="kpi-body">
           <div class="kpi-value" data-counter="{{ metrics.total_quantity }}">{{ "{:,.0f}".format(metrics.total_quantity) }}</div>
           <div class="kpi-label">Total Units</div>
@@ -84,7 +105,7 @@
 
     <a href="{{ url_for('products.list_products') }}" style="text-decoration: none;">
       <div class="kpi-card kpi-value-card">
-        <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+        <div class="kpi-icon"><i class="ri-money-rupee-circle-line"></i></div>
         <div class="kpi-body">
           <div class="kpi-value" data-counter="{{ metrics.total_inventory_value }}" data-counter-prefix="₹">{{ format_currency(metrics.total_inventory_value) }}</div>
           <div class="kpi-label">Total Inventory Value</div>
@@ -94,7 +115,7 @@
 
     <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" style="text-decoration: none;">
       <div class="kpi-card kpi-lowstock">
-        <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="kpi-icon"><i class="ri-alert-line"></i></div>
         <div class="kpi-body">
           <div class="kpi-value" data-counter="{{ metrics.low_stock_count }}">{{ metrics.low_stock_count }}</div>
           <div class="kpi-label">Low Stock Alerts</div>
@@ -104,7 +125,7 @@
 
     <a href="{{ url_for('products.list_products', status='OUT OF STOCK') }}" style="text-decoration: none;">
       <div class="kpi-card kpi-outofstock">
-        <div class="kpi-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="kpi-icon"><i class="ri-close-circle-line"></i></div>
         <div class="kpi-body">
           <div class="kpi-value" data-counter="{{ metrics.out_of_stock_count }}">{{ metrics.out_of_stock_count }}</div>
           <div class="kpi-label">Out of Stock</div>
@@ -116,21 +137,21 @@
   <!-- Quick Actions Hub -->
   <div class="dash-quick-actions" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;margin-bottom:1.25rem;">
     <a href="{{ url_for('billing.pos') }}" class="btn btn-primary" style="justify-content:center; padding: 0.65rem 1rem; box-shadow: 0 4px 12px rgba(11, 61, 110, 0.2);">
-      <i class="fa-solid fa-cart-shopping" style="margin-right: 0.4rem;"></i> New POS Bill
+      <i class="ri-shopping-cart-2-line" style="margin-right: 0.4rem;"></i> New POS Bill
     </a>
     <a href="{{ url_for('inventory.stock_in') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
-      <i class="fa-solid fa-arrow-down" style="margin-right: 0.4rem; color: #10b981;"></i> Stock In
+      <i class="ri-arrow-down-line" style="margin-right: 0.4rem; color: #10b981;"></i> Stock In
     </a>
     <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
-      <i class="fa-solid fa-arrow-up" style="margin-right: 0.4rem; color: #ef4444;"></i> Stock Out
+      <i class="ri-arrow-up-line" style="margin-right: 0.4rem; color: #ef4444;"></i> Stock Out
     </a>
     {% if current_user.role in ['admin', 'inventory_manager'] %}
       <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
-        <i class="fa-solid fa-file-import" style="margin-right: 0.4rem; color: #3b82f6;"></i> Bulk Stock In
+        <i class="ri-file-upload-line" style="margin-right: 0.4rem; color: #3b82f6;"></i> Bulk Stock In
       </a>
     {% endif %}
     <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
-      <i class="fa-solid fa-receipt" style="margin-right: 0.4rem; color: #8b5cf6;"></i> Recent Bills
+      <i class="ri-receipt-line" style="margin-right: 0.4rem; color: #8b5cf6;"></i> Recent Bills
     </a>
   </div>
 
@@ -139,7 +160,7 @@
     <!-- Chart 1: Stock levels by category (Bar) -->
     <div class="card chart-card">
       <div class="card-header">
-        <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Stock by Category</h3>
+        <h3 class="card-title"><i class="ri-bar-chart-line"></i> Stock by Category</h3>
       </div>
       <div class="chart-container">
         <canvas id="categoryStockChart"></canvas>
@@ -149,7 +170,7 @@
     <!-- Chart 2: Low-stock alert count by category (Silo breakdown list) -->
     <div class="card chart-card">
       <div class="card-header">
-        <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock by Category</h3>
+        <h3 class="card-title"><i class="ri-alert-line"></i> Low Stock by Category</h3>
       </div>
       <div class="dash-silo-region">
         {% set low_stock_items_list = chart_data.low_stock_by_category | selectattr('low_stock_count', 'greaterthan', 0) | list %}
@@ -186,7 +207,7 @@
     {% if show_role_requests %}
     <div class="card chart-card">
       <div class="card-header">
-        <h3 class="card-title"><i class="fa-solid fa-users-gear"></i> Role Requests Status</h3>
+        <h3 class="card-title"><i class="ri-user-settings-line"></i> Role Requests Status</h3>
       </div>
       <div class="chart-container">
         <canvas id="roleRequestsChart"></canvas>
@@ -195,7 +216,7 @@
     {% else %}
     <div class="card chart-card">
       <div class="card-header">
-        <h3 class="card-title"><i class="fa-solid fa-ranking-star"></i> Top Products by Stock</h3>
+        <h3 class="card-title"><i class="ri-trophy-line"></i> Top Products by Stock</h3>
       </div>
       <div class="chart-container">
         <canvas id="topProductsChart"></canvas>
@@ -207,28 +228,28 @@
   <!-- Recent Transactions Table -->
   <div class="card">
     <div class="card-header">
-      <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h3>
+      <h3 class="card-title"><i class="ri-history-line"></i> Recent Activity</h3>
       <a href="{{ url_for('inventory.view_transactions') }}" class="btn btn-secondary btn-sm">View Full History</a>
     </div>
 
     <div class="activity-filter-chips" role="group" aria-label="Filter activity">
       <button type="button" class="activity-chip is-active" data-filter="all">All</button>
-      <button type="button" class="activity-chip" data-filter="STOCK_IN"><i class="fa-solid fa-plus"></i> Stock In</button>
-      <button type="button" class="activity-chip" data-filter="STOCK_OUT"><i class="fa-solid fa-minus"></i> Stock Out</button>
-      <button type="button" class="activity-chip" data-filter="ADJUSTMENT"><i class="fa-solid fa-sliders"></i> Adjust</button>
+      <button type="button" class="activity-chip" data-filter="STOCK_IN"><i class="ri-add-line"></i> Stock In</button>
+      <button type="button" class="activity-chip" data-filter="STOCK_OUT"><i class="ri-subtract-line"></i> Stock Out</button>
+      <button type="button" class="activity-chip" data-filter="ADJUSTMENT"><i class="ri-equalizer-2-line"></i> Adjust</button>
     </div>
 
     <div class="table-responsive">
       <table class="data-table clickable-rows" id="recent-activity-table">
         <thead>
           <tr>
-            <th><i class="fa-solid fa-clock"></i> Date & Time</th>
-            <th><i class="fa-solid fa-box"></i> Product Name</th>
-            <th><i class="fa-solid fa-arrow-right-arrow-left"></i> Type</th>
-            <th><i class="fa-solid fa-hashtag"></i> Qty Changed</th>
-            <th><i class="fa-solid fa-layer-group"></i> Stock After</th>
-            <th><i class="fa-solid fa-note-sticky"></i> Reason / Notes</th>
-            <th><i class="fa-solid fa-user"></i> User</th>
+            <th><i class="ri-time-line"></i> Date & Time</th>
+            <th><i class="ri-box-3-line"></i> Product Name</th>
+            <th><i class="ri-exchange-line"></i> Type</th>
+            <th><i class="ri-hashtag"></i> Qty Changed</th>
+            <th><i class="ri-stack-line"></i> Stock After</th>
+            <th><i class="ri-sticky-note-line"></i> Reason / Notes</th>
+            <th><i class="ri-user-3-line"></i> User</th>
           </tr>
         </thead>
         <tbody>
@@ -243,15 +264,15 @@
                 </td>
                 <td>
                   {% if tx.transaction_type == 'STOCK_IN' %}
-                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-plus"></i> STOCK IN</span>
+                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-add-line"></i> STOCK IN</span>
                   {% elif tx.transaction_type == 'STOCK_OUT' %}
-                    <span class="badge badge-danger" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-minus"></i> STOCK OUT</span>
+                    <span class="badge badge-danger" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-subtract-line"></i> STOCK OUT</span>
                   {% elif tx.transaction_type == 'ADJUSTMENT' %}
-                    <span class="badge badge-warning" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-sliders"></i> ADJUST</span>
+                    <span class="badge badge-warning" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-equalizer-2-line"></i> ADJUST</span>
                   {% elif tx.transaction_type == 'INITIAL_STOCK' %}
-                    <span class="badge badge-info" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-circle-play"></i> INITIAL</span>
+                    <span class="badge badge-info" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-play-circle-line"></i> INITIAL</span>
                   {% elif tx.transaction_type == 'PRODUCT_RENAME' %}
-                    <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="fa-solid fa-pen"></i> RENAME</span>
+                    <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;"><i class="ri-pencil-line"></i> RENAME</span>
                   {% else %}
                     <span class="badge badge-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 9999px;">{{ tx.transaction_type }}</span>
                   {% endif %}
@@ -263,7 +284,7 @@
                 <td class="dash-reason" style="font-size: 0.83rem; color: var(--color-on-surface-variant, #64748b);">{{ tx.reason }}</td>
                 <td class="dash-user" style="font-size: 0.82rem; white-space: nowrap;">
                   <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: var(--color-surface-container, #e2e8f0); padding: 0.2rem 0.55rem; border-radius: 9999px; font-weight: 500;">
-                    <i class="fa-solid fa-user" style="font-size: 0.68rem; color: var(--color-primary, #0b3d6e);"></i> {{ tx.performed_by }}
+                    <i class="ri-user-3-line" style="font-size: 0.68rem; color: var(--color-primary, #0b3d6e);"></i> {{ tx.performed_by }}
                   </span>
                 </td>
               </tr>

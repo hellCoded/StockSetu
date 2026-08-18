@@ -210,15 +210,22 @@ def get_product_transactions(product_name: str, limit: int = 50) -> list:
     cache_set(_cache_key, json.dumps(txs, default=str), ttl=15)
     return txs
 
-def get_all_transactions(product_name: str = "", transaction_type: str = "", limit: int = 100) -> list:
-    """Retrieves inventory transactions with optional filtering. Cached 15s."""
+def get_all_transactions(product_name: str = "", transaction_type: str = "", limit: int = 100, page: int = None, per_page: int = 25, return_total: bool = False):
+    """Retrieves inventory transactions with optional filtering and server-side pagination. Cached 15s."""
     import hashlib, json
-    _key = f"txns:{product_name}:{transaction_type}:{limit}"
+    effective_page = page if page is not None else 1
+    effective_limit = per_page if page is not None else limit
+    effective_skip = (effective_page - 1) * effective_limit if page is not None else 0
+
+    _key = f"txns:{product_name}:{transaction_type}:{effective_limit}:{effective_skip}:{return_total}"
     _cache_key = "inventory:txns:" + hashlib.md5(_key.encode()).hexdigest()
     cached = cache_get(_cache_key)
     if cached is not None:
         try:
-            return json.loads(cached)
+            cached_data = json.loads(cached)
+            if return_total:
+                return cached_data.get("items", []), cached_data.get("total", 0)
+            return cached_data if isinstance(cached_data, list) else cached_data.get("items", [])
         except (TypeError, ValueError):
             pass
 
@@ -230,12 +237,27 @@ def get_all_transactions(product_name: str = "", transaction_type: str = "", lim
         query["product_name"] = {"$regex": re.escape(product_name.strip()), "$options": "i"}
     if transaction_type:
         query["transaction_type"] = transaction_type
+
+    total_count = 0
+    if return_total:
+        total_count = db.inventory_transactions.count_documents(query)
         
-    txs = list(db.inventory_transactions.find(query).sort("created_at", -1).limit(limit))
+    cursor = db.inventory_transactions.find(query).sort("created_at", -1)
+    if effective_skip > 0:
+        cursor = cursor.skip(effective_skip)
+    if effective_limit is not None and effective_limit > 0:
+        cursor = cursor.limit(effective_limit)
+
+    txs = list(cursor)
     for t in txs:
         t["_id"] = str(t["_id"])
-    cache_set(_cache_key, json.dumps(txs, default=str), ttl=15)
-    return txs
+
+    if return_total:
+        cache_set(_cache_key, json.dumps({"items": txs, "total": total_count}, default=str), ttl=15)
+        return txs, total_count
+    else:
+        cache_set(_cache_key, json.dumps(txs, default=str), ttl=15)
+        return txs
 
 def get_dashboard_metrics() -> dict:
     """

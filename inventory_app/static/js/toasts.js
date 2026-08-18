@@ -18,11 +18,11 @@ const Toast = (() => {
 
   function getIcon(type) {
     const icons = {
-      success: 'fa-circle-check',
-      danger:  'fa-circle-xmark',
-      error:   'fa-circle-xmark',
-      warning: 'fa-triangle-exclamation',
-      info:    'fa-circle-info',
+      success: 'ri-checkbox-circle-fill',
+      danger:  'ri-close-circle-fill',
+      error:   'ri-close-circle-fill',
+      warning: 'ri-alert-fill',
+      info:    'ri-information-fill',
     };
     return icons[type] || icons.info;
   }
@@ -45,7 +45,7 @@ const Toast = (() => {
     msgDiv.textContent = message;
 
     const icon = document.createElement('i');
-    icon.className = `fa-solid ${getIcon(type)} toast-icon`;
+    icon.className = `${getIcon(type)} toast-icon`;
 
     const body = document.createElement('div');
     body.className = 'toast-body';

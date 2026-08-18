@@ -9,10 +9,10 @@
     <div class="inv-header-text">
       <div class="inv-badge-wrap">
         <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm inv-back-btn">
-          <i class="fa-solid fa-arrow-left"></i> Products Catalog
+          <i class="ri-arrow-left-line"></i> Products Catalog
         </a>
         <span class="badge badge-danger" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">
-          <i class="fa-solid fa-arrow-trend-down"></i> Stock Deduction
+          <i class="ri-arrow-down-circle-line"></i> Stock Deduction
         </span>
       </div>
       <h1 class="inv-page-title">Record Stock Out</h1>
@@ -20,10 +20,10 @@
     </div>
     <div class="inv-header-actions">
       <a href="{{ url_for('billing.pos') }}" class="btn btn-primary btn-sm" title="Go to POS Billing">
-        <i class="fa-solid fa-cash-register"></i> POS Counter
+        <i class="ri-funds-box-line"></i> POS Counter
       </a>
       <a href="{{ url_for('inventory.view_transactions', type='STOCK_OUT') }}" class="btn btn-secondary btn-sm" title="View Stock Out Log">
-        <i class="fa-solid fa-clock-rotate-left"></i> Stock Out History
+        <i class="ri-history-line"></i> Stock Out History
       </a>
     </div>
   </div>
@@ -49,7 +49,7 @@
     <div class="card inv-form-card">
       <div class="inv-card-header">
         <div class="inv-icon-circle out-theme">
-          <i class="fa-solid fa-box-open"></i>
+          <i class="ri-inbox-archive-line"></i>
         </div>
         <div>
           <h3 class="inv-card-title">Stock Removal Entry</h3>
@@ -62,7 +62,7 @@
 
         <div class="form-group">
           <label for="product_name" class="form-label">
-            <i class="fa-solid fa-box" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
+            <i class="ri-box-3-line" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
           </label>
           <select id="product_name" name="product_name" class="form-select inv-select" required>
             <option value="">-- Choose Product to Deduct --</option>
@@ -76,7 +76,7 @@
 
         <div class="form-group">
           <label for="quantity" class="form-label">
-            <i class="fa-solid fa-minus-circle" style="color: var(--color-danger, #ef4444); margin-right: 0.35rem;"></i> Quantity Removed <span class="req">*</span>
+            <i class="ri-indeterminate-circle-line" style="color: var(--color-danger, #ef4444); margin-right: 0.35rem;"></i> Quantity Removed <span class="req">*</span>
           </label>
           <div class="input-with-icon">
             <input type="number" step="any" min="0.01" id="quantity" name="quantity" class="form-control inv-num-input" placeholder="e.g., 10" required style="font-family: 'JetBrains Mono', monospace;">
@@ -88,17 +88,17 @@
 
         <div class="form-group">
           <label for="reason" class="form-label">
-            <i class="fa-solid fa-clipboard-list" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Order Reference / Reason
+            <i class="ri-survey-line" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Order Reference / Reason
           </label>
           <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., Customer Order #8821 fulfilled, warehouse dispatch">
         </div>
 
         <div class="inv-form-footer">
           <button type="submit" class="btn btn-danger inv-submit-btn" data-confirm="Confirm stock reduction?">
-            <i class="fa-solid fa-minus"></i> Submit Stock Out
+            <i class="ri-subtract-line"></i> Submit Stock Out
           </button>
           <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
-            <i class="fa-solid fa-xmark"></i> Cancel
+            <i class="ri-close-line"></i> Cancel
           </a>
         </div>
       </form>
@@ -107,25 +107,25 @@
     <!-- Right: Safety Guardrails -->
     <div class="inv-sidebar-col">
       <div class="card inv-guide-card">
-        <h4 class="inv-guide-title"><i class="fa-solid fa-triangle-exclamation" style="color: var(--color-danger, #ef4444);"></i> Guardrails &amp; Rules</h4>
+        <h4 class="inv-guide-title"><i class="ri-alert-line" style="color: var(--color-danger, #ef4444);"></i> Guardrails &amp; Rules</h4>
         
         <ul class="inv-guide-list">
           <li>
-            <i class="fa-solid fa-ban text-danger"></i>
+            <i class="ri-prohibited-line text-danger"></i>
             <div>
               <strong>Negative Stock Blocked</strong>
               <p>The system will reject any stock-out transaction where requested quantity exceeds on-hand balance.</p>
             </div>
           </li>
           <li>
-            <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+            <i class="ri-alert-line text-warning"></i>
             <div>
               <strong>Low Stock Threshold Alerts</strong>
               <p>If remaining balance drops below the item minimum threshold, an automatic dashboard warning is triggered.</p>
             </div>
           </li>
           <li>
-            <i class="fa-solid fa-cash-register text-primary"></i>
+            <i class="ri-funds-box-line text-primary"></i>
             <div>
               <strong>Sales vs Manual Deductions</strong>
               <p>For standard counter sales with customer receipts, create a bill in the <a href="{{ url_for('billing.pos') }}">POS Counter</a>.</p>

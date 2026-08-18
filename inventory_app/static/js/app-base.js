@@ -14,10 +14,10 @@
       document.documentElement.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
       var icon = btn.querySelector('i');
-      if (icon) icon.className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      if (icon) icon.className = next === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
     });
     var icon = btn.querySelector('i');
-    if (icon) icon.className = saved === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    if (icon) icon.className = saved === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
 
     // Mobile sidebar toggle
     var sidebar = document.querySelector('.sidebar');

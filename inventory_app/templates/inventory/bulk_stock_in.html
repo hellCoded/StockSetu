@@ -19,7 +19,7 @@
 
 /* ── Hero Header ── */
 .bsi-hero {
-  background: linear-gradient(135deg, #0b2545 0%, #134074 55%, #0077b6 100%);
+  background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%);
   border-radius: var(--r-xl, 14px);
   padding: 1.25rem 1.5rem;
   color: #ffffff;
@@ -28,7 +28,7 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  box-shadow: 0 8px 24px rgba(11, 37, 69, 0.18);
+  box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25);
   position: relative;
   overflow: hidden;
 }
@@ -39,7 +39,7 @@
   right: -10%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(234,88,12,0.18) 0%, transparent 70%);
   pointer-events: none;
 }
 .bsi-hero-left {
@@ -53,13 +53,13 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  background: linear-gradient(135deg, #fb923c, #ea580c);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.35rem;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);
   flex-shrink: 0;
 }
 .bsi-hero-titles h1 {
@@ -982,7 +982,7 @@
   <div class="bsi-hero">
     <div class="bsi-hero-left">
       <div class="bsi-hero-icon">
-        <i class="fa-solid fa-receipt"></i>
+        <i class="ri-receipt-line"></i>
       </div>
       <div class="bsi-hero-titles">
         <h1>Bulk Stock In &amp; Bill Reconciliation</h1>
@@ -991,12 +991,12 @@
     </div>
     <div class="bsi-hero-steps">
       <div class="bsi-step-badge {% if step == 'upload' %}active{% else %}done{% endif %}">
-        <i class="fa-solid {% if step == 'map' %}fa-check{% else %}fa-cloud-arrow-up{% endif %}"></i>
+        <i class="{% if step == 'map' %}fa-check{% else %}fa-cloud-arrow-up{% endif %}"></i>
         <span>1. Ingest Bill</span>
       </div>
-      <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; color:rgba(255,255,255,0.4);"></i>
+      <i class="ri-arrow-right-s-line" style="font-size:0.65rem; color:rgba(255,255,255,0.4);"></i>
       <div class="bsi-step-badge {% if step == 'map' %}active{% endif %}">
-        <i class="fa-solid fa-table-list"></i>
+        <i class="ri-table-line"></i>
         <span>2. Review &amp; Stock In</span>
       </div>
     </div>
@@ -1018,17 +1018,17 @@
           <!-- Idle View -->
           <div id="bsi-idle-view" class="bsi-drop-idle">
             <div class="bsi-drop-icon-bubble">
-              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <i class="ri-upload-cloud-2-line"></i>
             </div>
             <div class="bsi-drop-content">
               <h3 class="bsi-drop-heading">Select your supplier invoice</h3>
               <p class="bsi-drop-subtext">Click here to <span class="bsi-link-text">browse and select files from your device</span></p>
             </div>
             <div class="bsi-format-chips">
-              <span class="bsi-chip pdf"><i class="fa-solid fa-file-pdf"></i> PDF</span>
-              <span class="bsi-chip xls"><i class="fa-solid fa-file-excel"></i> Excel</span>
-              <span class="bsi-chip csv"><i class="fa-solid fa-file-csv"></i> CSV</span>
-              <span class="bsi-chip size"><i class="fa-solid fa-hard-drive"></i> Max 16MB</span>
+              <span class="bsi-chip pdf"><i class="ri-file-pdf-2-line"></i> PDF</span>
+              <span class="bsi-chip xls"><i class="ri-file-excel-2-line"></i> Excel</span>
+              <span class="bsi-chip csv"><i class="ri-file-text-line"></i> CSV</span>
+              <span class="bsi-chip size"><i class="ri-hard-drive-line"></i> Max 16MB</span>
             </div>
           </div>
 
@@ -1036,12 +1036,12 @@
           <div id="bsi-file-summary" class="bsi-file-selected-card" style="display:none;">
             <div class="bsi-selected-left">
               <div class="bsi-selected-icon" id="bsi-selected-icon">
-                <i class="fa-solid fa-file-lines"></i>
+                <i class="ri-file-list-line"></i>
               </div>
               <div class="bsi-selected-details">
                 <div class="bsi-selected-title-row">
                   <h4 id="bsi-summary-name" class="bsi-selected-filename">invoice.pdf</h4>
-                  <span class="bsi-ready-badge"><i class="fa-solid fa-circle-check"></i> Ready</span>
+                  <span class="bsi-ready-badge"><i class="ri-checkbox-circle-fill"></i> Ready</span>
                 </div>
                 <div class="bsi-selected-meta">
                   <span id="bsi-summary-size">1.2 MB</span>
@@ -1051,14 +1051,14 @@
               </div>
             </div>
             <button type="button" class="bsi-remove-file-btn" id="bsi-clear-btn" title="Remove file">
-              <i class="fa-solid fa-trash-can"></i>
+              <i class="ri-delete-bin-line"></i>
             </button>
           </div>
         </div>
 
         <div class="bsi-submit-wrap">
           <button type="submit" class="bsi-cta-btn" id="bsi-upload-submit" disabled>
-            <i class="fa-solid fa-bolt"></i>
+            <i class="ri-flashlight-line"></i>
             <span>Parse &amp; Reconcile Invoice Items</span>
           </button>
         </div>
@@ -1067,11 +1067,11 @@
 
     <!-- Right: Informational Capability Cards -->
     <div class="bsi-card">
-      <h4 class="bsi-guide-heading"><i class="fa-solid fa-shield-halved" style="color:var(--color-primary);"></i> Smart Ingestion Protocol</h4>
+      <h4 class="bsi-guide-heading"><i class="ri-shield-check-line" style="color:var(--color-primary);"></i> Smart Ingestion Protocol</h4>
       
       <div class="bsi-features-list">
         <div class="bsi-feature-box">
-          <div class="bsi-feat-icon blue"><i class="fa-solid fa-table"></i></div>
+          <div class="bsi-feat-icon blue"><i class="ri-table-line"></i></div>
           <div class="bsi-feat-text">
             <h5>Automated Table &amp; OCR Parsing</h5>
             <p>Extracts line item descriptions, invoice quantities, HSN codes, and unit rates without manual data entry.</p>
@@ -1079,7 +1079,7 @@
         </div>
 
         <div class="bsi-feature-box">
-          <div class="bsi-feat-icon emerald"><i class="fa-solid fa-link"></i></div>
+          <div class="bsi-feat-icon emerald"><i class="ri-link"></i></div>
           <div class="bsi-feat-text">
             <h5>Fuzzy Inventory Matching</h5>
             <p>Matches invoice names against your current database with confidence scores to prevent duplicate stock records.</p>
@@ -1087,7 +1087,7 @@
         </div>
 
         <div class="bsi-feature-box">
-          <div class="bsi-feat-icon purple"><i class="fa-solid fa-plus-circle"></i></div>
+          <div class="bsi-feat-icon purple"><i class="ri-add-circle-line"></i></div>
           <div class="bsi-feat-text">
             <h5>1-Click New Product Creation</h5>
             <p>Unmatched lines can be instantly registered with categories, tax rates, and units directly on the review screen.</p>
@@ -1131,13 +1131,13 @@
       var ext = file.name.split('.').pop().toLowerCase();
       if (sIcon) {
         if (ext === 'pdf') {
-          sIcon.innerHTML = '<i class="fa-solid fa-file-pdf" style="color:#dc2626;"></i>';
+          sIcon.innerHTML = '<i class="ri-file-pdf-2-line" style="color:#dc2626;"></i>';
           sIcon.style.background = '#fef2f2';
         } else if (ext === 'xlsx' || ext === 'xls') {
-          sIcon.innerHTML = '<i class="fa-solid fa-file-excel" style="color:#059669;"></i>';
+          sIcon.innerHTML = '<i class="ri-file-excel-2-line" style="color:#059669;"></i>';
           sIcon.style.background = '#ecfdf5';
         } else {
-          sIcon.innerHTML = '<i class="fa-solid fa-file-csv" style="color:#0284c7;"></i>';
+          sIcon.innerHTML = '<i class="ri-file-text-line" style="color:#0284c7;"></i>';
           sIcon.style.background = '#f0f9ff';
         }
       }
@@ -1272,7 +1272,7 @@
       var overlay = document.getElementById('bsi-overlay');
       if (overlay) overlay.classList.add('show');
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Ingesting Bill...';
+      submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Ingesting Bill...';
     });
   })();
   </script>
@@ -1291,28 +1291,28 @@
           <span class="bsi-kpi-title">Detected Lines</span>
           <span class="bsi-kpi-val" id="hud-total">{{ items|length }}</span>
         </div>
-        <div class="bsi-kpi-icon"><i class="fa-solid fa-list-ol"></i></div>
+        <div class="bsi-kpi-icon"><i class="ri-list-ordered"></i></div>
       </div>
       <div class="bsi-kpi-pill matched">
         <div class="bsi-kpi-left">
           <span class="bsi-kpi-title">Auto-Matched</span>
           <span class="bsi-kpi-val" id="hud-matched">0</span>
         </div>
-        <div class="bsi-kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="bsi-kpi-icon"><i class="ri-checkbox-circle-fill"></i></div>
       </div>
       <div class="bsi-kpi-pill new">
         <div class="bsi-kpi-left">
           <span class="bsi-kpi-title">New Catalog Items</span>
           <span class="bsi-kpi-val" id="hud-new">0</span>
         </div>
-        <div class="bsi-kpi-icon"><i class="fa-solid fa-plus"></i></div>
+        <div class="bsi-kpi-icon"><i class="ri-add-line"></i></div>
       </div>
       <div class="bsi-kpi-pill skipped">
         <div class="bsi-kpi-left">
           <span class="bsi-kpi-title">Skipped Lines</span>
           <span class="bsi-kpi-val" id="hud-skipped">0</span>
         </div>
-        <div class="bsi-kpi-icon"><i class="fa-solid fa-ban"></i></div>
+        <div class="bsi-kpi-icon"><i class="ri-prohibited-line"></i></div>
       </div>
     </div>
 
@@ -1323,25 +1323,25 @@
           All <span class="badge-count" id="tab-cnt-all">{{ items|length }}</span>
         </button>
         <button type="button" class="bsi-tab-btn" data-filter="matched">
-          <i class="fa-solid fa-link" style="font-size:0.65rem; color:#16a34a;"></i> Matched <span class="badge-count" id="tab-cnt-matched">0</span>
+          <i class="ri-link" style="font-size:0.65rem; color:#16a34a;"></i> Matched <span class="badge-count" id="tab-cnt-matched">0</span>
         </button>
         <button type="button" class="bsi-tab-btn" data-filter="new">
-          <i class="fa-solid fa-sparkles" style="font-size:0.65rem; color:#4f46e5;"></i> New <span class="badge-count" id="tab-cnt-new">0</span>
+          <i class="ri-sparkling-line" style="font-size:0.65rem; color:#4f46e5;"></i> New <span class="badge-count" id="tab-cnt-new">0</span>
         </button>
         <button type="button" class="bsi-tab-btn" data-filter="skipped">
-          <i class="fa-solid fa-ban" style="font-size:0.65rem; color:#64748b;"></i> Skipped <span class="badge-count" id="tab-cnt-skipped">0</span>
+          <i class="ri-prohibited-line" style="font-size:0.65rem; color:#64748b;"></i> Skipped <span class="badge-count" id="tab-cnt-skipped">0</span>
         </button>
       </div>
 
       <div class="bsi-search-box">
-        <i class="fa-solid fa-magnifying-glass"></i>
+        <i class="ri-search-2-line"></i>
         <input type="text" id="bsi-live-search" class="form-control bsi-search-input" placeholder="Search line items, HSN, catalog match...">
       </div>
 
       <div class="bsi-bulk-actions">
-        <button type="button" class="bsi-mini-btn" id="btn-include-all" title="Include all items in stock in"><i class="fa-solid fa-check-double"></i> Stock All</button>
-        <button type="button" class="bsi-mini-btn" id="btn-skip-all" title="Exclude all items"><i class="fa-solid fa-ban"></i> Skip All</button>
-        <a href="{{ url_for('inventory.bulk_stock_in') }}" class="bsi-mini-btn" title="Upload different invoice"><i class="fa-solid fa-arrow-rotate-left"></i> Re-upload</a>
+        <button type="button" class="bsi-mini-btn" id="btn-include-all" title="Include all items in stock in"><i class="ri-check-double-line"></i> Stock All</button>
+        <button type="button" class="bsi-mini-btn" id="btn-skip-all" title="Exclude all items"><i class="ri-prohibited-line"></i> Skip All</button>
+        <a href="{{ url_for('inventory.bulk_stock_in') }}" class="bsi-mini-btn" title="Upload different invoice"><i class="ri-restart-line"></i> Re-upload</a>
       </div>
     </div>
 
@@ -1363,15 +1363,15 @@
             <div class="bsi-item-title-row">
               <h4 class="bsi-item-name" title="{{ item.item_name }}">{{ item.item_name }}</h4>
               {% if item.is_new %}
-                <span class="bsi-status-pill new"><i class="fa-solid fa-sparkles"></i> New Item</span>
+                <span class="bsi-status-pill new"><i class="ri-sparkling-line"></i> New Item</span>
               {% else %}
-                <span class="bsi-status-pill match"><i class="fa-solid fa-check"></i> {{ item.match_score|default(100) }}% Match</span>
+                <span class="bsi-status-pill match"><i class="ri-check-line"></i> {{ item.match_score|default(100) }}% Match</span>
               {% endif %}
             </div>
             <div class="bsi-item-badges">
-              <span class="bsi-meta-chip qty"><i class="fa-solid fa-boxes-stacked"></i> Qty: {{ item.quantity }}</span>
-              {% if item.unit %}<span class="bsi-meta-chip"><i class="fa-solid fa-scale-balanced"></i> {{ item.unit }}</span>{% endif %}
-              {% if item.hsn_code %}<span class="bsi-meta-chip" style="font-family:var(--font-mono, monospace);"><i class="fa-solid fa-barcode"></i> HSN {{ item.hsn_code }}</span>{% endif %}
+              <span class="bsi-meta-chip qty"><i class="ri-archive-stack-line"></i> Qty: {{ item.quantity }}</span>
+              {% if item.unit %}<span class="bsi-meta-chip"><i class="ri-scales-3-line"></i> {{ item.unit }}</span>{% endif %}
+              {% if item.hsn_code %}<span class="bsi-meta-chip" style="font-family:var(--font-mono, monospace);"><i class="ri-barcode-line"></i> HSN {{ item.hsn_code }}</span>{% endif %}
               {% if item.price %}<span class="bsi-meta-chip" style="font-family:var(--font-mono, monospace);">&#8377;{{ '%.2f'|format(item.price) }}</span>{% endif %}
             </div>
           </div>
@@ -1381,14 +1381,14 @@
             {% if item.is_new %}
               <input type="hidden" name="mapping[]" value="__new__" class="mapping-val" id="map-val-{{ loop.index0 }}">
               <div class="bsi-ac-box">
-                <i class="fa-solid fa-plus-circle bsi-ac-icon" style="color:#4f46e5;"></i>
+                <i class="ri-add-circle-line bsi-ac-icon" style="color:#4f46e5;"></i>
                 <input type="text" class="form-control bsi-ac-input ac-input" data-idx="{{ loop.index0 }}" placeholder="Auto-creating new product in catalog (Type to remap)..." autocomplete="off">
                 <div class="bsi-ac-menu" data-idx="{{ loop.index0 }}"></div>
               </div>
             {% else %}
               <input type="hidden" name="mapping[]" value="{{ item.matched_name }}" class="mapping-val" id="map-val-{{ loop.index0 }}">
               <div class="bsi-ac-box">
-                <i class="fa-solid fa-link bsi-ac-icon" style="color:#16a34a;"></i>
+                <i class="ri-link bsi-ac-icon" style="color:#16a34a;"></i>
                 <input type="text" class="form-control bsi-ac-input ac-input" data-idx="{{ loop.index0 }}" value="{{ item.matched_name }}" placeholder="Search and select existing product..." autocomplete="off">
                 <div class="bsi-ac-menu" data-idx="{{ loop.index0 }}"></div>
               </div>
@@ -1398,7 +1398,7 @@
           <!-- Column 4: Row Action Toggle -->
           <div class="bsi-row-actions">
             <button type="button" class="bsi-skip-toggle" data-idx="{{ loop.index0 }}" title="Toggle inclusion in stock in">
-              <i class="fa-solid fa-ban"></i> <span>Skip</span>
+              <i class="ri-prohibited-line"></i> <span>Skip</span>
             </button>
           </div>
         </div>
@@ -1406,7 +1406,7 @@
         <!-- Inline New Product Details Drawer (Shown when mapped as __new__) -->
         <div class="bsi-new-drawer" id="new-drawer-{{ loop.index0 }}" style="display: {{ 'flex' if item.is_new else 'none' }};">
           <div class="bsi-new-drawer-head">
-            <span><i class="fa-solid fa-sparkles"></i> Specify New Catalog Product Specs:</span>
+            <span><i class="ri-sparkling-line"></i> Specify New Catalog Product Specs:</span>
             <span style="font-size:0.65rem; color:var(--color-on-surface-variant);">Will be created automatically during stock in</span>
           </div>
           <div class="bsi-new-grid">
@@ -1444,7 +1444,7 @@
     <div class="bsi-dock">
       <div class="bsi-dock-left">
         <div class="bsi-dock-icon">
-          <i class="fa-solid fa-boxes-packing"></i>
+          <i class="ri-archive-stack-line"></i>
         </div>
         <div class="bsi-dock-status">
           <span class="bsi-dock-count" id="dock-summary-text">{{ items|length }} items ready to stock in</span>
@@ -1458,7 +1458,7 @@
 
       <div class="bsi-dock-actions">
         <button type="submit" class="bsi-dock-confirm" id="bsi-confirm-btn">
-          <i class="fa-solid fa-circle-check"></i>
+          <i class="ri-checkbox-circle-fill"></i>
           <span>Confirm &amp; Stock In</span>
         </button>
       </div>
@@ -1568,11 +1568,11 @@
         var isCurrentlySkipped = r.classList.contains('is-skipped');
         if (isCurrentlySkipped) {
           r.classList.remove('is-skipped');
-          skipBtn.innerHTML = '<i class="fa-solid fa-ban"></i> <span>Skip</span>';
+          skipBtn.innerHTML = '<i class="ri-prohibited-line"></i> <span>Skip</span>';
           mapValEl.value = r.dataset.cachedMapping || (r.dataset.new === '1' ? '__new__' : originalVal);
         } else {
           r.classList.add('is-skipped');
-          skipBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Include</span>';
+          skipBtn.innerHTML = '<i class="ri-check-line"></i> <span>Include</span>';
           r.dataset.cachedMapping = mapValEl.value;
           mapValEl.value = '';
         }
@@ -1590,7 +1590,7 @@
         rows.forEach(function(r) {
           r.classList.remove('is-skipped');
           var skipBtn = r.querySelector('.bsi-skip-toggle');
-          skipBtn.innerHTML = '<i class="fa-solid fa-ban"></i> <span>Skip</span>';
+          skipBtn.innerHTML = '<i class="ri-prohibited-line"></i> <span>Skip</span>';
           var mapValEl = r.querySelector('.mapping-val');
           if (!mapValEl.value) {
             mapValEl.value = r.dataset.cachedMapping || (r.dataset.new === '1' ? '__new__' : r.dataset.name);
@@ -1606,7 +1606,7 @@
         rows.forEach(function(r) {
           r.classList.add('is-skipped');
           var skipBtn = r.querySelector('.bsi-skip-toggle');
-          skipBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Include</span>';
+          skipBtn.innerHTML = '<i class="ri-check-line"></i> <span>Include</span>';
           var mapValEl = r.querySelector('.mapping-val');
           if (mapValEl.value) r.dataset.cachedMapping = mapValEl.value;
           mapValEl.value = '';
@@ -1632,7 +1632,7 @@
         // Option 1: Create New Item
         var optNew = document.createElement('div');
         optNew.className = 'bsi-ac-opt bsi-ac-opt-create';
-        optNew.innerHTML = '<span><i class="fa-solid fa-sparkles"></i> + Create As New Product</span>';
+        optNew.innerHTML = '<span><i class="ri-sparkling-line"></i> + Create As New Product</span>';
         optNew.addEventListener('mousedown', function(e) {
           e.preventDefault();
           mapValEl.value = '__new__';
@@ -1697,7 +1697,7 @@
         }
         if (confirmBtn) {
           confirmBtn.disabled = true;
-          confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Stocking In...';
+          confirmBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Stocking In...';
         }
       });
     }

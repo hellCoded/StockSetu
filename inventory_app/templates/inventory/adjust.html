@@ -4,23 +4,27 @@
 
 {% block content %}
 <div class="inv-action-page">
-  <!-- Page Header -->
-  <div class="inv-action-header">
-    <div class="inv-header-text">
-      <div class="inv-badge-wrap">
-        <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm inv-back-btn">
-          <i class="fa-solid fa-arrow-left"></i> Products Catalog
-        </a>
-        <span class="badge badge-warning" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">
-          <i class="fa-solid fa-sliders"></i> Audit Adjustment
-        </span>
+  <!-- Executive Gradient Hero Banner -->
+  <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
+        <i class="ri-equalizer-2-line"></i>
       </div>
-      <h1 class="inv-page-title">Manual Stock Count Adjustment</h1>
-      <p class="inv-page-sub">Sync system ledger with actual physical counts. A detailed audit note is mandatory.</p>
+      <div>
+        <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
+          Manual Stock Count Adjustment
+        </h1>
+        <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
+          Reconcile system catalog ledger with verified physical inventory counts
+        </p>
+      </div>
     </div>
-    <div class="inv-header-actions">
-      <a href="{{ url_for('inventory.view_transactions', type='ADJUSTMENT') }}" class="btn btn-secondary btn-sm" title="View Audit Logs">
-        <i class="fa-solid fa-clock-rotate-left"></i> Adjustment History
+    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+        <i class="ri-arrow-left-line"></i> Products Catalog
+      </a>
+      <a href="{{ url_for('inventory.view_transactions', type='ADJUSTMENT') }}" class="btn btn-secondary btn-sm" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+        <i class="ri-history-line"></i> Adjustment History
       </a>
     </div>
   </div>
@@ -45,7 +49,7 @@
     <div class="card inv-form-card">
       <div class="inv-card-header">
         <div class="inv-icon-circle adj-theme">
-          <i class="fa-solid fa-calculator"></i>
+          <i class="ri-calculator-line"></i>
         </div>
         <div>
           <h3 class="inv-card-title">Physical Audit Entry</h3>
@@ -58,7 +62,7 @@
 
         <div class="form-group">
           <label for="product_name" class="form-label">
-            <i class="fa-solid fa-box" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
+            <i class="ri-box-3-line" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Select Product <span class="req">*</span>
           </label>
           <select id="product_name" name="product_name" class="form-select inv-select" required>
             <option value="">-- Choose Product to Adjust --</option>
@@ -72,7 +76,7 @@
 
         <div class="form-group">
           <label for="target_quantity" class="form-label">
-            <i class="fa-solid fa-scale-balanced" style="color: var(--color-warning, #f59e0b); margin-right: 0.35rem;"></i> Actual Physical Stock Count <span class="req">*</span>
+            <i class="ri-scales-3-line" style="color: var(--color-warning, #f59e0b); margin-right: 0.35rem;"></i> Actual Physical Stock Count <span class="req">*</span>
           </label>
           <div class="input-with-icon">
             <input type="number" step="any" min="0" id="target_quantity" name="target_quantity" class="form-control inv-num-input" placeholder="Enter corrected count" required style="font-family: 'JetBrains Mono', monospace;">
@@ -84,17 +88,17 @@
 
         <div class="form-group">
           <label for="reason" class="form-label">
-            <i class="fa-solid fa-clipboard-check" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Mandatory Audit Reason <span class="req">*</span>
+            <i class="ri-clipboard-line" style="color: var(--color-primary, #0b3d6e); margin-right: 0.35rem;"></i> Mandatory Audit Reason <span class="req">*</span>
           </label>
           <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="e.g., Annual physical audit discrepancy, damaged stock written off, sample count sync..." required></textarea>
         </div>
 
         <div class="inv-form-footer">
           <button type="submit" class="btn btn-primary inv-submit-btn" data-confirm="Submit inventory adjustment?">
-            <i class="fa-solid fa-sliders"></i> Apply Adjustment
+            <i class="ri-equalizer-2-line"></i> Apply Adjustment
           </button>
           <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
-            <i class="fa-solid fa-xmark"></i> Cancel
+            <i class="ri-close-line"></i> Cancel
           </a>
         </div>
       </form>
@@ -103,25 +107,25 @@
     <!-- Right: Audit Protocol Guidelines -->
     <div class="inv-sidebar-col">
       <div class="card inv-guide-card">
-        <h4 class="inv-guide-title"><i class="fa-solid fa-file-signature" style="color: var(--color-warning, #f59e0b);"></i> Audit Protocol</h4>
+        <h4 class="inv-guide-title"><i class="ri-file-edit-line" style="color: var(--color-warning, #f59e0b);"></i> Audit Protocol</h4>
         
         <ul class="inv-guide-list">
           <li>
-            <i class="fa-solid fa-clipboard-check text-warning"></i>
+            <i class="ri-clipboard-line text-warning"></i>
             <div>
               <strong>Audit Trail Recording</strong>
               <p>Every count adjustment logs the previous quantity, target quantity, net delta, user ID, timestamp, and audit justification.</p>
             </div>
           </li>
           <li>
-            <i class="fa-solid fa-scale-balanced text-primary"></i>
+            <i class="ri-scales-3-line text-primary"></i>
             <div>
               <strong>Variance Tracking</strong>
               <p>The delta (+/-) is automatically computed so discrepancies can be monitored during quarterly accounting reviews.</p>
             </div>
           </li>
           <li>
-            <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+            <i class="ri-alert-line text-danger"></i>
             <div>
               <strong>Damaged / Expired Goods</strong>
               <p>Use adjustments to record expired or damaged units with explicit notes for warehouse shrinkage tracking.</p>

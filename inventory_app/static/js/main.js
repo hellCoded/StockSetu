@@ -8,12 +8,12 @@
   overlay.id = 'custom-confirm-overlay';
   overlay.innerHTML = `
     <div id="custom-confirm-box">
-      <div id="custom-confirm-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div id="custom-confirm-icon"><i class="ri-alert-line"></i></div>
       <h4 id="custom-confirm-title">Confirm Action</h4>
       <p id="custom-confirm-message"></p>
       <div class="custom-confirm-actions">
-        <button id="custom-confirm-cancel" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
-        <button id="custom-confirm-ok" class="btn btn-danger"><i class="fa-solid fa-check"></i> Confirm</button>
+        <button id="custom-confirm-cancel" class="btn btn-secondary"><i class="ri-close-line"></i> Cancel</button>
+        <button id="custom-confirm-ok" class="btn btn-danger"><i class="ri-check-line"></i> Confirm</button>
       </div>
     </div>
   `;
@@ -45,23 +45,23 @@ function showConfirm(message, title = 'Confirm Action') {
 })();
 
 const TOAST_ICONS = {
-  success: 'fa-circle-check', error: 'fa-circle-xmark', danger: 'fa-circle-xmark',
-  warning: 'fa-triangle-exclamation', info: 'fa-circle-info', message: 'fa-circle-info',
+  success: 'ri-checkbox-circle-fill', error: 'ri-close-circle-fill', danger: 'ri-close-circle-fill',
+  warning: 'ri-alert-fill', info: 'ri-information-fill', message: 'ri-information-fill',
 };
 
 function showToast(message, category = 'info', duration = 5500) {
   const container = document.getElementById('toast-container');
-  const icon = TOAST_ICONS[category] || 'fa-circle-info';
+  const icon = TOAST_ICONS[category] || 'ri-information-fill';
   const cat = category === 'danger' ? 'error' : category;
   const toast = document.createElement('div');
   toast.className = `toast toast-${cat}`;
   toast.innerHTML = `
-    <div class="toast-icon"><i class="fa-solid ${icon}"></i></div>
+    <div class="toast-icon"><i class="${icon}"></i></div>
     <div class="toast-body">
       <div class="toast-message">${message}</div>
       <div class="toast-progress"><div class="toast-progress-bar"></div></div>
     </div>
-    <button class="toast-close" title="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+    <button class="toast-close" title="Dismiss"><i class="ri-close-line"></i></button>
   `;
   container.appendChild(toast);
   requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('toast-visible')); });
@@ -167,7 +167,7 @@ function initSortableTable() {
     th.style.userSelect = 'none';
     const ind = document.createElement('span');
     ind.className = 'sort-indicator';
-    ind.innerHTML = ' <i class="fa-solid fa-sort" style="opacity:0.3;font-size:0.72em;"></i>';
+    ind.innerHTML = ' <i class="ri-arrow-up-down-line" style="opacity:0.3;font-size:0.72em;"></i>';
     th.appendChild(ind);
     th.addEventListener('click', () => {
       const tbody = th.closest('table').querySelector('tbody');
@@ -175,10 +175,10 @@ function initSortableTable() {
       const asc = th.dataset.sortDir !== 'asc';
       th.dataset.sortDir = asc ? 'asc' : 'desc';
       th.closest('thead').querySelectorAll('th[data-sort]').forEach(o => {
-        if (o !== th) { o.dataset.sortDir = ''; const i = o.querySelector('.sort-indicator i'); if (i) { i.className = 'fa-solid fa-sort'; i.style.opacity = '0.3'; } }
+        if (o !== th) { o.dataset.sortDir = ''; const i = o.querySelector('.sort-indicator i'); if (i) { i.className = 'ri-arrow-up-down-line'; i.style.opacity = '0.3'; } }
       });
       const i = ind.querySelector('i');
-      i.className = asc ? 'fa-solid fa-sort-up' : 'fa-solid fa-sort-down';
+      i.className = asc ? 'ri-arrow-up-line' : 'ri-arrow-down-line';
       i.style.opacity = '1';
       const rows = [...tbody.querySelectorAll('tr:not(.empty-row)')];
       rows.sort((a, b) => {
@@ -218,21 +218,21 @@ function initStockPreview() {
     const diffSign = diff >= 0 ? '+' : '';
     const safeProjected = Math.max(projected, 0);
     const color = projected < 0 ? '#dc2626' : (diff < 0 ? '#f59e0b' : '#10b981');
-    const icon  = projected < 0 ? 'fa-circle-xmark' : (diff < 0 ? 'fa-arrow-trend-down' : 'fa-arrow-trend-up');
+    const icon  = projected < 0 ? 'ri-close-circle-line' : (diff < 0 ? 'ri-trending-down-line' : 'ri-trending-up-line');
     const decimals = info.isFloat ? 2 : 0;
     previewBox.style.display = 'flex';
     previewBox.innerHTML = `
-      <div class="stock-preview-icon" style="color:${color};"><i class="fa-solid ${icon}"></i></div>
+      <div class="stock-preview-icon" style="color:${color};"><i class="${icon}"></i></div>
       <div class="stock-preview-body">
         <div class="stock-preview-label">Stock Preview — <strong>${name}</strong></div>
         <div class="stock-preview-row">
-          <span><i class="fa-solid fa-database"></i> Current: <strong>${Number(current).toFixed(decimals)} ${info.unit}</strong></span>
-          <span class="stock-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+          <span><i class="ri-database-2-line"></i> Current: <strong>${Number(current).toFixed(decimals)} ${info.unit}</strong></span>
+          <span class="stock-arrow"><i class="ri-arrow-right-line"></i></span>
           <span style="color:${color};font-weight:600;">${safeProjected.toFixed(decimals)} ${info.unit} <em style="font-weight:400;font-size:0.82em;">(${diffSign}${diff.toFixed(decimals)})</em></span>
         </div>
-        ${projected < 0 ? '<div class="stock-preview-warn"><i class="fa-solid fa-triangle-exclamation"></i> Quantity exceeds available stock!</div>' : ''}
+        ${projected < 0 ? '<div class="stock-preview-warn"><i class="ri-alert-line"></i> Quantity exceeds available stock!</div>' : ''}
         ${info.minimum_stock > 0 && safeProjected <= info.minimum_stock && diff !== 0
-          ? `<div class="stock-preview-warn warn-yellow"><i class="fa-solid fa-bell"></i> Result will be at or below minimum stock threshold (${info.minimum_stock} ${info.unit})</div>` : ''}
+          ? `<div class="stock-preview-warn warn-yellow"><i class="ri-notification-3-line"></i> Result will be at or below minimum stock threshold (${info.minimum_stock} ${info.unit})</div>` : ''}
       </div>`;
   }
 
@@ -251,7 +251,7 @@ function initFormLoadingState() {
       btn.style.pointerEvents = 'none';
       btn.style.opacity = '0.75';
       const orig = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing\u2026';
+      btn.innerHTML = '<i class="ri-loader-4-line spin-icon"></i> Processing\u2026';
 
       // Show page-level overlay for heavy forms (file uploads, bulk ops)
       if (form.enctype === 'multipart/form-data' || form.querySelector('[data-heavy]')) {
@@ -429,9 +429,13 @@ function togglePasswordVisibility(inputId, btn) {
   const icon = btn.querySelector('i');
   if (input.type === 'password') {
     input.type = 'text';
-    icon?.classList.replace('fa-eye', 'fa-eye-slash');
+    if (icon) {
+      icon.className = icon.className.replace('ri-eye-line', 'ri-eye-off-line').replace('fa-eye', 'fa-eye-slash');
+    }
   } else {
     input.type = 'password';
-    icon?.classList.replace('fa-eye-slash', 'fa-eye');
+    if (icon) {
+      icon.className = icon.className.replace('ri-eye-off-line', 'ri-eye-line').replace('fa-eye-slash', 'fa-eye');
+    }
   }
 }

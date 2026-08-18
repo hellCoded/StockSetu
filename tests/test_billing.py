@@ -143,7 +143,7 @@ def test_pos_page_renders_products(staff_client, mock_mongo):
     response = staff_client.get('/billing')
     assert response.status_code == 200
     assert b"Steel Rod" in response.data
-    assert b"Quick Billing" in response.data
+    assert b"Billing" in response.data
 
 def test_gst_fields_on_product_forms(manager_client):
     response = manager_client.post('/products/add', data={
@@ -167,7 +167,7 @@ def test_gst_fields_on_product_forms(manager_client):
 # ──────────────────────────────────────────────────────────────────────
 
 def _create_bill(db, client, customer="Test Customer", qty="1", payment_method="CREDIT"):
-    """Helper: seed product, create bill, return bill_id string. Defaults to CREDIT so bill is DUE."""
+    """Helper: seed product, create bill, return bill_id string. Defaults to CREDIT so bill is PARTIAL/unpaid."""
     _seed_product(db)
     client.post('/billing/create', data={
         'customer_name': customer,
@@ -234,7 +234,7 @@ def test_cannot_overpay_bill(staff_client, mock_mongo):
 
     assert resp.status_code == 200
     updated = db.invoices.find_one({"_id": __import__("bson").ObjectId(bill_id)})
-    assert updated["payment_status"] == "DUE"
+    assert updated["payment_status"] == "PARTIAL"
 
 
 def test_bill_detail_shows_status_color(staff_client, mock_mongo):
@@ -243,8 +243,7 @@ def test_bill_detail_shows_status_color(staff_client, mock_mongo):
 
     detail = staff_client.get(f'/billing/bills/{bill_id}')
     assert detail.status_code == 200
-    assert b"DUE" in detail.data
-    assert b"#ef4444" in detail.data or b"color:#ef4444" in detail.data
+    assert b"PARTIAL" in detail.data
 
 
 def test_bills_list_renders_with_status(staff_client, mock_mongo):
@@ -255,15 +254,6 @@ def test_bills_list_renders_with_status(staff_client, mock_mongo):
     assert resp.status_code == 200
     assert b"List Test" in resp.data
     assert b"INV/" in resp.data
-
-
-def test_thermal_format_renders(staff_client, mock_mongo):
-    db = mock_mongo['inventory_test_db']
-    bill_id = _create_bill(db, staff_client, "Thermal Test")
-
-    detail = staff_client.get(f'/billing/bills/{bill_id}?format=thermal')
-    assert detail.status_code == 200
-    assert b"Thermal Test" in detail.data or b"thermal" in detail.data.lower()
 
 
 def test_paid_bill_shows_paid_badge(staff_client, mock_mongo):

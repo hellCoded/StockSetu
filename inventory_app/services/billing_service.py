@@ -985,15 +985,22 @@ def get_bill_by_number(bill_number: str) -> dict:
     return bill
 
 
-def get_bills(search: str = "", limit: int = 100, payment_status: str = "") -> list:
-    """Lists invoices, newest first, with optional bill number/customer search and status filter."""
+def get_bills(search: str = "", limit: int = 100, payment_status: str = "", page: int = None, per_page: int = 25, return_total: bool = False):
+    """Lists invoices, newest first, with optional bill number/customer search, status filter, and pagination."""
     import hashlib
-    _key = f"bills:{search}:{limit}:{payment_status}"
+    effective_page = page if page is not None else 1
+    effective_limit = per_page if page is not None else limit
+    effective_skip = (effective_page - 1) * effective_limit if page is not None else 0
+
+    _key = f"bills:{search}:{effective_limit}:{effective_skip}:{payment_status}:{return_total}"
     _cache_key = "billing:bills:" + hashlib.md5(_key.encode()).hexdigest()
     cached = cache_get(_cache_key)
     if cached is not None:
         try:
-            return json.loads(cached)
+            cached_data = json.loads(cached)
+            if return_total:
+                return cached_data.get("items", []), cached_data.get("total", 0)
+            return cached_data if isinstance(cached_data, list) else cached_data.get("items", [])
         except (TypeError, ValueError):
             pass
 
@@ -1021,11 +1028,27 @@ def get_bills(search: str = "", limit: int = 100, payment_status: str = "") -> l
         "created_by": 1,
         "line_items": 1,
     }
-    bills = list(db.invoices.find(query, projection).sort("created_at", -1).limit(limit))
+
+    total_count = 0
+    if return_total:
+        total_count = db.invoices.count_documents(query)
+
+    cursor = db.invoices.find(query, projection).sort("created_at", -1)
+    if effective_skip > 0:
+        cursor = cursor.skip(effective_skip)
+    if effective_limit is not None and effective_limit > 0:
+        cursor = cursor.limit(effective_limit)
+
+    bills = list(cursor)
     for b in bills:
         b["_id"] = str(b["_id"])
-    cache_set(_cache_key, json.dumps(bills, default=str), ttl=30)
-    return bills
+
+    if return_total:
+        cache_set(_cache_key, json.dumps({"items": bills, "total": total_count}, default=str), ttl=30)
+        return bills, total_count
+    else:
+        cache_set(_cache_key, json.dumps(bills, default=str), ttl=30)
+        return bills
 
 
 def get_billing_summary() -> dict:
@@ -1226,3 +1249,248 @@ def get_reconciliation_report() -> list:
     import json
     cache_set(_cache_key, json.dumps(anomalies, default=str), ttl=60)
     return anomalies
+
+
+def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_date: str = None, cashier: str = None) -> dict:
+    """
+    Computes comprehensive sales KPIs, cashier leaderboards, revenue timelines,
+    and product sales breakdowns using MongoDB aggregations.
+    """
+    from datetime import datetime, timezone, timedelta
+    import hashlib, json
+
+    now = datetime.now(timezone.utc)
+    match_query = {}
+
+    # Calculate date bounds
+    start_dt = None
+    end_dt = None
+
+    if date_preset == "today":
+        start_dt = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif date_preset == "7d":
+        start_dt = (now - timedelta(days=7)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt = now
+    elif date_preset == "30d":
+        start_dt = (now - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt = now
+    elif date_preset == "this_month":
+        start_dt = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_dt = now
+    elif date_preset == "custom" and start_date:
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            if end_date:
+                end_dt = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+            else:
+                end_dt = now
+        except Exception:
+            start_dt = (now - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end_dt = now
+
+    if start_dt:
+        match_query["created_at"] = {"$gte": start_dt}
+        if end_dt:
+            match_query["created_at"]["$lte"] = end_dt
+
+    if cashier:
+        match_query["created_by"] = cashier.strip()
+
+    # Cache key
+    _cache_key = "sales:analytics:" + hashlib.md5(f"{date_preset}:{start_date}:{end_date}:{cashier}".encode()).hexdigest()
+    cached = cache_get(_cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except Exception:
+            pass
+
+    db = get_db()
+
+    # 1. Global KPI metrics
+    kpi_pipeline = [
+        {"$match": match_query},
+        {"$group": {
+            "_id": None,
+            "total_sales": {"$sum": "$grand_total"},
+            "total_bills": {"$sum": 1},
+            "total_paid": {"$sum": "$amount_paid"},
+            "total_due": {"$sum": "$amount_due"},
+            "total_tax": {"$sum": {"$add": [{"$ifNull": ["$total_cgst", 0]}, {"$ifNull": ["$total_sgst", 0]}, {"$ifNull": ["$total_igst", 0]}]}},
+            "total_discount": {"$sum": {"$ifNull": ["$discount_amount", 0]}},
+            "total_round_off": {"$sum": {"$ifNull": ["$round_off", 0]}},
+        }}
+    ]
+    kpi_res = list(db.invoices.aggregate(kpi_pipeline))
+    kpi = kpi_res[0] if kpi_res else {
+        "total_sales": 0, "total_bills": 0, "total_paid": 0,
+        "total_due": 0, "total_tax": 0, "total_discount": 0, "total_round_off": 0
+    }
+    kpi.pop("_id", None)
+    kpi["avg_bill_value"] = round(kpi["total_sales"] / kpi["total_bills"], 2) if kpi.get("total_bills", 0) > 0 else 0
+
+    # Calculate refunded total
+    refund_pipeline = [
+        {"$match": match_query},
+        {"$unwind": "$line_items"},
+        {"$match": {"line_items.is_refunded": True}},
+        {"$group": {
+            "_id": None,
+            "total_refunded": {"$sum": "$line_items.line_total"},
+            "refund_count": {"$sum": 1}
+        }}
+    ]
+    ref_res = list(db.invoices.aggregate(refund_pipeline))
+    kpi["total_refunded"] = ref_res[0]["total_refunded"] if ref_res else 0
+    kpi["refund_count"] = ref_res[0]["refund_count"] if ref_res else 0
+
+    # 2. Staff / Cashier Performance Leaderboard (Enlists ALL registered staff + invoice cashiers)
+    staff_pipeline = [
+        {"$match": match_query},
+        {"$group": {
+            "_id": {"$ifNull": ["$created_by", "Admin"]},
+            "bill_count": {"$sum": 1},
+            "total_sales": {"$sum": "$grand_total"},
+            "total_paid": {"$sum": "$amount_paid"},
+            "total_due": {"$sum": "$amount_due"},
+            "cash_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CASH"]}, "$grand_total", 0]}},
+            "upi_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "UPI"]}, "$grand_total", 0]}},
+            "card_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CARD"]}, "$grand_total", 0]}},
+            "credit_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CREDIT"]}, "$grand_total", 0]}},
+        }},
+        {"$sort": {"total_sales": -1}}
+    ]
+    staff_raw = list(db.invoices.aggregate(staff_pipeline))
+    staff_stats_map = {}
+    for s in staff_raw:
+        username = str(s["_id"])
+        total_s = float(s.get("total_sales", 0))
+        count = int(s.get("bill_count", 0))
+        avg_val = round(total_s / count, 2) if count > 0 else 0
+        staff_stats_map[username] = {
+            "cashier": username,
+            "bill_count": count,
+            "total_sales": total_s,
+            "avg_sale": avg_val,
+            "total_paid": float(s.get("total_paid", 0)),
+            "total_due": float(s.get("total_due", 0)),
+            "cash_sales": float(s.get("cash_sales", 0)),
+            "upi_sales": float(s.get("upi_sales", 0)),
+            "card_sales": float(s.get("card_sales", 0)),
+            "credit_sales": float(s.get("credit_sales", 0)),
+        }
+
+    # Fetch all registered users in system
+    all_users = list(db.users.find({}, {"username": 1, "name": 1, "role": 1}))
+    user_info_map = {u.get("username", ""): {"name": u.get("name", ""), "role": u.get("role", "staff")} for u in all_users if u.get("username")}
+    
+    for u in all_users:
+        uname = u.get("username", "")
+        if uname and uname not in staff_stats_map:
+            staff_stats_map[uname] = {
+                "cashier": uname,
+                "name": u.get("name") or uname,
+                "role": u.get("role", "staff"),
+                "bill_count": 0,
+                "total_sales": 0.0,
+                "avg_sale": 0.0,
+                "total_paid": 0.0,
+                "total_due": 0.0,
+                "cash_sales": 0.0,
+                "upi_sales": 0.0,
+                "card_sales": 0.0,
+                "credit_sales": 0.0,
+            }
+
+    for uname, s in staff_stats_map.items():
+        if "name" not in s:
+            info = user_info_map.get(uname, {})
+            s["name"] = info.get("name") or uname
+            s["role"] = info.get("role") or "staff"
+
+    staff_leaderboard = list(staff_stats_map.values())
+    staff_leaderboard.sort(key=lambda x: (-x["total_sales"], -x["bill_count"], x["cashier"]))
+
+
+
+    # 3. Revenue Trend (Daily grouped)
+    trend_pipeline = [
+        {"$match": match_query},
+        {"$group": {
+            "_id": {
+                "$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}
+            },
+            "sales": {"$sum": "$grand_total"},
+            "bills": {"$sum": 1}
+        }},
+        {"$sort": {"_id": 1}}
+    ]
+    trend_raw = list(db.invoices.aggregate(trend_pipeline))
+    timeline = {
+        "labels": [t["_id"] for t in trend_raw if t.get("_id")],
+        "sales": [float(t["sales"]) for t in trend_raw if t.get("_id")],
+        "bills": [int(t["bills"]) for t in trend_raw if t.get("_id")]
+    }
+
+    # 4. Payment Method Distribution
+    payment_pipeline = [
+        {"$match": match_query},
+        {"$group": {
+            "_id": {"$ifNull": ["$payment_method", "CASH"]},
+            "total": {"$sum": "$grand_total"},
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"total": -1}}
+    ]
+    pm_raw = list(db.invoices.aggregate(payment_pipeline))
+    payment_methods = {
+        "labels": [p["_id"] for p in pm_raw],
+        "amounts": [float(p["total"]) for p in pm_raw],
+        "counts": [int(p["count"]) for p in pm_raw],
+    }
+
+    # 5. Top 10 Selling Products
+    top_products_pipeline = [
+        {"$match": match_query},
+        {"$unwind": "$line_items"},
+        {"$group": {
+            "_id": "$line_items.product_name",
+            "quantity_sold": {"$sum": "$line_items.quantity"},
+            "revenue": {"$sum": "$line_items.line_total"},
+            "bill_appearances": {"$sum": 1}
+        }},
+        {"$sort": {"quantity_sold": -1}},
+        {"$limit": 10}
+    ]
+    top_prods_raw = list(db.invoices.aggregate(top_products_pipeline))
+    top_products = [
+        {
+            "product_name": p["_id"],
+            "quantity_sold": float(p["quantity_sold"]),
+            "revenue": float(p["revenue"]),
+            "bill_count": int(p["bill_appearances"])
+        }
+        for p in top_prods_raw if p.get("_id")
+    ]
+
+    # Distinct cashiers for dropdown filter
+    distinct_cashiers = db.invoices.distinct("created_by")
+    distinct_cashiers = [c for c in distinct_cashiers if c]
+
+    result = {
+        "kpi": kpi,
+        "staff_leaderboard": staff_leaderboard,
+        "timeline": timeline,
+        "payment_methods": payment_methods,
+        "top_products": top_products,
+        "distinct_cashiers": distinct_cashiers,
+        "date_preset": date_preset,
+        "start_date": start_date or (start_dt.strftime("%Y-%m-%d") if start_dt else ""),
+        "end_date": end_date or (end_dt.strftime("%Y-%m-%d") if end_dt else ""),
+        "selected_cashier": cashier or "",
+    }
+
+    cache_set(_cache_key, json.dumps(result, default=str), ttl=20)
+    return result
+

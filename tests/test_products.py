@@ -146,3 +146,20 @@ def test_dashboard_chart_aggregations(manager_client, app):
         
         has_prod = any(p['product_name'] == 'Unique Aggregate Product' for p in top_products)
         assert has_prod
+
+def test_api_global_search(manager_client, app):
+    manager_client.post('/products/add', data={
+        'product_name': 'Spotlight Search Item',
+        'category': 'Hardware',
+        'unit': 'pcs',
+        'quantity': '20',
+        'price': '150.00'
+    }, follow_redirects=True)
+    response = manager_client.get('/api/global-search?q=Spotlight')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'products' in data
+    assert 'bills' in data
+    assert any('Spotlight' in p['name'] for p in data['products'])
+
+

@@ -354,13 +354,24 @@ def bulk_stock_in_confirm():
 @login_required
 def view_transactions():
     from inventory_app.services.inventory_service import get_all_transactions
+    from inventory_app.utils.pagination import Pagination
     p_name = request.args.get('product_name', '').strip()
     tx_type = request.args.get('type', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
     
-    transactions = get_all_transactions(product_name=p_name, transaction_type=tx_type, limit=50)
+    transactions, total_count = get_all_transactions(
+        product_name=p_name,
+        transaction_type=tx_type,
+        page=page,
+        per_page=per_page,
+        return_total=True
+    )
+    pagination = Pagination(page=page, per_page=per_page, total=total_count)
     return render_template(
         'inventory/transactions.html',
         transactions=transactions,
+        pagination=pagination,
         current_product=p_name,
         current_type=tx_type
     )

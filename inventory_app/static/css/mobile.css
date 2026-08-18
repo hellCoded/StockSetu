@@ -35,7 +35,7 @@
 .sidebar-overlay.show { opacity: 1; }
 
 /* Mobile breakpoint */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .mobile-sidebar-toggle { display: flex !important; }
 
   .sidebar {

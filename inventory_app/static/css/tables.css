@@ -17,7 +17,7 @@ th.sortable::after {
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-faint, #9ca3af);
+  color: var(--text-faint, #64748b);
   font-size: 0.7rem;
 }
 th.sort-asc::after { content: '\f0de'; color: var(--color-primary, #0B3D6E); }
@@ -58,6 +58,6 @@ th.sort-desc::after { content: '\f0dd'; color: var(--color-primary, #0B3D6E); }
 .empty-table {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--text-faint, #9ca3af);
+  color: var(--text-faint, #64748b);
 }
 .empty-table i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }

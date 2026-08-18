@@ -1,0 +1,91 @@
+{# Universal Reusable Pagination Component for StockSetu #}
+{% if pagination and pagination.total > 0 %}
+<div class="pagination-wrapper no-print" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1rem 0; margin-top: 0.5rem; border-top: 1px solid var(--color-outline-variant, #e2e8f0);">
+  
+  {# ── Left: Summary count and page size selector ── #}
+  <div style="display: flex; align-items: center; gap: 0.85rem; font-size: 0.82rem; color: var(--color-on-surface-variant, #64748b);">
+    <span>
+      Showing <strong style="color: var(--color-on-surface, #0f172a);">{{ pagination.start_item }}</strong> to <strong style="color: var(--color-on-surface, #0f172a);">{{ pagination.end_item }}</strong> of <strong style="color: var(--color-on-surface, #0f172a);">{{ pagination.total }}</strong> items
+    </span>
+    
+    <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+      <label for="pagination-per-page" style="font-size: 0.76rem; color: var(--color-on-surface-variant, #64748b); margin: 0;">Show:</label>
+      <select id="pagination-per-page" class="form-control" style="width: auto; padding: 0.2rem 0.5rem; font-size: 0.78rem; height: 30px; border-radius: var(--r-sm, 6px); background: var(--color-surface, #fff);" onchange="handlePerPageChange(this.value)">
+        {% for size in [10, 15, 25, 50, 100] %}
+          <option value="{{ size }}" {% if pagination.per_page == size %}selected{% endif %}>{{ size }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  {# ── Right: Page navigation pills ── #}
+  {% if pagination.pages > 1 %}
+  <nav aria-label="Page navigation">
+    <ul style="display: flex; list-style: none; padding: 0; margin: 0; gap: 0.3rem; align-items: center;">
+      
+      {# Previous button #}
+      {% if pagination.has_prev %}
+        <li>
+          <a href="{{ pagination.url_for_page(pagination.prev_num, request.args) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.55rem; font-size: 0.78rem; min-height: 32px; border-radius: var(--r-sm, 6px); display: inline-flex; align-items: center; gap: 0.25rem;" title="Previous page">
+            <i class="ri-arrow-left-s-line" style="font-size: 0.7rem;"></i> Prev
+          </a>
+        </li>
+      {% else %}
+        <li>
+          <span class="btn btn-secondary btn-sm disabled" style="padding: 0.25rem 0.55rem; font-size: 0.78rem; min-height: 32px; border-radius: var(--r-sm, 6px); opacity: 0.45; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <i class="ri-arrow-left-s-line" style="font-size: 0.7rem;"></i> Prev
+          </span>
+        </li>
+      {% endif %}
+
+      {# Page numbers #}
+      {% for p in pagination.iter_pages() %}
+        {% if p %}
+          {% if p == pagination.page %}
+            <li>
+              <span class="btn btn-primary btn-sm" style="min-width: 32px; height: 32px; padding: 0 0.5rem; font-size: 0.8rem; font-weight: 700; border-radius: var(--r-sm, 6px); display: inline-flex; align-items: center; justify-content: center; background: var(--color-primary, #0b3d6e); color: #fff;">
+                {{ p }}
+              </span>
+            </li>
+          {% else %}
+            <li>
+              <a href="{{ pagination.url_for_page(p, request.args) }}" class="btn btn-secondary btn-sm" style="min-width: 32px; height: 32px; padding: 0 0.5rem; font-size: 0.8rem; border-radius: var(--r-sm, 6px); display: inline-flex; align-items: center; justify-content: center; color: var(--color-on-surface, #0f172a);" title="Page {{ p }}">
+                {{ p }}
+              </a>
+            </li>
+          {% endif %}
+        {% else %}
+          <li style="padding: 0 0.2rem; color: var(--color-on-surface-variant, #94a3b8); font-size: 0.8rem;">&hellip;</li>
+        {% endif %}
+      {% endfor %}
+
+      {# Next button #}
+      {% if pagination.has_next %}
+        <li>
+          <a href="{{ pagination.url_for_page(pagination.next_num, request.args) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.55rem; font-size: 0.78rem; min-height: 32px; border-radius: var(--r-sm, 6px); display: inline-flex; align-items: center; gap: 0.25rem;" title="Next page">
+            Next <i class="ri-arrow-right-s-line" style="font-size: 0.7rem;"></i>
+          </a>
+        </li>
+      {% else %}
+        <li>
+          <span class="btn btn-secondary btn-sm disabled" style="padding: 0.25rem 0.55rem; font-size: 0.78rem; min-height: 32px; border-radius: var(--r-sm, 6px); opacity: 0.45; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.25rem;">
+            Next <i class="ri-arrow-right-s-line" style="font-size: 0.7rem;"></i>
+          </span>
+        </li>
+      {% endif %}
+
+    </ul>
+  </nav>
+  {% endif %}
+
+</div>
+
+<script>
+function handlePerPageChange(val) {
+  var url = new URL(window.location.href);
+  url.searchParams.set('per_page', val);
+  url.searchParams.set('page', '1');
+  window.location.href = url.toString();
+}
+</script>
+{% endif %}
