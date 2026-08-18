@@ -184,9 +184,9 @@ def create_app(config_class=Config, custom_mongo_client=None):
         path = request.path
         ext = os.path.splitext(path)[1].lower()
 
-        # Static assets: long cache (1 year, immutable)
+        # Static assets: long cache (1 year, immutable, Vercel Edge CDN cached)
         if ext in STATIC_LONG_CACHE:
-            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+            response.headers['Cache-Control'] = 'public, max-age=31536000, s-maxage=31536000, immutable'
         # Health endpoint: no cache
         elif path in STATIC_NO_CACHE:
             response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
