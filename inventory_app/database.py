@@ -130,6 +130,8 @@ def init_db_indexes(db):
 
         # Products indexes (product_name is the only unique business identifier)
         db.products.create_index([("product_name", ASCENDING)], unique=True)
+        db.products.create_index([("is_active", ASCENDING), ("product_name", ASCENDING)])
+        db.products.create_index([("is_active", ASCENDING), ("updated_at", DESCENDING)])
         db.products.create_index([("is_active", ASCENDING), ("category", ASCENDING)])
         db.products.create_index([("is_active", ASCENDING), ("location", ASCENDING)])
         db.products.create_index([("is_active", ASCENDING), ("quantity", ASCENDING)])
@@ -160,6 +162,7 @@ def init_db_indexes(db):
         db.invoices.create_index([("bill_number", ASCENDING)], unique=True)
         db.invoices.create_index([("created_at", DESCENDING)])
         db.invoices.create_index([("customer_name", ASCENDING)])
+        db.invoices.create_index([("customer_phone", ASCENDING)])
         db.invoices.create_index([("payment_status", ASCENDING), ("created_at", DESCENDING)])
         db.invoices.create_index([("created_by", ASCENDING), ("created_at", DESCENDING)])
 

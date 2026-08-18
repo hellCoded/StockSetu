@@ -1,12 +1,19 @@
 import io
 import csv
+import json
 import logging
 from datetime import datetime, timezone
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from inventory_app.database import get_db
+from inventory_app import cache_get, cache_set, cache_delete
 
 logger = logging.getLogger(__name__)
+
+def invalidate_user_cache(user_id: str):
+    """Invalidates cached user session data."""
+    if user_id:
+        cache_delete(f"auth:user:{str(user_id)}")
 
 def register_user(username: str, email: str, password: str, role: str = "staff", name: str = "", surname: str = "") -> tuple[bool, str, dict]:
     """Registers a new user in MongoDB."""
@@ -57,6 +64,7 @@ def set_user_active_status(user_id: str, is_active: bool):
             {"_id": ObjectId(user_id)},
             {"$set": {"is_active": is_active, "updated_at": datetime.now(timezone.utc)}}
         )
+        invalidate_user_cache(user_id)
     except Exception as e:
         logger.error(f"Failed to set user active status: {e}")
 
@@ -187,15 +195,23 @@ def get_user_stats() -> dict:
 
 
 def get_user_by_id(user_id: str):
-    """Retrieves user by string ID."""
+    """Retrieves user by string ID (cached 30s for session validation)."""
     uid_str = str(user_id) if user_id else ""
     if not uid_str or not ObjectId.is_valid(uid_str):
         return None
+    cache_key = f"auth:user:{uid_str}"
+    cached = cache_get(cache_key)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except Exception:
+            pass
     db = get_db()
     try:
         user = db.users.find_one({"_id": ObjectId(uid_str)})
         if user:
             user["_id"] = str(user["_id"])
+            cache_set(cache_key, json.dumps(user, default=str), ttl=30)
         return user
     except Exception:
         return None
@@ -216,6 +232,7 @@ def update_user_role(user_id: str, new_role: str) -> tuple[bool, str]:
             {"$set": {"role": new_role, "updated_at": datetime.now(timezone.utc)}}
         )
         if result.modified_count > 0 or result.matched_count > 0:
+            invalidate_user_cache(uid_str)
             return True, f"User role updated to {new_role}."
         return False, "User not found."
     except Exception as e:
@@ -237,6 +254,7 @@ def toggle_user_active(user_id: str) -> tuple[bool, str, bool]:
             {"_id": ObjectId(uid_str)},
             {"$set": {"is_active": new_status, "updated_at": datetime.now(timezone.utc)}}
         )
+        invalidate_user_cache(uid_str)
         status_str = "activated" if new_status else "deactivated"
         return True, f"User account has been {status_str}.", new_status
     except Exception as e:
@@ -266,6 +284,7 @@ def change_password(user_id: str, old_password: str, new_password: str) -> tuple
                 "updated_at": datetime.now(timezone.utc)
             }}
         )
+        invalidate_user_cache(uid_str)
         return True, "Password changed successfully."
     except Exception as e:
         return False, f"Failed to change password: {str(e)}"
@@ -292,6 +311,7 @@ def update_user_profile_info(user_id: str, name: str, email: str) -> tuple[bool,
                 "updated_at": datetime.now(timezone.utc)
             }}
         )
+        invalidate_user_cache(uid_str)
         return True, "Profile details updated successfully."
     except Exception as e:
         return False, f"Failed to update profile: {str(e)}"

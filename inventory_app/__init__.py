@@ -199,6 +199,25 @@ def create_app(config_class=Config, custom_mongo_client=None):
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
 
+        # Gzip response compression for text, CSS, JS, JSON, and SVG > 500 bytes
+        accept_encoding = request.headers.get('Accept-Encoding', '')
+        if (
+            'gzip' in accept_encoding.lower()
+            and response.status_code == 200
+            and 'Content-Encoding' not in response.headers
+        ):
+            ctype = response.headers.get('Content-Type', '').lower()
+            if any(t in ctype for t in ('text/', 'application/javascript', 'application/json', 'image/svg+xml')):
+                response.direct_passthrough = False
+                data = response.get_data()
+                if len(data) > 500:
+                    import gzip
+                    compressed = gzip.compress(data, compresslevel=6)
+                    response.set_data(compressed)
+                    response.headers['Content-Encoding'] = 'gzip'
+                    response.headers['Content-Length'] = len(compressed)
+                    response.headers['Vary'] = 'Accept-Encoding'
+
         return response
 
     # Context Processor for Templates
