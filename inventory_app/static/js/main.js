@@ -277,7 +277,7 @@ function showPageLoading(title, subtitle) {
     overlay.className = 'page-loading-overlay';
     overlay.innerHTML = `
       <div class="page-spinner">
-        <i class="fa-solid fa-spinner fa-spin"></i>
+        <i class="ri-loader-4-line ri-spin"></i>
         <strong></strong>
         <span></span>
       </div>`;
@@ -535,12 +535,12 @@ function togglePasswordVisibility(inputId, btn) {
   if (input.type === 'password') {
     input.type = 'text';
     if (icon) {
-      icon.className = icon.className.replace('ri-eye-line', 'ri-eye-off-line').replace('fa-eye', 'fa-eye-slash');
+      icon.className = icon.className.replace('ri-eye-line', 'ri-eye-off-line');
     }
   } else {
     input.type = 'password';
     if (icon) {
-      icon.className = icon.className.replace('ri-eye-off-line', 'ri-eye-line').replace('fa-eye-slash', 'fa-eye');
+      icon.className = icon.className.replace('ri-eye-off-line', 'ri-eye-line');
     }
   }
 }

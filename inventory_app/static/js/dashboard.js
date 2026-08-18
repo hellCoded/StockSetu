@@ -41,17 +41,16 @@
   };
 
   const frame = () => new Promise(r => requestAnimationFrame(() => r()));
-  const delay = ms => new Promise(r => setTimeout(r, ms));
 
   function setChartError(container, message) {
     if (container.querySelector('.dash-chart-error')) return;
     const wrap = document.createElement('div');
     wrap.className = 'dash-chart-error';
     wrap.innerHTML =
-      '<i class="fa-solid fa-triangle-exclamation"></i>' +
+      '<i class="ri-alert-fill"></i>' +
       '<div>' + message + '</div>' +
       '<button type="button" class="btn btn-sm btn-secondary" data-retry>' +
-        '<i class="fa-solid fa-rotate-right"></i> Retry</button>';
+        '<i class="ri-refresh-line"></i> Retry</button>';
     container.innerHTML = '';
     container.appendChild(wrap);
     wrap.querySelector('[data-retry]').addEventListener('click', () => window.location.reload());
@@ -216,12 +215,9 @@
     });
   }
 
-  // ── Boot: reveal skeleton, render, then fade in content ──
+  // ── Boot: render charts as soon as the skeleton has painted, no artificial delay ──
   async function init() {
-    // Ensure the skeleton/spinner paints first, then give the page a beat
     await frame();
-    await frame();
-    await delay(350);
 
     renderBarChart();
     if (document.getElementById('roleRequestsChart')) renderDonutChart();

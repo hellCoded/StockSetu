@@ -304,6 +304,7 @@
   const dynContainer = document.getElementById('cmd-dynamic-results');
   let selectedIndex = 0;
   let debounceTimer = null;
+  let searchAbort = null;
 
   window.openCommandPalette = function() {
     backdrop.classList.add('active');
@@ -339,6 +340,7 @@
 
   input.addEventListener('input', function() {
     clearTimeout(debounceTimer);
+    if (searchAbort) { searchAbort.abort(); searchAbort = null; }
     const q = input.value.trim();
     if (!q) {
       defaultGroup.style.display = 'block';
@@ -350,9 +352,11 @@
     }
 
     debounceTimer = setTimeout(() => {
-      fetch('/api/global-search?q=' + encodeURIComponent(q))
+      searchAbort = new AbortController();
+      fetch('/api/global-search?q=' + encodeURIComponent(q), { signal: searchAbort.signal })
         .then(r => r.json())
         .then(data => {
+          searchAbort = null;
           defaultGroup.style.display = 'none';
           dynContainer.style.display = 'block';
           dynContainer.innerHTML = '';
@@ -409,9 +413,10 @@
           updateSelection();
         })
         .catch(err => {
+          if (err && err.name === 'AbortError') return;
           console.warn('Command palette search error:', err);
         });
-    }, 180);
+    }, 250);
   });
 
   input.addEventListener('keydown', function(e) {
