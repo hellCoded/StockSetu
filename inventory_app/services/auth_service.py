@@ -48,14 +48,62 @@ def register_user(username: str, email: str, password: str, role: str = "staff",
 
 def set_user_active_status(user_id: str, is_active: bool):
     """Sets user is_active boolean state in database."""
+    uid_str = str(user_id) if user_id else ""
+    if not uid_str or not ObjectId.is_valid(uid_str):
+        return
     db = get_db()
     try:
+        now = datetime.now(timezone.utc)
+        update_doc = {"is_active": is_active, "updated_at": now}
+        if is_active:
+            update_doc["last_active_at"] = now
+        else:
+            update_doc["last_offline_at"] = now
         db.users.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$set": {"is_active": is_active, "updated_at": datetime.now(timezone.utc)}}
+            {"_id": ObjectId(uid_str)},
+            {"$set": update_doc}
         )
     except Exception as e:
         logger.error(f"Failed to set user active status: {e}")
+
+def record_user_heartbeat(user_id: str):
+    """Updates user last_active_at and ensures is_active is True."""
+    uid_str = str(user_id) if user_id else ""
+    if not uid_str or not ObjectId.is_valid(uid_str):
+        return
+    db = get_db()
+    try:
+        now = datetime.now(timezone.utc)
+        db.users.update_one(
+            {"_id": ObjectId(uid_str)},
+            {"$set": {"is_active": True, "last_active_at": now, "updated_at": now}}
+        )
+    except Exception as e:
+        logger.error(f"Failed to record user heartbeat: {e}")
+
+def cleanup_stale_active_users(stale_threshold_seconds: int = 180):
+    """Marks users as inactive (offline) if they haven't sent a heartbeat/request recently."""
+    db = get_db()
+    try:
+        from datetime import timedelta
+        cutoff = datetime.now(timezone.utc) - timedelta(seconds=stale_threshold_seconds)
+        db.users.update_many(
+            {
+                "is_active": True,
+                "$or": [
+                    {"last_active_at": {"$lt": cutoff}},
+                    {"last_active_at": {"$exists": False}}
+                ]
+            },
+            {
+                "$set": {
+                    "is_active": False,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+    except Exception as e:
+        logger.error(f"Failed to cleanup stale active users: {e}")
 
 def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
     """Authenticates user by username or email."""
@@ -76,9 +124,10 @@ def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
         now = datetime.now(timezone.utc)
         db.users.update_one(
             {"_id": user["_id"]},
-            {"$set": {"is_active": True, "updated_at": now}}
+            {"$set": {"is_active": True, "last_active_at": now, "updated_at": now}}
         )
         user["is_active"] = True
+        user["last_active_at"] = now
         user["_id"] = str(user["_id"])
         return True, "Login successful.", user
         
@@ -86,6 +135,7 @@ def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
 
 def get_all_users():
     """Retrieves all users for admin management."""
+    cleanup_stale_active_users()
     db = get_db()
     users = list(db.users.find().sort("created_at", -1))
     for u in users:

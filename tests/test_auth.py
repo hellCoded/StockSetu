@@ -86,3 +86,75 @@ def test_change_password_invalid_current(admin_client):
     }, follow_redirects=True)
     assert response.status_code == 200
     assert b"Current password is incorrect" in response.data
+
+def test_logout_sets_user_inactive(admin_client, mock_mongo):
+    db = mock_mongo['inventory_test_db']
+    user = db.users.find_one({'username': 'testadmin'})
+    assert user is not None
+    # User was active before logout
+    db.users.update_one({'_id': user['_id']}, {'$set': {'is_active': True}})
+    
+    response = admin_client.get('/logout', follow_redirects=True)
+    assert response.status_code == 200
+    
+    updated = db.users.find_one({'_id': user['_id']})
+    assert updated['is_active'] is False
+
+def test_api_leave_marks_user_inactive(admin_client, mock_mongo):
+    db = mock_mongo['inventory_test_db']
+    user = db.users.find_one({'username': 'testadmin'})
+    db.users.update_one({'_id': user['_id']}, {'$set': {'is_active': True}})
+
+    response = admin_client.post('/api/auth/leave')
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data['success'] is True
+
+    updated = db.users.find_one({'_id': user['_id']})
+    assert updated['is_active'] is False
+
+def test_api_offline_marks_user_inactive(admin_client, mock_mongo):
+    db = mock_mongo['inventory_test_db']
+    user = db.users.find_one({'username': 'testadmin'})
+    db.users.update_one({'_id': user['_id']}, {'$set': {'is_active': True}})
+
+    response = admin_client.post('/api/auth/offline')
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data['success'] is True
+
+    updated = db.users.find_one({'_id': user['_id']})
+    assert updated['is_active'] is False
+
+def test_api_heartbeat_refreshes_active(admin_client, mock_mongo):
+    db = mock_mongo['inventory_test_db']
+    user = db.users.find_one({'username': 'testadmin'})
+    
+    response = admin_client.post('/api/auth/heartbeat')
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data['success'] is True
+    assert json_data['logged_in'] is True
+
+    updated = db.users.find_one({'_id': user['_id']})
+    assert updated['is_active'] is True
+    assert 'last_active_at' in updated
+
+def test_cleanup_stale_active_users(app, mock_mongo):
+    from datetime import datetime, timezone, timedelta
+    from inventory_app.services.auth_service import cleanup_stale_active_users
+    db = mock_mongo['inventory_test_db']
+    
+    # Create a user with old last_active_at
+    old_time = datetime.now(timezone.utc) - timedelta(minutes=10)
+    db.users.insert_one({
+        'username': 'staleuser',
+        'is_active': True,
+        'last_active_at': old_time
+    })
+    
+    with app.app_context():
+        cleanup_stale_active_users(stale_threshold_seconds=60)
+    stale = db.users.find_one({'username': 'staleuser'})
+    assert stale['is_active'] is False
+
