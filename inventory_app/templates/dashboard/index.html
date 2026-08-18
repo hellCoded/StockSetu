@@ -7,34 +7,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="dashboard dash-loading">
+<div class="dashboard">
 
-  <!-- Skeleton Loading State -->
-  <div class="skeleton-container" id="dash-skeleton">
-    <div class="dash-head">
-      <div>
-        <div class="skeleton skeleton-title"></div>
-        <div class="skeleton skeleton-text-sm"></div>
-      </div>
-    </div>
-    <div class="kpi-grid">
-      {% for _ in range(5) %}
-      <div class="skeleton-kpi">
-        <div class="skeleton skeleton-circle"></div>
-        <div style="flex:1">
-          <div class="skeleton skeleton-text" style="width:70%"></div>
-          <div class="skeleton skeleton-text-sm" style="width:50%"></div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
-      <div class="skeleton skeleton-card"><div class="skeleton skeleton-bar"></div></div>
-      <div class="skeleton skeleton-card"><div class="skeleton skeleton-bar"></div></div>
-    </div>
-  </div>
-
-  <!-- Real Content -->
   <!-- Executive Gradient Hero Banner -->
   <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
     <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
@@ -302,22 +276,9 @@
   </div>
 
   <script type="application/json" id="dash-chart-data">{{ chart_data | tojson }}</script>
-  </div><!-- /dash-real-content -->
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script defer src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var skel = document.getElementById('dash-skeleton');
-  var real = document.querySelector('.dash-real-content');
-  var elapsed = Date.now() - performance.timing.navigationStart;
-  var delay = Math.max(0, 400 - elapsed);
-  setTimeout(function() {
-    if (skel) { skel.classList.add('hiding'); setTimeout(function() { skel.style.display = 'none'; }, 300); }
-    if (real) { real.style.display = ''; requestAnimationFrame(function() { real.classList.add('visible'); }); }
-  }, delay);
-});
-</script>
 {% endblock %}

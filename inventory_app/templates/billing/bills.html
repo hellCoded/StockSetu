@@ -3,59 +3,8 @@
 {% block title %}Bill History - StockSetu{% endblock %}
 
 {% block content %}
-<!-- Skeleton Loader -->
-<div class="skeleton-container" id="bills-skeleton">
-  <div class="dash-head">
-    <div>
-      <div class="skeleton skeleton-title" style="width:200px"></div>
-      <div class="skeleton skeleton-text-sm" style="width:300px"></div>
-    </div>
-    <div style="display: flex; gap: 0.75rem;">
-      <div class="skeleton skeleton-btn"></div>
-      <div class="skeleton skeleton-btn"></div>
-    </div>
-  </div>
-  <div class="card">
-    <div style="display:flex;gap:0.65rem;margin-bottom:1.25rem;flex-wrap:wrap">
-      <div class="skeleton skeleton-text" style="flex:1;min-width:220px;height:36px;border-radius:var(--r-md)"></div>
-      <div class="skeleton skeleton-text" style="width:150px;height:36px;border-radius:var(--r-md)"></div>
-      <div class="skeleton skeleton-btn" style="width:90px;height:36px"></div>
-    </div>
-    <table class="skeleton-table">
-      <thead><tr>
-        <th><div class="skeleton skeleton-text-sm" style="width:60px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:90px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:70px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:50px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:60px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:50px"></div></th>
-        <th style="text-align:right"><div class="skeleton skeleton-text-sm" style="width:65px"></div></th>
-        <th style="text-align:right"><div class="skeleton skeleton-text-sm" style="width:50px"></div></th>
-        <th style="text-align:center"><div class="skeleton skeleton-text-sm" style="width:20px"></div></th>
-      </tr></thead>
-      <tbody class="skeleton-stagger">
-        {% for _ in range(6) %}
-        <tr>
-          <td><div class="skeleton skeleton-text" style="width:70px"></div></td>
-          <td><div class="skeleton skeleton-text" style="width:100px"></div></td>
-          <td><div class="skeleton skeleton-text" style="width:{{ range(70,120)|random }}px"></div></td>
-          <td><div class="skeleton skeleton-text-sm" style="width:60px"></div></td>
-          <td><div class="skeleton skeleton-badge" style="width:50px"></div></td>
-          <td><div class="skeleton skeleton-badge" style="width:55px"></div></td>
-          <td><div class="skeleton skeleton-text" style="width:65px;margin-left:auto"></div></td>
-          <td><div class="skeleton skeleton-text" style="width:50px;margin-left:auto"></div></td>
-          <td><div class="skeleton skeleton-text-sm" style="width:16px;margin:0 auto"></div></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Real Content -->
-<div class="bills-real-content fade-in" style="display:none">
-  <!-- Executive Gradient Hero Banner -->
-  <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
+<!-- Executive Gradient Hero Banner -->
+<div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
     <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
       <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
         <i class="ri-file-list-3-line"></i>
@@ -366,20 +315,4 @@
     </div>
     {% endif %}
   </div>
-</div><!-- /bills-real-content -->
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var skel = document.getElementById('bills-skeleton');
-  var real = document.querySelector('.bills-real-content');
-  var elapsed = Date.now() - performance.timing.navigationStart;
-  var delay = Math.max(0, 300 - elapsed);
-  setTimeout(function() {
-    if (skel) { skel.classList.add('hiding'); setTimeout(function() { skel.style.display = 'none'; }, 300); }
-    if (real) { real.style.display = ''; requestAnimationFrame(function() { real.classList.add('visible'); }); }
-  }, delay);
-});
-</script>
 {% endblock %}

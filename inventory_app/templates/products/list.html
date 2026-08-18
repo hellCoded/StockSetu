@@ -3,69 +3,8 @@
 {% block title %}Products - StockSetu{% endblock %}
 
 {% block content %}
-<!-- Skeleton Loader -->
-<div class="skeleton-container" id="products-skeleton">
-  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-    <div>
-      <div class="skeleton skeleton-title" style="width:200px"></div>
-      <div class="skeleton skeleton-text-sm" style="width:300px"></div>
-    </div>
-    <div style="display: flex; gap: 0.75rem;">
-      <div class="skeleton skeleton-btn"></div>
-      <div class="skeleton skeleton-btn"></div>
-      <div class="skeleton skeleton-btn"></div>
-    </div>
-  </div>
-  <div class="skeleton skeleton-toolbar">
-    <div class="skeleton skeleton-text" style="flex:2"></div>
-    <div class="skeleton skeleton-text" style="flex:1"></div>
-    <div class="skeleton skeleton-text" style="flex:1"></div>
-    <div class="skeleton skeleton-text" style="flex:1"></div>
-    <div class="skeleton skeleton-btn" style="width:100px"></div>
-  </div>
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-      <div class="skeleton skeleton-text-sm" style="width:180px"></div>
-      <div style="display:flex;gap:0.5rem">
-        <div class="skeleton skeleton-text" style="width:160px;height:36px;border-radius:var(--r-md)"></div>
-        <div class="skeleton skeleton-text" style="width:36px;height:36px;border-radius:var(--r-md)"></div>
-      </div>
-    </div>
-    <table class="skeleton-table">
-      <thead><tr>
-        <th><div class="skeleton skeleton-text-sm" style="width:90px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:70px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:60px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:40px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:70px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:70px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:60px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:60px"></div></th>
-        <th><div class="skeleton skeleton-text-sm" style="width:55px"></div></th>
-      </tr></thead>
-      <tbody class="skeleton-stagger">
-        {% for _ in range(8) %}
-        <tr>
-          <td><div class="skeleton skeleton-text" style="width:{{ range(100,200)|random }}px"></div></td>
-          <td><div class="skeleton skeleton-badge"></div></td>
-          <td><div style="display:flex;align-items:center;gap:8px"><div class="skeleton" style="width:14px;height:40px;border-radius:4px"></div><div class="skeleton skeleton-text" style="width:30px"></div></div></td>
-          <td><div class="skeleton skeleton-text-sm" style="width:30px"></div></td>
-          <td><div class="skeleton skeleton-text" style="width:60px"></div></td>
-          <td><div class="skeleton skeleton-text" style="width:65px"></div></td>
-          <td><div class="skeleton skeleton-text-sm" style="width:25px"></div></td>
-          <td><div class="skeleton skeleton-text-sm" style="width:50px"></div></td>
-          <td><div class="skeleton skeleton-badge" style="width:80px"></div></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Real Content -->
-<div class="products-real-content fade-in" style="display:none">
-  <!-- Executive Gradient Hero Banner -->
-  <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
+<!-- Executive Gradient Hero Banner -->
+<div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
     <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
       <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
         <i class="ri-archive-stack-line"></i>
@@ -350,21 +289,5 @@
 
     {% include 'components/pagination.html' %}
   </div>
-</div><!-- /products-real-content -->
 {% endblock %}
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var skel = document.getElementById('products-skeleton');
-  var real = document.querySelector('.products-real-content');
-  // Show skeleton for at least 300ms, then fade out
-  var elapsed = Date.now() - performance.timing.navigationStart;
-  var delay = Math.max(0, 300 - elapsed);
-  setTimeout(function() {
-    if (skel) { skel.classList.add('hiding'); setTimeout(function() { skel.style.display = 'none'; }, 300); }
-    if (real) { real.style.display = ''; requestAnimationFrame(function() { real.classList.add('visible'); }); }
-  }, delay);
-});
-</script>
-{% endblock %}
