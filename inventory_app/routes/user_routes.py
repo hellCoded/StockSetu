@@ -44,21 +44,19 @@ def add_user():
     from inventory_app.services.auth_service import register_user
     name = request.form.get('name', '').strip()
     surname = request.form.get('surname', '').strip()
-    username = request.form.get('username', '').strip()
+    employee_id = request.form.get('employee_id', '').strip()
+    phone = request.form.get('phone', '').strip()
     email = request.form.get('email', '').strip()
     password = request.form.get('password', '')
     confirm_password = request.form.get('confirm_password', '')
     role = request.form.get('role', 'staff')
-    
-    if not username and name:
-        import random
-        clean_base = ''.join(e for e in name if e.isalnum()).lower()
-        username = f"{clean_base}{random.randint(10, 99)}"
 
     data = {
         'name': name,
         'surname': surname,
-        'username': username,
+        'employee_id': employee_id,
+        'username': employee_id,
+        'phone': phone,
         'email': email,
         'password': password,
         'confirm_password': confirm_password,
@@ -71,22 +69,25 @@ def add_user():
         return redirect(url_for('users.list_users'))
         
     success, msg, user = register_user(
-        username=data['username'],
+        employee_id=data['employee_id'],
+        username=data['employee_id'],
         email=data['email'],
         password=data['password'],
         role=data['role'],
         name=data['name'],
-        surname=data['surname']
+        surname=data['surname'],
+        phone=data['phone']
     )
     
     if success:
         session['registered_user'] = {
-            'name': f"{data['name']} {data['surname']}".strip(),
-            'username': user['username'],
+            'name': f"{data['name']} {data['surname']}".strip() if data.get('surname') else data['name'],
+            'employee_id': user.get('employee_id', ''),
+            'username': user.get('employee_id', ''),
             'email': user['email'],
             'password': data['password']
         }
-        flash(f"User '{user['username']}' registered successfully!", "success")
+        flash(f"User '{user.get('employee_id')}' registered successfully!", "success")
     else:
         flash(msg, "danger")
         
@@ -142,12 +143,12 @@ def request_promotion():
         flash("Invalid user session.", "danger")
         return redirect(url_for('auth.login'))
         
-    username = user.get('username', '')
+    emp_id = user.get('employee_id') or user.get('username', '')
     email = user.get('email', '')
     reason = request.form.get('reason', '')
     requested_role = request.form.get('requested_role', 'inventory_manager')
     
-    success, msg = create_role_request(user_id, username, email, requested_role=requested_role, reason=reason)
+    success, msg = create_role_request(user_id, employee_id=emp_id, email=email, requested_role=requested_role, reason=reason)
     if success:
         flash(msg, "success")
     else:

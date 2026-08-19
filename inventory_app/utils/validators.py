@@ -64,25 +64,23 @@ def validate_product_data(data: dict) -> tuple[bool, str]:
 
     return True, ""
 
+def generate_employee_id(name: str = "") -> str:
+    """
+    Generates a unique employee ID slug with random 4-digit number.
+    Example: 'EMP-1042'
+    """
+    digits = f"{secrets.randbelow(9000) + 1000}"
+    return f"EMP-{digits}"
+
 def generate_username_from_name(name: str) -> str:
-    """
-    Generates a unique username from name slug + random 2-digit number.
-    Example: 'John' -> 'john42'
-    """
-    if not name:
-        base = "user"
-    else:
-        base = re.sub(r'[^a-zA-Z0-9]', '', name).lower()
-        if not base:
-            base = "user"
-    digits = f"{secrets.randbelow(90) + 10}"
-    return f"{base}{digits}"
+    """Legacy helper: returns generated employee ID."""
+    return generate_employee_id(name)
 
 def validate_user_registration(data: dict) -> tuple[bool, str]:
-    """Validates user registration input and ensures name is provided."""
+    """Validates user registration input and ensures name and employee_id are provided."""
     name = (data.get('name') or '').strip()
     surname = (data.get('surname') or '').strip()
-    username = (data.get('username') or '').strip()
+    employee_id = (data.get('employee_id') or data.get('username') or '').strip()
     email = (data.get('email') or '').strip().lower()
     password = data.get('password') or ''
     confirm_password = data.get('confirm_password') or ''
@@ -90,15 +88,19 @@ def validate_user_registration(data: dict) -> tuple[bool, str]:
     if not name:
         return False, "Name is required."
         
-    if not username:
-        data['username'] = generate_username_from_name(name)
-        username = data['username']
-    elif len(username) < 3:
-        return False, "Username must be at least 3 characters long."
+    if not employee_id:
+        data['employee_id'] = generate_employee_id(name)
+        employee_id = data['employee_id']
+    elif len(employee_id) < 3:
+        return False, "Employee ID must be at least 3 characters long."
     
-    if not re.match(r'^[a-zA-Z0-9_-]+$', username):
-        return False, "Username can only contain letters, numbers, underscores, and hyphens."
+    if not re.match(r'^[a-zA-Z0-9_-]+$', employee_id):
+        return False, "Employee ID can only contain letters, numbers, underscores, and hyphens."
     
+    # Store normalized employee_id and backward-compatible username
+    data['employee_id'] = employee_id
+    data['username'] = employee_id
+
     if not email or '@' not in email:
         return False, "A valid email address is required."
     

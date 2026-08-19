@@ -15,19 +15,26 @@ def invalidate_user_cache(user_id: str):
     if user_id:
         cache_delete(f"auth:user:{str(user_id)}")
 
-def register_user(username: str, email: str, password: str, role: str = "staff", name: str = "", surname: str = "") -> tuple[bool, str, dict]:
-    """Registers a new user in MongoDB."""
+def register_user(username: str = "", email: str = "", password: str = "", role: str = "staff", name: str = "", surname: str = "", employee_id: str = "", phone: str = "") -> tuple[bool, str, dict]:
+    """Registers a new user with employee_id as the primary unique business key."""
+    import re
+    from inventory_app.utils.validators import generate_employee_id
     db = get_db()
     
-    clean_username = username.strip()
+    clean_emp_id = (employee_id or username or "").strip()
+    if not clean_emp_id:
+        clean_emp_id = generate_employee_id(name)
+        
     clean_email = email.strip().lower()
     clean_name = name.strip()
     clean_surname = surname.strip() if surname else ""
+    clean_phone = phone.strip() if phone else ""
     full_name = f"{clean_name} {clean_surname}".strip() if clean_surname else clean_name
     
-    # Check duplicate username
-    if db.users.find_one({"username": {"$regex": f"^{re_escape(clean_username)}$", "$options": "i"}}):
-        return False, "Username is already taken.", {}
+    # Check duplicate employee_id
+    escaped_emp = re.escape(clean_emp_id)
+    if db.users.find_one({"employee_id": {"$regex": f"^{escaped_emp}$", "$options": "i"}}):
+        return False, f"Employee ID '{clean_emp_id}' is already registered.", {}
         
     # Check duplicate email
     if db.users.find_one({"email": clean_email}):
@@ -38,9 +45,11 @@ def register_user(username: str, email: str, password: str, role: str = "staff",
     
     now = datetime.now(timezone.utc)
     user_doc = {
-        "username": clean_username,
-        "name": full_name,
+        "employee_id": clean_emp_id,
+        "username": clean_emp_id,  # backward compatibility
+        "name": full_name or clean_emp_id,
         "email": clean_email,
+        "phone": clean_phone,
         "password_hash": generate_password_hash(password),
         "role": assigned_role,
         "is_active": True,
@@ -110,13 +119,16 @@ def deactivate_inactive_users(inactivity_hours: float = 12.0) -> int:
         return 0
 
 def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
-    """Authenticates user by username or email."""
+    """Authenticates user by employee ID or email."""
+    import re
     db = get_db()
     clean_id = identifier.strip()
+    escaped_id = re.escape(clean_id)
     
     user = db.users.find_one({
         "$or": [
-            {"username": clean_id},
+            {"employee_id": {"$regex": f"^{escaped_id}$", "$options": "i"}},
+            {"username": {"$regex": f"^{escaped_id}$", "$options": "i"}},
             {"email": clean_id.lower()}
         ]
     })
@@ -133,9 +145,11 @@ def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
         user["is_active"] = True
         user["last_active_at"] = now
         user["_id"] = str(user["_id"])
+        if not user.get("employee_id") and user.get("username"):
+            user["employee_id"] = user.get("username")
         return True, "Login successful.", user
         
-    return False, "Invalid username/email or password.", {}
+    return False, "Invalid Employee ID/Email or password.", {}
 
 def get_all_users(search: str = "", role: str = "", page: int = None, per_page: int = 25, return_total: bool = False):
     """Retrieves users for admin management with optional filtering and pagination."""
@@ -145,7 +159,9 @@ def get_all_users(search: str = "", role: str = "", page: int = None, per_page: 
         import re
         escaped = re.escape(search.strip())
         query["$or"] = [
+            {"employee_id": {"$regex": escaped, "$options": "i"}},
             {"username": {"$regex": escaped, "$options": "i"}},
+            {"phone": {"$regex": escaped, "$options": "i"}},
             {"email": {"$regex": escaped, "$options": "i"}},
             {"name": {"$regex": escaped, "$options": "i"}},
             {"surname": {"$regex": escaped, "$options": "i"}},
@@ -320,7 +336,7 @@ def re_escape(text: str) -> str:
     import re
     return re.escape(text)
 
-def create_role_request(user_id: str, username: str, email: str, requested_role: str = "inventory_manager", reason: str = "") -> tuple[bool, str]:
+def create_role_request(user_id: str, employee_id: str = "", email: str = "", requested_role: str = "inventory_manager", reason: str = "", username: str = "") -> tuple[bool, str]:
     """Submits a role promotion/update request from user to admin for verification."""
     uid_str = str(user_id) if user_id else ""
     if not uid_str or not ObjectId.is_valid(uid_str):
@@ -333,6 +349,8 @@ def create_role_request(user_id: str, username: str, email: str, requested_role:
     if not reason or not reason.strip():
         return False, "A reason / justification is required to submit a role request."
 
+    effective_emp_id = (employee_id or username or "").strip()
+
     try:
         existing = db.role_requests.find_one({"user_id": uid_str, "status": "PENDING"})
         if existing:
@@ -340,6 +358,8 @@ def create_role_request(user_id: str, username: str, email: str, requested_role:
             
         user = db.users.find_one({"_id": ObjectId(uid_str)})
         current_role = user.get("role", "staff") if user else "staff"
+        if not effective_emp_id and user:
+            effective_emp_id = user.get("employee_id") or user.get("username", "")
 
         if current_role == requested_role:
             return False, f"You are already assigned the '{current_role}' role."
@@ -347,8 +367,9 @@ def create_role_request(user_id: str, username: str, email: str, requested_role:
         now = datetime.now(timezone.utc)
         request_doc = {
             "user_id": uid_str,
-            "username": username,
-            "email": email,
+            "employee_id": effective_emp_id,
+            "username": effective_emp_id,
+            "email": email or (user.get("email") if user else ""),
             "current_role": current_role,
             "requested_role": requested_role,
             "reason": reason.strip(),
@@ -359,7 +380,7 @@ def create_role_request(user_id: str, username: str, email: str, requested_role:
         db.role_requests.insert_one(request_doc)
         
         from inventory_app.services.audit_service import log_audit
-        log_audit("role_request_submitted", username, target_resource=uid_str, details={"requested_role": requested_role, "reason": reason.strip()})
+        log_audit("role_request_submitted", effective_emp_id, target_resource=uid_str, details={"requested_role": requested_role, "reason": reason.strip()})
         
         return True, f"Role request ({requested_role.replace('_', ' ').title()}) submitted to Administrator for verification."
     except Exception as e:
@@ -390,7 +411,7 @@ def cancel_role_request(request_id: str, user_id: str) -> tuple[bool, str]:
         )
         
         from inventory_app.services.audit_service import log_audit
-        log_audit("role_request_cancelled", req.get("username"), target_resource=uid_str, details={"request_id": req_id_str})
+        log_audit("role_request_cancelled", req.get("employee_id") or req.get("username"), target_resource=uid_str, details={"request_id": req_id_str})
         
         return True, "Role request cancelled successfully."
     except Exception as e:
@@ -462,6 +483,7 @@ def process_role_request(request_id: str, action: str, processed_by: str, admin_
             
         now = datetime.now(timezone.utc)
         comment_str = admin_comment.strip()
+        target_emp = req.get("employee_id") or req.get("username", "")
         
         if action == "approve":
             user_id = str(req["user_id"])
@@ -480,7 +502,7 @@ def process_role_request(request_id: str, action: str, processed_by: str, admin_
             log_audit("role_request_approved", processed_by, target_resource=user_id, details={"request_id": req_id_str, "admin_comment": comment_str})
             
             role_label = new_role.replace('_', ' ').title()
-            return True, f"Role request approved. User '{req['username']}' is now an {role_label}."
+            return True, f"Role request approved. User '{target_emp}' is now an {role_label}."
             
         elif action == "reject":
             db.role_requests.update_one(
@@ -491,7 +513,7 @@ def process_role_request(request_id: str, action: str, processed_by: str, admin_
             from inventory_app.services.audit_service import log_audit
             log_audit("role_request_rejected", processed_by, target_resource=str(req["user_id"]), details={"request_id": req_id_str, "admin_comment": comment_str})
             
-            return True, f"Promotion request for user '{req['username']}' has been rejected."
+            return True, f"Promotion request for user '{target_emp}' has been rejected."
         else:
             return False, "Invalid action."
     except Exception as e:
@@ -500,12 +522,15 @@ def process_role_request(request_id: str, action: str, processed_by: str, admin_
 
 def import_staff_bulk(file_storage, default_password: str = "Staff@123", imported_by: str = "admin") -> tuple[bool, str, dict]:
     """
-    Parses and bulk registers staff/employees from an Excel (.xlsx, .xls) or CSV file.
+    Parses and bulk registers staff from an Excel (.xlsx, .xls) or CSV file.
+    Expected format: Employee ID, Full Name, Phone No, Email (optional).
+    Role is automatically assigned as 'staff'.
+    Password defaults to `default_password` (no password column in template).
     Returns (success: bool, message: str, details: dict).
     """
     import io
     import csv
-    import random
+    import re
     from datetime import datetime, timezone
     from werkzeug.security import generate_password_hash
     from inventory_app.database import get_db
@@ -543,36 +568,42 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
     header = [str(cell or "").strip().lower() for cell in rows[0]]
     col_map = {}
     for idx, col in enumerate(header):
-        clean_col = col.replace("_", " ").replace("-", " ")
-        if any(k in clean_col for k in ['first name', 'firstname', 'employee name', 'staff name']) or clean_col == 'name':
+        clean_col = col.replace("_", " ").replace("-", " ").strip()
+        if any(k in clean_col for k in ['employee id', 'employeeid', 'empid', 'emp id', 'emp no', 'staff id', 'staff no']) or clean_col == 'id':
+            col_map.setdefault('employee_id', idx)
+        elif any(k in clean_col for k in ['full name', 'fullname', 'employee name', 'staff name']) or clean_col == 'name':
             col_map.setdefault('name', idx)
         elif any(k in clean_col for k in ['last name', 'lastname', 'surname']):
             col_map.setdefault('surname', idx)
-        elif any(k in clean_col for k in ['username', 'user name', 'login']):
-            col_map.setdefault('username', idx)
+        elif any(k in clean_col for k in ['phone', 'phone no', 'phone number', 'mobile', 'mobile no', 'contact', 'contact no', 'mobile number']):
+            col_map.setdefault('phone', idx)
         elif any(k in clean_col for k in ['email', 'mail', 'email id', 'email address']):
             col_map.setdefault('email', idx)
-        elif any(k in clean_col for k in ['role', 'designation', 'user role', 'access']):
-            col_map.setdefault('role', idx)
-        elif any(k in clean_col for k in ['password', 'pass', 'temp password', 'initial password']):
-            col_map.setdefault('password', idx)
+        elif any(k in clean_col for k in ['username', 'user name', 'login']):
+            col_map.setdefault('username', idx)
 
-    if 'email' not in col_map and 'username' not in col_map and 'name' not in col_map:
-        return False, "Could not detect required columns (Name, Email, or Username) in the file header.", {}
+    # Fallback if employee_id column not found but username exists
+    if 'employee_id' not in col_map and 'username' in col_map:
+        col_map['employee_id'] = col_map['username']
+
+    if 'name' not in col_map and 'employee_id' not in col_map and 'email' not in col_map:
+        return False, "Could not detect required columns (Employee ID, Full Name, Phone No) in the file header.", {}
 
     db = get_db()
-    existing_users = list(db.users.find({}, {"email": 1, "username": 1}))
+    existing_users = list(db.users.find({}, {"email": 1, "username": 1, "employee_id": 1}))
     existing_emails = {u.get("email", "").strip().lower() for u in existing_users if u.get("email")}
     existing_usernames = {u.get("username", "").strip().lower() for u in existing_users if u.get("username")}
+    existing_emp_ids = {u.get("employee_id", "").strip().lower() for u in existing_users if u.get("employee_id")}
 
     batch_emails = set()
+    batch_emp_ids = set()
     batch_usernames = set()
     valid_docs = []
-    requested_roles = []
     errors = []
     total_processed = 0
 
-    valid_roles = {"admin", "inventory_manager", "staff"}
+    password_to_use = default_password if (default_password and len(default_password) >= 6) else "Staff@123"
+    hashed_password = generate_password_hash(password_to_use)
 
     for row_idx, row in enumerate(rows[1:], start=2):
         if not row or all(c is None or str(c).strip() == "" for c in row):
@@ -585,67 +616,58 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
                 return str(row[idx]).strip()
             return ""
 
+        raw_emp_id = get_val('employee_id')
         raw_name = get_val('name')
         raw_surname = get_val('surname')
-        raw_username = get_val('username')
+        raw_phone = get_val('phone')
         raw_email = get_val('email').lower()
-        raw_role = get_val('role').lower().replace(" ", "_")
-        raw_password = get_val('password')
 
-        # 1. Validate Email
-        if not raw_email or "@" not in raw_email or "." not in raw_email:
-            errors.append(f"Row {row_idx}: Invalid or missing email address ('{raw_email}').")
+        # 1. Full Name resolution
+        full_name = f"{raw_name} {raw_surname}".strip() if raw_surname else raw_name
+        if not full_name:
+            errors.append(f"Row {row_idx}: Missing employee full name.")
+            continue
+
+        # 2. Employee ID resolution (used as employee_id and username)
+        if not raw_emp_id:
+            base_id = "".join(c for c in full_name if c.isalnum()).upper()[:6] or "EMP"
+            raw_emp_id = f"{base_id}-{total_processed + 1000}"
+
+        clean_emp_id = raw_emp_id.strip()
+        clean_emp_id_lower = clean_emp_id.lower()
+
+        if clean_emp_id_lower in existing_emp_ids or clean_emp_id_lower in batch_emp_ids:
+            errors.append(f"Row {row_idx}: Employee ID '{clean_emp_id}' is already registered or duplicated in file.")
+            continue
+
+        # 3. Email resolution
+        if not raw_email:
+            raw_email = f"{re.sub(r'[^a-zA-Z0-9]', '', clean_emp_id).lower()}@stocksetu.local"
+        elif "@" not in raw_email or "." not in raw_email:
+            errors.append(f"Row {row_idx}: Invalid email address ('{raw_email}').")
             continue
 
         if raw_email in existing_emails or raw_email in batch_emails:
             errors.append(f"Row {row_idx}: Email '{raw_email}' is already registered or duplicated in file.")
             continue
 
-        # 2. Name
-        full_name = f"{raw_name} {raw_surname}".strip() if raw_surname else raw_name
-        if not full_name:
-            full_name = raw_email.split("@")[0].replace(".", " ").title()
-
-        # 3. Username resolution
-        username_candidate = raw_username
-        if not username_candidate:
-            base_user = "".join(c for c in (raw_name or raw_email.split("@")[0]) if c.isalnum()).lower()
-            if not base_user:
-                base_user = "staff"
-            username_candidate = f"{base_user}{random.randint(10, 99)}"
-
-        # Ensure uniqueness
-        base_clean = username_candidate.lower()
-        suffix = 1
-        final_username = username_candidate
-        while final_username.lower() in existing_usernames or final_username.lower() in batch_usernames:
-            final_username = f"{username_candidate}{suffix}"
-            suffix += 1
-
-        # 4. Role normalization: imported staff are always created as "staff";
-        # elevated roles from the file become pending role requests for admin approval.
-        assigned_role = "staff"
-        requested_role = None
-        if raw_role in valid_roles:
-            if raw_role != "staff":
-                requested_role = raw_role
-        elif "admin" in raw_role:
-            requested_role = "admin"
-        elif "manager" in raw_role or "inventory" in raw_role:
-            requested_role = "inventory_manager"
-
-        # 5. Password
-        password_to_use = raw_password if (raw_password and len(raw_password) >= 6) else default_password
-        if len(password_to_use) < 6:
-            password_to_use = "Staff@123"
+        # 4. Username matching employee_id
+        final_username = clean_emp_id
+        if final_username.lower() in existing_usernames or final_username.lower() in batch_usernames:
+            suffix = 1
+            while f"{clean_emp_id}_{suffix}".lower() in existing_usernames or f"{clean_emp_id}_{suffix}".lower() in batch_usernames:
+                suffix += 1
+            final_username = f"{clean_emp_id}_{suffix}"
 
         now = datetime.now(timezone.utc)
         user_doc = {
+            "employee_id": clean_emp_id,
             "username": final_username,
-            "name": full_name,
+            "name": full_name or clean_emp_id,
+            "phone": raw_phone,
             "email": raw_email,
-            "password_hash": generate_password_hash(password_to_use),
-            "role": assigned_role,
+            "password_hash": hashed_password,
+            "role": "staff",
             "is_active": False,
             "last_active_at": now,
             "created_at": now,
@@ -653,12 +675,12 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
         }
 
         valid_docs.append(user_doc)
-        requested_roles.append(requested_role)
         batch_emails.add(raw_email)
+        batch_emp_ids.add(clean_emp_id_lower)
         batch_usernames.add(final_username.lower())
 
     if not valid_docs:
-        err_detail = "; ".join(errors[:5]) if errors else "No valid user records found in file."
+        err_detail = "; ".join(errors[:5]) if errors else "No valid staff records found in file."
         return False, f"Import failed: {err_detail}", {"total_rows": total_processed, "imported_count": 0, "errors": errors}
 
     try:
@@ -666,29 +688,9 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
         inserted_ids = result.inserted_ids
         inserted_count = len(inserted_ids)
 
-        role_request_count = 0
-        role_request_errors = []
-        for doc, requested_role, user_id in zip(valid_docs, requested_roles, inserted_ids):
-            if not requested_role:
-                continue
-            role_request_doc = {
-                "user_id": str(user_id),
-                "username": doc["username"],
-                "email": doc["email"],
-                "current_role": "staff",
-                "requested_role": requested_role,
-                "reason": f"Role requested during bulk staff import by {imported_by}.",
-                "status": "PENDING",
-                "created_at": datetime.now(timezone.utc),
-                "updated_at": datetime.now(timezone.utc)
-            }
-            db.role_requests.insert_one(role_request_doc)
-            role_request_count += 1
-
         from inventory_app.services.audit_service import log_audit
         log_audit("bulk_staff_imported", imported_by, details={
             "imported_count": inserted_count,
-            "role_request_count": role_request_count,
             "skipped_count": len(errors),
             "total_rows": total_processed
         })
@@ -696,16 +698,13 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
         summary = {
             "total_rows": total_processed,
             "imported_count": inserted_count,
-            "role_request_count": role_request_count,
+            "role_request_count": 0,
             "skipped_count": len(errors),
             "errors": errors,
-            "role_request_errors": role_request_errors,
-            "imported_users": [{"username": d["username"], "email": d["email"], "role": d["role"], "requested_role": r} for d, r in zip(valid_docs, requested_roles)]
+            "imported_users": [{"employee_id": d.get("employee_id", ""), "username": d["username"], "name": d["name"], "phone": d.get("phone", ""), "email": d["email"], "role": d["role"]} for d in valid_docs]
         }
         msg = f"Successfully imported {inserted_count} staff member(s)."
-        msg += " Imported staff are created as inactive by default and must be activated by an Administrator."
-        if role_request_count:
-            msg += f" {role_request_count} role request(s) sent to the Administrator for approval."
+        msg += " All imported accounts have the 'staff' role and must be activated by an Administrator."
         if errors:
             msg += f" {len(errors)} row(s) were skipped due to validation issues."
 
@@ -716,7 +715,8 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
 
 def generate_staff_template(file_format: str = "xlsx") -> tuple[io.BytesIO, str, str]:
     """
-    Generates a pre-formatted sample Excel/CSV template for bulk staff/employee import.
+    Generates a pre-formatted sample Excel/CSV template for bulk staff import.
+    Headers: Employee ID, Full Name, Phone No, Email
     Returns (BytesIO_stream, filename, mimetype).
     """
     import io
@@ -724,33 +724,34 @@ def generate_staff_template(file_format: str = "xlsx") -> tuple[io.BytesIO, str,
         import csv
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(["Name", "Surname", "Username", "Email", "Role", "Password"])
-        writer.writerow(["Rahul", "Sharma", "rahul.sharma", "rahul.sharma@example.com", "staff", "Staff@123"])
-        writer.writerow(["Priya", "Patel", "priya.patel", "priya.patel@example.com", "inventory_manager", "Manager@123"])
-        writer.writerow(["Amit", "Verma", "amit.verma", "amit.verma@example.com", "staff", "Staff@123"])
-        writer.writerow(["Neha", "Gupta", "neha.gupta", "neha.gupta@example.com", "admin", "Admin@123"])
+        writer.writerow(["Employee ID", "Full Name", "Phone No", "Email"])
+        writer.writerow(["EMP-1001", "Rahul Sharma", "9876543210", "rahul.sharma@example.com"])
+        writer.writerow(["EMP-1002", "Priya Patel", "9876543211", "priya.patel@example.com"])
+        writer.writerow(["EMP-1003", "Amit Verma", "9876543212", "amit.verma@example.com"])
+        writer.writerow(["EMP-1004", "Neha Gupta", "9876543213", "neha.gupta@example.com"])
         
         mem = io.BytesIO(output.getvalue().encode('utf-8'))
         mem.seek(0)
         return mem, "StockSetu_Staff_Import_Template.csv", "text/csv"
+
     # Default Excel (.xlsx)
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Staff Import Template"
+    ws.title = "Staff Import"
 
     # Headers
-    headers = ["Name", "Surname", "Username", "Email", "Role", "Password"]
+    headers = ["Employee ID", "Full Name", "Phone No", "Email"]
     ws.append(headers)
 
     # Sample rows
     samples = [
-        ["Rahul", "Sharma", "rahul.sharma", "rahul.sharma@company.com", "staff", "Staff@123"],
-        ["Priya", "Patel", "priya.patel", "priya.patel@company.com", "inventory_manager", "Manager@123"],
-        ["Amit", "Verma", "amit.verma", "amit.verma@company.com", "staff", "Staff@123"],
-        ["Neha", "Gupta", "neha.gupta", "neha.gupta@company.com", "admin", "Admin@123"],
+        ["EMP-1001", "Rahul Sharma", "9876543210", "rahul.sharma@example.com"],
+        ["EMP-1002", "Priya Patel", "9876543211", "priya.patel@example.com"],
+        ["EMP-1003", "Amit Verma", "9876543212", "amit.verma@example.com"],
+        ["EMP-1004", "Neha Gupta", "9876543213", "neha.gupta@example.com"],
     ]
     for row in samples:
         ws.append(row)
@@ -772,22 +773,22 @@ def generate_staff_template(file_format: str = "xlsx") -> tuple[io.BytesIO, str,
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Column widths
-    col_widths = [18, 18, 20, 32, 22, 18]
+    col_widths = [18, 26, 20, 32]
     for i, w in enumerate(col_widths, start=1):
         ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
 
     # Add instructions block below
     ws.append([])
     ws.append(["Instructions & Notes:"])
-    ws.append(["1. Name and Email are required fields."])
-    ws.append(["2. Username is optional. If left blank, it will be automatically generated."])
-    ws.append(["3. Role must be one of: 'staff', 'inventory_manager', or 'admin' (defaults to 'staff')."])
-    ws.append(["4. All imported users are created as 'staff'. Elevated roles ('inventory_manager'/'admin') are sent to the Administrator as role requests for approval."])
-    ws.append(["5. Imported users are created as inactive by default and must be activated by an Administrator before they can log in."])
-    ws.append(["6. Password is optional. If left blank, it defaults to 'Staff@123'."])
+    ws.append(["1. Employee ID and Full Name are required fields."])
+    ws.append(["2. Phone No is recommended for staff identification and contact."])
+    ws.append(["3. Email is optional (defaults to <EmployeeID>@stocksetu.local if blank)."])
+    ws.append(["4. Role is automatically set to 'staff' for all imported members."])
+    ws.append(["5. Passwords default to the configured default password (e.g. 'Staff@123') and can be changed in profile settings."])
+    ws.append(["6. Staff can log in directly using their Employee ID or Email."])
 
     note_font = Font(name="Segoe UI", size=9, italic=True, color="64748B")
-    for r in range(7, 12):
+    for r in range(7, 13):
         cell = ws.cell(row=r, column=1)
         cell.font = note_font
 

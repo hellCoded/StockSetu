@@ -24,7 +24,9 @@ def app(mock_mongo):
     
     db.users.insert_many([
         {
+            "employee_id": "ADM-001",
             "username": "testadmin",
+            "name": "Test Admin",
             "email": "admin@test.com",
             "password_hash": generate_password_hash("AdminPass123"),
             "role": "admin",
@@ -33,7 +35,9 @@ def app(mock_mongo):
             "updated_at": now
         },
         {
+            "employee_id": "MGR-001",
             "username": "testmanager",
+            "name": "Test Manager",
             "email": "manager@test.com",
             "password_hash": generate_password_hash("ManagerPass123"),
             "role": "inventory_manager",
@@ -42,7 +46,9 @@ def app(mock_mongo):
             "updated_at": now
         },
         {
+            "employee_id": "STF-001",
             "username": "teststaff",
+            "name": "Test Staff",
             "email": "staff@test.com",
             "password_hash": generate_password_hash("StaffPass123"),
             "role": "staff",
@@ -62,10 +68,12 @@ def client(app):
 def admin_client(app, mock_mongo):
     client = app.test_client()
     db = mock_mongo['inventory_test_db']
-    user = db.users.find_one({"username": "testadmin"})
+    user = db.users.find_one({"$or": [{"employee_id": "ADM-001"}, {"username": "testadmin"}]})
     with client.session_transaction() as sess:
         sess['user_id'] = str(user['_id'])
+        sess['employee_id'] = user.get('employee_id', 'ADM-001')
         sess['username'] = 'testadmin'
+        sess['name'] = user.get('name', 'Test Admin')
         sess['email'] = 'admin@test.com'
         sess['role'] = 'admin'
     return client
@@ -74,10 +82,12 @@ def admin_client(app, mock_mongo):
 def manager_client(app, mock_mongo):
     client = app.test_client()
     db = mock_mongo['inventory_test_db']
-    user = db.users.find_one({"username": "testmanager"})
+    user = db.users.find_one({"$or": [{"employee_id": "MGR-001"}, {"username": "testmanager"}]})
     with client.session_transaction() as sess:
         sess['user_id'] = str(user['_id'])
+        sess['employee_id'] = user.get('employee_id', 'MGR-001')
         sess['username'] = 'testmanager'
+        sess['name'] = user.get('name', 'Test Manager')
         sess['email'] = 'manager@test.com'
         sess['role'] = 'inventory_manager'
     return client
@@ -86,10 +96,12 @@ def manager_client(app, mock_mongo):
 def staff_client(app, mock_mongo):
     client = app.test_client()
     db = mock_mongo['inventory_test_db']
-    user = db.users.find_one({"username": "teststaff"})
+    user = db.users.find_one({"$or": [{"employee_id": "STF-001"}, {"username": "teststaff"}]})
     with client.session_transaction() as sess:
         sess['user_id'] = str(user['_id'])
+        sess['employee_id'] = user.get('employee_id', 'STF-001')
         sess['username'] = 'teststaff'
+        sess['name'] = user.get('name', 'Test Staff')
         sess['email'] = 'staff@test.com'
         sess['role'] = 'staff'
     return client

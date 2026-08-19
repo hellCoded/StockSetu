@@ -15,7 +15,7 @@ def login():
         
     prefilled_identifier = ""
     if 'registered_user' in session:
-        prefilled_identifier = session['registered_user'].get('username', '')
+        prefilled_identifier = session['registered_user'].get('employee_id') or session['registered_user'].get('username', '')
         
     if request.method == 'POST':
         identifier = request.form.get('identifier', '').strip()
@@ -25,13 +25,17 @@ def login():
         if success:
             session.permanent = True
             now_ts = datetime.now(timezone.utc).timestamp()
+            emp_id = user.get('employee_id') or user.get('username', '')
+            user_name = user.get('name', '')
             session['user_id'] = user['_id']
-            session['username'] = user['username']
+            session['employee_id'] = emp_id
+            session['username'] = emp_id
+            session['name'] = user_name
             session['email'] = user['email']
             session['role'] = user['role']
             session['last_active_at'] = now_ts
             session['last_db_active_sync'] = now_ts
-            flash(f"Welcome back, {user['username']}!", "success")
+            flash(f"Welcome back, {user_name or emp_id}!", "success")
             
             next_url = request.args.get('next')
             if next_url and next_url.startswith('/') and not next_url.startswith('//'):
@@ -56,7 +60,8 @@ def register():
         data = {
             'name': request.form.get('name', ''),
             'surname': request.form.get('surname', ''),
-            'username': request.form.get('username', ''),
+            'employee_id': request.form.get('employee_id', '') or request.form.get('username', ''),
+            'username': request.form.get('employee_id', '') or request.form.get('username', ''),
             'email': request.form.get('email', ''),
             'password': request.form.get('password', ''),
             'confirm_password': request.form.get('confirm_password', '')
@@ -68,7 +73,8 @@ def register():
             return render_template('auth/register.html', form_data=data)
             
         success, msg, user = register_user(
-            username=data['username'],
+            employee_id=data['employee_id'],
+            username=data['employee_id'],
             email=data['email'],
             password=data['password'],
             role='staff',
@@ -78,8 +84,9 @@ def register():
         
         if success:
             session['registered_user'] = {
-                'name': f"{data['name']} {data['surname']}".strip(),
-                'username': user['username'],
+                'name': f"{data['name']} {data['surname']}".strip() if data.get('surname') else data['name'],
+                'employee_id': user.get('employee_id', ''),
+                'username': user.get('employee_id', ''),
                 'email': user['email'],
             }
             flash("Registration successful! You can now log in.", "success")

@@ -145,12 +145,13 @@ def run_seeder():
 
         for i in range(1, args.users + 1):
             role = roles_list[i - 1]
-            username = f"test{role}{i:03d}"
-            email = f"{username}@example.test"
+            employee_id = f"EMP-{1000+i}"
+            email = f"emp{1000+i}@example.test"
             name = f"Test {role.replace('_', ' ').title()} {i}"
             
             success, msg, user_doc = register_user(
-                username=username,
+                employee_id=employee_id,
+                username=employee_id,
                 email=email,
                 password=TEST_PASSWORD,
                 role=role,
@@ -168,7 +169,7 @@ def run_seeder():
             elif "already registered" in msg or "already taken" in msg:
                 user_skipped += 1
             else:
-                print(f"Failed to seed user {username}: {msg}")
+                print(f"Failed to seed user {employee_id}: {msg}")
 
         print("=" * 60)
         print("SEEDING SUMMARY")

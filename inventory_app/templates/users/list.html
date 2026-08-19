@@ -106,12 +106,12 @@
                     {% elif u.role == 'admin' %}um-avatar-admin
                     {% elif u.role == 'inventory_manager' %}um-avatar-manager
                     {% else %}um-avatar-staff{% endif %}">
-                    {{ u.username[0] | upper if u.username else 'U' }}
+                    {{ (u.name or u.employee_id or u.username or 'U')[0] | upper }}
                   </div>
                   <div>
-                    <strong style="color: #0f172a; display: block;">{{ u.name if u.name else u.username }}</strong>
-                    <span style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.35rem;">
-                      @{{ u.username }}
+                    <strong style="color: #0f172a; display: block;">{{ u.name if u.name else (u.employee_id or u.username) }}</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                      <span class="badge" style="background: #e2e8f0; color: #334155; font-family: monospace; font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.35rem; border-radius: 4px;">{{ u.employee_id or u.username }}</span>
                       {% if u._id == current_user.id %}
                         <span class="um-you-chip"><i class="ri-vip-crown-line" style="font-size: 0.6rem;"></i> You</span>
                       {% endif %}
@@ -120,10 +120,18 @@
                 </div>
               </td>
               <td>
-                <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
-                  <i class="ri-mail-line" style="font-size: 0.78rem; color: var(--text-faint);"></i>
-                  {{ u.email }}
-                </span>
+                <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                  <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                    <i class="ri-mail-line" style="font-size: 0.78rem; color: var(--text-faint);"></i>
+                    {{ u.email }}
+                  </span>
+                  {% if u.phone %}
+                    <span style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.75rem; color: var(--text-muted);">
+                      <i class="ri-phone-line" style="font-size: 0.75rem; color: var(--text-faint);"></i>
+                      {{ u.phone }}
+                    </span>
+                  {% endif %}
+                </div>
               </td>
               <td>
                 {% if u.role == 'admin' %}
@@ -145,7 +153,7 @@
               <td style="text-align: right; white-space: nowrap;">
                 {% if u._id != current_user.id %}
                   <div class="um-actions">
-                    <button type="button" class="btn btn-primary btn-sm" onclick='openUpdateRoleModal("{{ u._id }}", {{ (u.name if u.name else u.username)|tojson }}, {{ u.username|tojson }}, {{ u.role|tojson }})' title="Update User Role">
+                    <button type="button" class="btn btn-primary btn-sm" onclick='openUpdateRoleModal("{{ u._id }}", {{ (u.name if u.name else (u.employee_id or u.username))|tojson }}, {{ (u.employee_id or u.username)|tojson }}, {{ u.role|tojson }})' title="Update User Role">
                       <i class="ri-user-settings-line"></i> Edit Role
                     </button>
                   </div>
@@ -336,7 +344,7 @@ function submitRequestAction(reqId, action, btnEl) {
   form.submit();
 }
 
-function openUpdateRoleModal(userId, name, username, currentRole, e) {
+function openUpdateRoleModal(userId, name, employeeId, currentRole, e) {
   if (e) {
     if (typeof e.preventDefault === 'function') e.preventDefault();
     if (typeof e.stopPropagation === 'function') e.stopPropagation();
@@ -350,8 +358,8 @@ function openUpdateRoleModal(userId, name, username, currentRole, e) {
 
     if (form) form.action = `/users/${userId}/role`;
     if (nameEl) nameEl.textContent = name;
-    if (usernameEl) usernameEl.textContent = '@' + username;
-    if (avatarEl) avatarEl.textContent = (username ? username[0].toUpperCase() : 'U');
+    if (usernameEl) usernameEl.textContent = employeeId;
+    if (avatarEl) avatarEl.textContent = (name ? name[0].toUpperCase() : (employeeId ? employeeId[0].toUpperCase() : 'U'));
 
     const radio = modal.querySelector(`input[name="role"][value="${currentRole}"]`);
     if (radio) radio.checked = true;
@@ -421,31 +429,23 @@ function updateRoleSelection(role) {
   }
 }
 
-// ── Add user auto-username & validation ─────────────────────
-function autoGenModalUsername() {
-  const nameEl = document.getElementById('new_name');
-  const usernameEl = document.getElementById('new_username');
-  if (!nameEl || !usernameEl) return;
-
-  const cleanBase = nameEl.value.trim().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-
-  if (cleanBase.length > 0) {
-    if (!usernameEl.dataset.digits) {
-      usernameEl.dataset.digits = Math.floor(10 + Math.random() * 90).toString();
-    }
-    usernameEl.value = cleanBase + usernameEl.dataset.digits;
-  } else {
-    usernameEl.value = '';
-    delete usernameEl.dataset.digits;
+// ── Add user auto-employee-id & validation ─────────────────
+function autoGenModalEmployeeId() {
+  const empEl = document.getElementById('new_employee_id');
+  if (!empEl) return;
+  if (!empEl.value) {
+    empEl.value = 'EMP-' + Math.floor(1000 + Math.random() * 9000);
   }
 }
 
+function autoGenModalUsername() {
+  autoGenModalEmployeeId();
+}
+
 function validateAddUserForm(form) {
-  const nameEl = form.querySelector('#new_name');
-  const usernameEl = form.querySelector('#new_username');
-  if (usernameEl && !usernameEl.value.trim() && nameEl && nameEl.value.trim()) {
-    const cleanBase = nameEl.value.trim().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    usernameEl.value = cleanBase + Math.floor(10 + Math.random() * 90).toString();
+  const empEl = form.querySelector('#new_employee_id');
+  if (empEl && !empEl.value.trim()) {
+    empEl.value = 'EMP-' + Math.floor(1000 + Math.random() * 9000);
   }
 
   const p1 = form.querySelector('#new_password')?.value || '';
@@ -641,17 +641,17 @@ function clearStaffFile(e) {
 
         <div class="form-group">
           <label for="new_name" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
-          <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex" required oninput="autoGenModalUsername()">
+          <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex" required oninput="autoGenModalEmployeeId()">
         </div>
 
         <div class="form-group">
           <label for="new_surname" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
-          <input type="text" id="new_surname" name="surname" class="form-control" placeholder="e.g. Smith" oninput="autoGenModalUsername()">
+          <input type="text" id="new_surname" name="surname" class="form-control" placeholder="e.g. Smith" oninput="autoGenModalEmployeeId()">
         </div>
 
         <div class="form-group">
-          <label for="new_username" class="form-label"><i class="ri-at-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated)</span></label>
-          <input type="text" id="new_username" name="username" class="form-control" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
+          <label for="new_employee_id" class="form-label"><i class="ri-fingerprint-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Employee ID <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated)</span></label>
+          <input type="text" id="new_employee_id" name="employee_id" class="form-control" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
         </div>
 
         <div class="form-group">
@@ -701,10 +701,10 @@ function clearStaffFile(e) {
       <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
         <div>
           <strong style="color: #0369a1; font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">
-            <i class="ri-information-line"></i> Standardized Spreadsheet Format
+            <i class="ri-information-line"></i> Standardized Staff Import Format
           </strong>
           <span style="font-size: 0.78rem; color: #0c4a6e; line-height: 1.4; display: block;">
-            Include columns: <code>Name</code>, <code>Surname</code>, <code>Username</code>, <code>Email</code>, <code>Role</code>, <code>Password</code>.
+            Columns: <code>Employee ID</code>, <code>Full Name</code>, <code>Phone No</code>, <code>Email</code> (Optional). Role is set to <strong>Staff</strong> by default.
           </span>
         </div>
         <div style="display: flex; gap: 0.4rem;">
@@ -754,13 +754,13 @@ function clearStaffFile(e) {
           </div>
         </div>
 
-        <!-- Default Fallback Password -->
+        <!-- Default Initial Password -->
         <div class="form-group" style="margin-top: 1rem;">
           <label for="default_password" class="form-label" style="font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem; display: block;">
-            <i class="ri-key-2-line" style="color: #6366f1; margin-right: 0.3rem;"></i> Default Password (if missing in file)
+            <i class="ri-key-2-line" style="color: #6366f1; margin-right: 0.3rem;"></i> Initial Default Password
           </label>
           <input type="text" id="default_password" name="default_password" class="form-control" value="Staff@123" placeholder="Staff@123" style="font-size: 0.85rem;">
-          <span style="font-size: 0.72rem; color: #64748b; margin-top: 0.2rem; display: block;">Staff members can change their password anytime in their profile settings.</span>
+          <span style="font-size: 0.72rem; color: #64748b; margin-top: 0.2rem; display: block;">Assigned to all imported staff members. They can change their password anytime in profile settings.</span>
         </div>
 
         <div class="um-modal-footer" style="margin-top: 1.25rem; border-top: 1px solid #f1f5f9; padding-top: 0.9rem;">
@@ -817,11 +817,11 @@ function clearStaffFile(e) {
             <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.85rem; flex-wrap: wrap;">
               <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
                 <div class="um-avatar um-avatar-staff" style="width: 42px; height: 42px; font-size: 1.05rem; margin-top: 2px;">
-                  {{ req.username[0] | upper if req.username else 'U' }}
+                  {{ (req.employee_id or req.username or 'U')[0] | upper }}
                 </div>
                 <div>
                   <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <strong style="color: #0f172a; font-size: 0.98rem;">@{{ req.username }}</strong>
+                    <strong style="color: #0f172a; font-size: 0.98rem;">{{ req.employee_id or req.username }}</strong>
                     {% if req.requested_role == 'admin' %}
                       <span class="um-role-chip um-role-admin"><i class="ri-shield-user-line"></i> Requested: Admin</span>
                     {% else %}

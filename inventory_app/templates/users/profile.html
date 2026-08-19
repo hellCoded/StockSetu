@@ -35,12 +35,12 @@
 
       <div class="form-group">
         <label for="profile_name" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
-        <input type="text" id="profile_name" name="name" class="form-control" value="{{ user.name if user.name else user.username }}" required>
+        <input type="text" id="profile_name" name="name" class="form-control" value="{{ user.name if user.name else (user.employee_id or user.username) }}" required>
       </div>
 
       <div class="form-group">
-        <label class="form-label"><i class="ri-at-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size:0.75rem; color:var(--text-muted);">(cannot be changed)</span></label>
-        <input type="text" class="form-control" value="{{ user.username }}" readonly disabled style="background: #f8fafc; font-weight: 600;">
+        <label class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Employee ID <span style="font-size:0.75rem; color:var(--text-muted);">(cannot be changed)</span></label>
+        <input type="text" class="form-control" value="{{ user.employee_id or user.username }}" readonly disabled style="background: #f8fafc; font-weight: 600;">
       </div>
 
       <div class="form-group">

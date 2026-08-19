@@ -40,17 +40,17 @@
 
     <div class="form-group">
       <label for="name" class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
-      <input type="text" id="name" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}" placeholder="e.g. John" required oninput="autoGenerateUsername()">
+      <input type="text" id="name" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}" placeholder="e.g. John" required oninput="autoGenerateEmployeeId()">
     </div>
 
     <div class="form-group">
       <label for="surname" class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
-      <input type="text" id="surname" name="surname" class="form-control" value="{{ form_data.surname if form_data else '' }}" placeholder="e.g. Doe" oninput="autoGenerateUsername()">
+      <input type="text" id="surname" name="surname" class="form-control" value="{{ form_data.surname if form_data else '' }}" placeholder="e.g. Doe" oninput="autoGenerateEmployeeId()">
     </div>
 
     <div class="form-group">
-      <label for="username" class="form-label"><i class="ri-at-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Username <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated with name + 2 random digits)</span></label>
-      <input type="text" id="username" name="username" class="form-control" value="{{ form_data.username if form_data else '' }}" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
+      <label for="employee_id" class="form-label"><i class="ri-fingerprint-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Employee ID <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated unique ID)</span></label>
+      <input type="text" id="employee_id" name="employee_id" class="form-control" value="{{ (form_data.employee_id or form_data.username) if form_data else '' }}" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
     </div>
 
     <div class="form-group">
@@ -89,22 +89,26 @@
 </div>
 
 <script>
-function autoGenerateUsername() {
+function autoGenerateEmployeeId() {
   const nameEl = document.getElementById('name');
-  const usernameEl = document.getElementById('username');
-  if (!nameEl || !usernameEl) return;
+  const empEl = document.getElementById('employee_id');
+  if (!nameEl || !empEl) return;
 
-  const cleanBase = nameEl.value.trim().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-
-  if (cleanBase.length > 0) {
-    if (!usernameEl.dataset.digits) {
-      usernameEl.dataset.digits = Math.floor(10 + Math.random() * 90).toString();
+  if (nameEl.value.trim().length > 0) {
+    if (!empEl.dataset.digits) {
+      empEl.dataset.digits = Math.floor(1000 + Math.random() * 9000).toString();
     }
-    usernameEl.value = cleanBase + usernameEl.dataset.digits;
+    empEl.value = 'EMP-' + empEl.dataset.digits;
   } else {
-    usernameEl.value = '';
-    delete usernameEl.dataset.digits;
+    empEl.value = '';
+    delete empEl.dataset.digits;
   }
 }
+document.addEventListener('DOMContentLoaded', function() {
+  const nameEl = document.getElementById('name');
+  if (nameEl && nameEl.value.trim().length > 0) {
+    autoGenerateEmployeeId();
+  }
+});
 </script>
 {% endblock %}

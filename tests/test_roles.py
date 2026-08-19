@@ -30,14 +30,14 @@ def test_admin_full_access(admin_client):
 def test_admin_add_user_shows_modal_credentials(admin_client):
     res = admin_client.post('/users/add', data={
         'name': 'Created Staff',
-        'username': 'createdstaff',
+        'employee_id': 'EMP-7777',
         'email': 'createdstaff@example.com',
         'password': 'Password123',
         'confirm_password': 'Password123',
         'role': 'staff'
     }, follow_redirects=True)
     assert res.status_code == 200
-    assert b"createdstaff" in res.data
+    assert b"EMP-7777" in res.data
     assert b"user-credentials-modal" in res.data
     assert b"password you entered" in res.data
 

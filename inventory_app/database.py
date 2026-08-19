@@ -112,8 +112,17 @@ def init_db_indexes(db):
     """Create MongoDB indexes for performance and unique constraint enforcement."""
     try:
         # Users indexes
-        db.users.create_index([("username", ASCENDING)], unique=True)
+        try:
+            user_idx_info = db.users.index_information()
+            for idx_name in list(user_idx_info.keys()):
+                if "username" in idx_name and idx_name != "_id_":
+                    db.users.drop_index(idx_name)
+        except Exception:
+            pass
+
+        db.users.create_index([("employee_id", ASCENDING)], unique=True)
         db.users.create_index([("email", ASCENDING)], unique=True)
+        db.users.create_index([("phone", ASCENDING)], sparse=True)
         
         # Clean up any stale unique indexes on products (only product_name should be unique)
         try:
@@ -184,7 +193,9 @@ def seed_default_admin(db):
         if not admin_user:
             now = datetime.now(timezone.utc)
             db.users.insert_one({
-                "username": "admin",
+                "employee_id": "EMP-0001",
+                "username": "EMP-0001",
+                "name": "System Administrator",
                 "email": "admin@inventory.local",
                 "password_hash": generate_password_hash("Admin@123456"),
                 "role": "admin",
@@ -192,6 +203,6 @@ def seed_default_admin(db):
                 "created_at": now,
                 "updated_at": now
             })
-            logger.info("Default administrator account created (admin / Admin@123456)")
+            logger.info("Default administrator account created (EMP-0001 / Admin@123456)")
     except Exception as e:
         logger.error(f"Error seeding default admin user: {e}")

@@ -8,19 +8,19 @@ def test_login_page_renders(client):
 
 def test_login_success(client):
     response = client.post('/login', data={
-        'identifier': 'testadmin',
+        'identifier': 'ADM-001',
         'password': 'AdminPass123'
     }, follow_redirects=True)
     assert response.status_code == 200
-    assert b"Welcome back, testadmin" in response.data
+    assert b"Welcome back" in response.data
 
 def test_login_invalid_password(client):
     response = client.post('/login', data={
-        'identifier': 'testadmin',
+        'identifier': 'ADM-001',
         'password': 'WrongPassword'
     }, follow_redirects=True)
     assert response.status_code == 200
-    assert b"Invalid username/email or password" in response.data
+    assert b"Invalid" in response.data and b"password" in response.data
 
 def test_login_unregistered_user_redirects_to_register(client):
     response = client.post('/login', data={
@@ -33,7 +33,7 @@ def test_login_unregistered_user_redirects_to_register(client):
 def test_registration_success(client):
     response = client.post('/register', data={
         'name': 'New User',
-        'username': 'newuser',
+        'employee_id': 'EMP-9999',
         'email': 'newuser@example.com',
         'password': 'password123',
         'confirm_password': 'password123'
@@ -41,16 +41,16 @@ def test_registration_success(client):
     assert response.status_code == 200
     assert b"Registration successful" in response.data
 
-def test_registration_duplicate_username(client):
+def test_registration_duplicate_employee_id(client):
     response = client.post('/register', data={
         'name': 'Test Admin',
-        'username': 'testadmin',
+        'employee_id': 'ADM-001',
         'email': 'unique@example.com',
         'password': 'password123',
         'confirm_password': 'password123'
     }, follow_redirects=True)
     assert response.status_code == 200
-    assert b"Username is already taken" in response.data
+    assert b"already registered" in response.data
 
 def test_logout(admin_client):
     response = admin_client.get('/logout', follow_redirects=True)

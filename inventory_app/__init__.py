@@ -257,7 +257,8 @@ def create_app(config_class=Config, custom_mongo_client=None):
     def inject_utilities():
         user_id = session.get('user_id')
         user_role = session.get('role', 'staff')
-        username = session.get('username', '')
+        employee_id = session.get('employee_id', session.get('username', ''))
+        user_name = session.get('name', '')
 
         pending_requests_count = 0
         low_stock_alerts = []
@@ -331,7 +332,9 @@ def create_app(config_class=Config, custom_mongo_client=None):
             'amount_in_words': amount_in_words,
             'current_user': {
                 'id': user_id,
-                'username': username,
+                'employee_id': employee_id,
+                'username': employee_id,
+                'name': user_name or employee_id,
                 'role': user_role
             },
             'pending_requests_count': pending_requests_count,
