@@ -890,6 +890,228 @@
   color: var(--color-on-surface-variant);
 }
 
+/* ── Unified Smart Search (replaces customer + employee fields) ── */
+.smart-search-wrap {
+  position: relative;
+}
+.smart-search-input {
+  width: 100%;
+  height: 38px;
+  border: 1.5px solid var(--pos-border);
+  border-radius: var(--r-sm);
+  background: var(--color-surface);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  padding: 0 2.4rem 0 2.2rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.smart-search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+  outline: none;
+}
+.smart-search-input::placeholder {
+  color: var(--color-on-surface-variant);
+  font-weight: 500;
+}
+.smart-search-icon {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-on-surface-variant);
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 2;
+}
+.smart-search-clear {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--color-on-surface-variant);
+  font-size: 0.72rem;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  z-index: 2;
+}
+.smart-search-clear.show { display: flex; }
+.smart-search-clear:hover { background: var(--color-danger-bg); color: var(--color-danger); }
+
+/* Autocomplete Dropdown */
+.smart-ac-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 50;
+  display: none;
+}
+.smart-ac-dropdown.open { display: block; }
+.smart-ac-section {
+  padding: 0.3rem 0;
+}
+.smart-ac-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-on-surface-variant);
+  padding: 0.3rem 0.7rem 0.15rem;
+}
+.smart-ac-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.1s;
+  font-size: 0.78rem;
+}
+.smart-ac-item:hover,
+.smart-ac-item.highlighted {
+  background: var(--color-primary-light);
+}
+.smart-ac-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.smart-ac-avatar.staff {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+}
+.smart-ac-avatar.customer {
+  background: var(--color-primary);
+}
+.smart-ac-info {
+  flex: 1;
+  min-width: 0;
+}
+.smart-ac-name {
+  font-weight: 700;
+  color: var(--color-on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.smart-ac-meta {
+  font-size: 0.65rem;
+  color: var(--color-on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.smart-ac-badge {
+  font-size: 0.56rem;
+  font-weight: 800;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.smart-ac-badge.staff-badge {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+.smart-ac-badge.disc-badge {
+  background: #dcfce7;
+  color: #15803d;
+}
+.smart-ac-badge.walkin-badge {
+  background: var(--color-surface-container);
+  color: var(--color-on-surface-variant);
+}
+
+/* Customer status strip below search */
+.smart-customer-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.3rem 0;
+  min-height: 26px;
+}
+.smart-customer-strip.empty {
+  display: none;
+}
+.smart-cust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.smart-cust-chip.retail {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+.smart-cust-chip.staff {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #c4b5fd;
+}
+.smart-cust-chip .remove-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 0.62rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.15rem;
+  opacity: 0.7;
+}
+.smart-cust-chip .remove-btn:hover { opacity: 1; }
+.smart-cust-info {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.66rem;
+  color: var(--color-on-surface-variant);
+}
+.smart-cust-info .discount-tag {
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--r-xs);
+  font-size: 0.6rem;
+}
+
+/* Enhanced cart row */
+.q-cart-row .q-cart-row-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
 /* Mobile Cart Toggle */
 .q-cart-overlay {
   display: none;
@@ -993,6 +1215,9 @@
   </div>
 </div>
 
+<!-- Employee data for smart search auto-detection -->
+<script id="pos-employee-data" type="application/json">{{ employees | tojson }}</script>
+
 <form method="POST" action="{{ url_for('billing.create_bill') }}" id="bill-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div id="item-fields-holder"></div>
@@ -1068,41 +1293,26 @@
 
       <!-- Integrated Customer & Billing Configuration inside Cart -->
       <div class="cart-customer-section">
-        <!-- Customer Type Toggle (Retail vs Staff Purchase) -->
-        <div class="cust-type-toggle">
-          <button type="button" class="cust-type-btn active" id="btn-type-retail"><i class="ri-user-line"></i> Retail</button>
-          <button type="button" class="cust-type-btn" id="btn-type-staff"><i class="ri-user-star-line"></i> Staff Purchase</button>
-        </div>
-
+        <!-- Hidden fields for form submission -->
         <input type="hidden" name="is_employee_purchase" id="is_employee_purchase" value="0">
         <input type="hidden" name="buyer_employee_id" id="buyer_employee_id" value="">
         <input type="hidden" name="staff_discount_percent" id="staff_discount_percent" value="10">
+        <input type="hidden" name="customer_name" id="customer_name" value="">
+        <input type="hidden" name="customer_phone" id="customer_phone" value="">
+        <input type="hidden" name="customer_gstin" id="customer_gstin" value="">
 
-        <!-- Staff Select Dropdown (Shown in Staff Purchase Mode) -->
-        <div id="staff-select-container" style="display: none; margin-bottom: 0.15rem;">
-          <select id="staff_picker" class="form-control" style="height: 32px; font-size: 0.74rem; font-weight: 600;">
-            <option value="">-- Choose Employee (ID / Name) --</option>
-            {% for emp in employees or [] %}
-              <option value="{{ emp.employee_id }}" data-name="{{ emp.name }}" data-phone="{{ emp.phone or '' }}" data-role="{{ emp.role }}">
-                {{ emp.employee_id }} — {{ emp.name }} ({{ emp.role|title }})
-              </option>
-            {% endfor %}
-          </select>
+        <!-- Unified Smart Search (Customer / Employee) -->
+        <div class="smart-search-wrap" id="smart-search-wrap">
+          <i class="ri-search-2-line smart-search-icon"></i>
+          <input type="text" class="smart-search-input" id="smart-search" placeholder="Type customer name, phone, or employee ID…" autocomplete="off" maxlength="120">
+          <button type="button" class="smart-search-clear" id="smart-search-clear" title="Clear"><i class="ri-close-line"></i></button>
+          <div class="smart-ac-dropdown" id="smart-ac-dropdown"></div>
         </div>
 
-        <!-- 10% Staff Concession Notice -->
-        <div class="staff-badge-pill" id="staff-concession-notice">
-          <span><i class="ri-discount-percent-line"></i> 10% Staff Concession Applied</span>
-          <span style="background:#d97706; color:#fff; font-size:0.6rem; padding:1px 5px; border-radius:4px;">Staff Rate</span>
-        </div>
-
-        <div class="cart-customer-name-row">
-          <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Customer Name *" required maxlength="120">
-          <button type="button" class="q-walkin-btn" id="walkin-btn" title="Quick walk-in customer"><i class="ri-user-3-line"></i> Walk-in</button>
-        </div>
-        <div class="cart-customer-subrow">
-          <input type="text" id="customer_phone" name="customer_phone" class="form-control" placeholder="Phone (Optional)">
-          <input type="text" id="customer_gstin" name="customer_gstin" class="form-control" placeholder="GSTIN (Optional)" maxlength="15">
+        <!-- Selected Customer Status Strip -->
+        <div class="smart-customer-strip empty" id="smart-customer-strip">
+          <div class="smart-cust-chip" id="smart-cust-chip"></div>
+          <div class="smart-cust-info" id="smart-cust-info"></div>
         </div>
         <div class="cart-payment-methods">
           <label class="q-pay-opt q-pay-cash is-active"><input type="radio" name="payment_method" value="CASH" checked><i class="ri-money-dollar-circle-line"></i> Cash</label>
@@ -1182,7 +1392,7 @@
         <i class="ri-qr-code-line"></i> Dynamic UPI Payment
       </div>
       <div style="font-size: 1.85rem; font-weight: 900; color: #fb923c; margin-top: 0.35rem; font-family: var(--font-display);" id="upi-modal-amount">₹0.00</div>
-      <div style="font-size: 0.78rem; opacity: 0.9; margin-top: 0.15rem;" id="upi-modal-customer">Customer: Walk-in</div>
+      <div style="font-size: 0.78rem; opacity: 0.9; margin-top: 0.15rem;" id="upi-modal-customer">Walk-in Customer</div>
     </div>
 
     <!-- Modal Body with QR Code & Apps -->
@@ -1221,7 +1431,6 @@
   const badge = document.getElementById('cart-badge');
   const toggleBadge = document.getElementById('toggle-badge');
   const clearBtn = document.getElementById('clear-cart');
-  const walkinBtn = document.getElementById('walkin-btn');
   const searchInput = document.getElementById('live-search');
   const gridEl = document.getElementById('q-pos-grid');
   const noneEl = document.getElementById('q-pos-none');
@@ -1342,11 +1551,11 @@
         const row = document.createElement('div');
         row.className = 'q-cart-row';
         row.innerHTML =
-          '<div>' +
+          '<div class="q-cart-row-left">' +
             '<div class="q-cart-row-name">' + item.name + (item.isFree ? ' <span style="color:#16a34a;font-weight:800;font-size:0.6rem;">FREE</span>' : '') + (atMax ? '<span style="font-size:0.58rem;background:var(--color-danger-bg);color:var(--color-danger);padding:0.05rem 0.3rem;border-radius:4px;margin-left:0.3rem;">MAX</span>' : '') + '</div>' +
-            '<div class="q-cart-row-sub">' + fmt(item.price) + (item.gst ? ' +' + item.gst + '% GST' : '') + (item.disc > 0 ? ' <span style="color:#ef4444">-' + item.disc + '%</span>' : '') + '</div>' +
+            '<div class="q-cart-row-sub">' + fmt(item.price) + (item.gst ? ' · GST ' + item.gst + '%' : '') + (item.disc > 0 ? ' <span style="color:#ef4444">· -' + item.disc + '%</span>' : '') + '</div>' +
             '<div class="q-cart-row-disc">' +
-              '<label>Disc%</label>' +
+              '<label style="font-size:0.6rem;color:var(--color-on-surface-variant);">Disc</label>' +
               '<input type="number" min="0" max="100" step="0.5" value="' + (item.disc || 0) + '" onchange="window.__posLineDisc(\'' + esc(item.name) + '\', this.value)">' +
               '<button type="button" class="free-btn ' + (item.isFree ? 'active' : '') + '" onclick="window.__posToggleFree(\'' + esc(item.name) + '\')">FREE</button>' +
             '</div>' +
@@ -1355,8 +1564,8 @@
             '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',-1)">&minus;</button>' +
             '<span class="qty-val">' + item.qty + '</span>' +
             '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',1)"' + (atMax ? ' disabled' : '') + '>+</button>' +
-            '<button type="button" class="trash-btn" onclick="window.__posRemove(\'' + esc(item.name) + '\')"><i class="ri-delete-bin-line"></i></button>' +
             '<span class="q-cart-row-total">' + fmt(total) + '</span>' +
+            '<button type="button" class="trash-btn" onclick="window.__posRemove(\'' + esc(item.name) + '\')"><i class="ri-close-line"></i></button>' +
           '</div>';
         cartEl.appendChild(row);
       });
@@ -1571,16 +1780,14 @@
     try {
       const payload = {
         cart: cart,
-        customer_name: (document.getElementById('customer_name') || {}).value || '',
-        customer_phone: (document.getElementById('customer_phone') || {}).value || '',
-        customer_gstin: (document.getElementById('customer_gstin') || {}).value || '',
+        customer: selectedCustomer,
         discount_percent: (document.getElementById('discount_percent') || {}).value || '0',
         shipping_charge: (document.getElementById('shipping_charge') || {}).value || '0',
         packing_charge: (document.getElementById('packing_charge') || {}).value || '0',
         payment_method: ((document.querySelector('input[name="payment_method"]:checked') || {}).value) || 'CASH',
         timestamp: Date.now()
       };
-      if (cart.length > 0 || payload.customer_name) {
+      if (cart.length > 0 || selectedCustomer) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       } else {
         localStorage.removeItem(STORAGE_KEY);
@@ -1614,9 +1821,19 @@
         });
       }
 
-      if (data.customer_name && document.getElementById('customer_name')) document.getElementById('customer_name').value = data.customer_name;
-      if (data.customer_phone && document.getElementById('customer_phone')) document.getElementById('customer_phone').value = data.customer_phone;
-      if (data.customer_gstin && document.getElementById('customer_gstin')) document.getElementById('customer_gstin').value = data.customer_gstin;
+      /* Restore customer selection */
+      if (data.customer && data.customer.name) {
+        if (data.customer.type === 'employee' && data.customer.employee_id) {
+          const emp = employeeList.find(e => e.employee_id === data.customer.employee_id);
+          if (emp) selectEmployee(emp);
+          else selectCustomer(data.customer.name);
+        } else if (data.customer.type === 'walkin') {
+          selectWalkin();
+        } else {
+          selectCustomer(data.customer.name);
+        }
+      }
+
       if (data.discount_percent && document.getElementById('discount_percent')) document.getElementById('discount_percent').value = data.discount_percent;
       if (data.shipping_charge && document.getElementById('shipping_charge')) document.getElementById('shipping_charge').value = data.shipping_charge;
       if (data.packing_charge && document.getElementById('packing_charge')) document.getElementById('packing_charge').value = data.packing_charge;
@@ -1679,75 +1896,195 @@
     }
   }, true);
 
-  /* ── Customer Type (Retail vs Staff Purchase) ── */
-  const btnTypeRetail = document.getElementById('btn-type-retail');
-  const btnTypeStaff = document.getElementById('btn-type-staff');
+  /* ── Smart Search (Unified Customer / Employee) ── */
   const isEmpInput = document.getElementById('is_employee_purchase');
   const buyerEmpInput = document.getElementById('buyer_employee_id');
-  const staffSelectCont = document.getElementById('staff-select-container');
-  const staffPicker = document.getElementById('staff_picker');
-  const staffNotice = document.getElementById('staff-concession-notice');
   const salaryDedOpt = document.getElementById('opt-salary-deduction');
   const discPercentInput = document.getElementById('discount_percent');
+  const custNameInput = document.getElementById('customer_name');
+  const custPhoneInput = document.getElementById('customer_phone');
+  const custGstinInput = document.getElementById('customer_gstin');
 
-  function setCustomerType(mode) {
-    if (mode === 'staff') {
-      btnTypeRetail.classList.remove('active');
-      btnTypeStaff.classList.add('active');
-      if (isEmpInput) isEmpInput.value = '1';
-      if (staffSelectCont) staffSelectCont.style.display = '';
-      if (staffNotice) staffNotice.classList.add('show');
-      if (salaryDedOpt) salaryDedOpt.style.display = 'flex';
-      if (discPercentInput && (!discPercentInput.value || parseFloat(discPercentInput.value) === 0)) {
-        discPercentInput.value = '10';
-        renderCart();
+  /* Load employee data from embedded JSON */
+  let employeeList = [];
+  try {
+    const empScript = document.getElementById('pos-employee-data');
+    if (empScript) employeeList = JSON.parse(empScript.textContent || '[]');
+  } catch (e) { employeeList = []; }
+
+  let selectedCustomer = null; /* { type: 'employee'|'walkin'|'customer', ... } */
+
+  function selectEmployee(emp) {
+    selectedCustomer = { type: 'employee', name: emp.name, employee_id: emp.employee_id, phone: emp.phone || '' };
+    if (isEmpInput) isEmpInput.value = '1';
+    if (buyerEmpInput) buyerEmpInput.value = emp.employee_id;
+    if (custNameInput) custNameInput.value = emp.name;
+    if (custPhoneInput) custPhoneInput.value = emp.phone || '';
+    if (discPercentInput && (!discPercentInput.value || parseFloat(discPercentInput.value) === 0)) {
+      discPercentInput.value = '10';
+    }
+    if (salaryDedOpt) salaryDedOpt.style.display = 'flex';
+    updateCustomerStrip();
+    renderCart();
+    if (typeof showToast === 'function') showToast(emp.name + ' (' + emp.employee_id + ') — 10% Staff Rate applied', 'info', 2000);
+  }
+
+  function selectWalkin() {
+    selectedCustomer = { type: 'walkin', name: 'Walk-in Customer' };
+    resetCustomerFields();
+    if (custNameInput) custNameInput.value = 'Walk-in Customer';
+    updateCustomerStrip();
+    renderCart();
+    if (typeof showToast === 'function') showToast('Walk-in customer selected', 'info', 1800);
+  }
+
+  function selectCustomer(name) {
+    selectedCustomer = { type: 'customer', name: name };
+    resetCustomerFields();
+    if (custNameInput) custNameInput.value = name;
+    updateCustomerStrip();
+    renderCart();
+  }
+
+  function resetCustomerFields() {
+    if (isEmpInput) isEmpInput.value = '0';
+    if (buyerEmpInput) buyerEmpInput.value = '';
+    if (salaryDedOpt) {
+      salaryDedOpt.style.display = 'none';
+      const sr = salaryDedOpt.querySelector('input');
+      if (sr && sr.checked) {
+        const cr = document.querySelector('.q-pay-cash input');
+        if (cr) cr.checked = true;
+        document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
       }
-    } else {
-      btnTypeRetail.classList.add('active');
-      btnTypeStaff.classList.remove('active');
-      if (isEmpInput) isEmpInput.value = '0';
-      if (buyerEmpInput) buyerEmpInput.value = '';
-      if (staffSelectCont) staffSelectCont.style.display = 'none';
-      if (staffNotice) staffNotice.classList.remove('show');
-      if (salaryDedOpt) {
-        salaryDedOpt.style.display = 'none';
-        const salaryRadio = salaryDedOpt.querySelector('input');
-        if (salaryRadio && salaryRadio.checked) {
-          const cashRadio = document.querySelector('.q-pay-cash input');
-          if (cashRadio) { cashRadio.checked = true; }
-          document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
-        }
-      }
-      if (discPercentInput && parseFloat(discPercentInput.value) === 10) {
-        discPercentInput.value = '0';
-        renderCart();
-      }
+    }
+    if (discPercentInput && parseFloat(discPercentInput.value) === 10) {
+      discPercentInput.value = '0';
     }
   }
 
-  if (btnTypeRetail) btnTypeRetail.addEventListener('click', () => setCustomerType('retail'));
-  if (btnTypeStaff) btnTypeStaff.addEventListener('click', () => setCustomerType('staff'));
+  function clearCustomerSelection() {
+    selectedCustomer = null;
+    resetCustomerFields();
+    if (custNameInput) custNameInput.value = '';
+    if (custPhoneInput) custPhoneInput.value = '';
+    if (custGstinInput) custGstinInput.value = '';
+    const strip = document.getElementById('smart-customer-strip');
+    if (strip) strip.classList.add('empty');
+    renderCart();
+  }
 
-  if (staffPicker) {
-    staffPicker.addEventListener('change', function() {
-      const selected = this.options[this.selectedIndex];
-      if (selected && selected.value) {
-        const empId = selected.value;
-        const empName = selected.dataset.name || '';
-        const empPhone = selected.dataset.phone || '';
-        if (buyerEmpInput) buyerEmpInput.value = empId;
-        const nameEl = document.getElementById('customer_name');
-        const phoneEl = document.getElementById('customer_phone');
-        if (nameEl) nameEl.value = empName;
-        if (phoneEl && empPhone) phoneEl.value = empPhone;
-        if (discPercentInput && (!discPercentInput.value || parseFloat(discPercentInput.value) === 0)) {
-          discPercentInput.value = '10';
+  function updateCustomerStrip() {
+    const strip = document.getElementById('smart-customer-strip');
+    const chip = document.getElementById('smart-cust-chip');
+    const info = document.getElementById('smart-cust-info');
+    if (!strip || !chip || !info || !selectedCustomer) { if (strip) strip.classList.add('empty'); return; }
+    strip.classList.remove('empty');
+    if (selectedCustomer.type === 'employee') {
+      chip.className = 'smart-cust-chip staff';
+      chip.innerHTML = '<i class="ri-user-star-line"></i> ' + selectedCustomer.name + ' <button type="button" class="remove-btn" onclick="window.__posClearCustomer()"><i class="ri-close-line"></i></button>';
+      info.innerHTML = '<span class="discount-tag">10% OFF</span> Staff purchase';
+    } else if (selectedCustomer.type === 'walkin') {
+      chip.className = 'smart-cust-chip retail';
+      chip.innerHTML = '<i class="ri-user-3-line"></i> Walk-in <button type="button" class="remove-btn" onclick="window.__posClearCustomer()"><i class="ri-close-line"></i></button>';
+      info.innerHTML = '';
+    } else {
+      chip.className = 'smart-cust-chip retail';
+      chip.innerHTML = '<i class="ri-user-line"></i> ' + selectedCustomer.name + ' <button type="button" class="remove-btn" onclick="window.__posClearCustomer()"><i class="ri-close-line"></i></button>';
+      info.innerHTML = '';
+    }
+  }
+  window.__posClearCustomer = clearCustomerSelection;
+
+  /* Smart Search Autocomplete */
+  const smartInput = document.getElementById('smart-search');
+  const smartClear = document.getElementById('smart-search-clear');
+  const smartDropdown = document.getElementById('smart-ac-dropdown');
+  let smartHighlightIdx = -1;
+
+  function renderSmartDropdown(query) {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) { smartDropdown.classList.remove('open'); smartDropdown.innerHTML = ''; smartHighlightIdx = -1; return; }
+    const staffMatches = employeeList.filter(e => {
+      const hay = ((e.employee_id || '') + ' ' + (e.name || '') + ' ' + (e.role || '')).toLowerCase();
+      return hay.includes(q);
+    }).slice(0, 5);
+    let html = '';
+    if (staffMatches.length > 0) {
+      html += '<div class="smart-ac-section"><div class="smart-ac-label">Employees</div>';
+      staffMatches.forEach((emp, i) => {
+        const initials = (emp.name || '??').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        html += '<div class="smart-ac-item" data-type="employee" data-idx="' + i + '">
+          <div class="smart-ac-avatar staff">' + initials + '</div>
+          <div class="smart-ac-info"><div class="smart-ac-name">' + emp.name + '</div><div class="smart-ac-meta">' + emp.employee_id + ' · ' + (emp.role || '').replace('_', ' ') + '</div></div>
+          <span class="smart-ac-badge staff-badge">Staff</span>
+        </div>';
+      });
+      html += '</div>';
+    }
+    html += '<div class="smart-ac-section"><div class="smart-ac-label">Quick Select</div>';
+    html += '<div class="smart-ac-item" data-type="walkin">
+      <div class="smart-ac-avatar customer"><i class="ri-user-3-line"></i></div>
+      <div class="smart-ac-info"><div class="smart-ac-name">Walk-in Customer</div><div class="smart-ac-meta">Quick checkout, no details needed</div></div>
+      <span class="smart-ac-badge walkin-badge">Fast</span>
+    </div>';
+    if (q.length >= 2 && !staffMatches.some(e => (e.name || '').toLowerCase() === q)) {
+      html += '<div class="smart-ac-item" data-type="customer" data-name="' + q.replace(/"/g, '&quot;') + '">
+        <div class="smart-ac-avatar customer"><i class="ri-user-line"></i></div>
+        <div class="smart-ac-info"><div class="smart-ac-name">' + query + '</div><div class="smart-ac-meta">New customer</div></div>
+        <span class="smart-ac-badge disc-badge">+New</span>
+      </div>';
+    }
+    html += '</div>';
+    smartDropdown.innerHTML = html;
+    smartDropdown.classList.add('open');
+    smartHighlightIdx = -1;
+    /* Bind clicks on items */
+    smartDropdown.querySelectorAll('.smart-ac-item').forEach(item => {
+      item.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        const type = this.dataset.type;
+        if (type === 'employee') {
+          const idx = parseInt(this.dataset.idx);
+          if (employeeList[idx]) selectEmployee(employeeList[idx]);
+        } else if (type === 'walkin') {
+          selectWalkin();
+        } else {
+          selectCustomer(this.dataset.name || smartInput.value.trim());
         }
-        renderCart();
-        if (typeof showToast === 'function') {
-          showToast('Selected ' + empName + ' (' + empId + ') - 10% Staff Rate Applied', 'info', 2000);
-        }
-      }
+        smartInput.value = '';
+        smartDropdown.classList.remove('open');
+      });
+    });
+  }
+
+  if (smartInput) {
+    smartInput.addEventListener('input', function() {
+      const v = this.value.trim();
+      smartClear.classList.toggle('show', v.length > 0);
+      renderSmartDropdown(v);
+    });
+    smartInput.addEventListener('focus', function() {
+      if (this.value.trim()) renderSmartDropdown(this.value);
+    });
+    smartInput.addEventListener('blur', function() {
+      setTimeout(() => smartDropdown.classList.remove('open'), 150);
+    });
+    smartInput.addEventListener('keydown', function(e) {
+      const items = smartDropdown.querySelectorAll('.smart-ac-item');
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); smartHighlightIdx = Math.min(smartHighlightIdx + 1, items.length - 1); items.forEach((it, i) => it.classList.toggle('highlighted', i === smartHighlightIdx)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); smartHighlightIdx = Math.max(smartHighlightIdx - 1, 0); items.forEach((it, i) => it.classList.toggle('highlighted', i === smartHighlightIdx)); }
+      else if (e.key === 'Enter' && smartHighlightIdx >= 0) { e.preventDefault(); items[smartHighlightIdx].dispatchEvent(new Event('mousedown')); }
+      else if (e.key === 'Escape') { smartDropdown.classList.remove('open'); }
+    });
+  }
+  if (smartClear) {
+    smartClear.addEventListener('click', function() {
+      smartInput.value = '';
+      this.classList.remove('show');
+      smartDropdown.classList.remove('open');
+      clearCustomerSelection();
     });
   }
 
@@ -1763,19 +2100,14 @@
     }
   });
 
-  walkinBtn.addEventListener('click', () => {
-    setCustomerType('retail');
-    const nameEl = document.getElementById('customer_name');
-    if (nameEl) nameEl.value = 'Walk-in Customer';
-    saveCartToStorage();
-    if (typeof showToast === 'function') showToast('Walk-in customer selected', 'info', 1800);
-  });
+  /* Walk-in is now handled by smart search dropdown — no separate button needed */
 
   /* ── Form Inputs Change Listener for Auto-Save ── */
-  ['customer_name', 'customer_phone', 'customer_gstin', 'discount_percent', 'shipping_charge', 'packing_charge'].forEach(id => {
+  ['discount_percent', 'shipping_charge', 'packing_charge'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', saveCartToStorage);
   });
+  if (smartInput) smartInput.addEventListener('input', saveCartToStorage);
 
   const billForm = document.getElementById('pos-bill-form') || document.querySelector('form[action*="billing/create"]');
   if (billForm) {
@@ -1814,13 +2146,11 @@
     e.preventDefault();
     if (cart.length === 0) return;
 
-    const nameInput = document.getElementById('customer_name');
-    if (!nameInput || !nameInput.value.trim()) {
-      if (typeof showToast === 'function') showToast('Please enter customer name or select Walk-in', 'warning');
-      if (nameInput) { nameInput.focus(); nameInput.style.borderColor = '#ef4444'; }
-      return;
+    /* Auto-select walk-in if no customer chosen */
+    if (!selectedCustomer) {
+      selectWalkin();
     }
-    if (nameInput) nameInput.style.borderColor = '';
+    const custName = (custNameInput && custNameInput.value) || (selectedCustomer && selectedCustomer.name) || 'Walk-in Customer';
 
     const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
 
@@ -1832,7 +2162,7 @@
       const currentTotal = window.__currentGrandTotal || 0;
 
       if (upiAmt) upiAmt.textContent = '₹' + currentTotal.toFixed(2);
-      if (upiCust) upiCust.textContent = 'Customer: ' + (nameInput.value.trim() || 'Walk-in');
+      if (upiCust) upiCust.textContent = 'Customer: ' + custName;
       if (upiImg) {
         const payload = 'upi://pay?pa=stocksetu@upi&pn=StockSetu&am=' + currentTotal.toFixed(2) + '&cu=INR&tn=POS%20Bill';
         upiImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(payload);
