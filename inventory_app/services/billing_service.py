@@ -1410,11 +1410,11 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
         }
 
     # Fetch all registered users in system
-    all_users = list(db.users.find({}, {"username": 1, "name": 1, "role": 1}))
-    user_info_map = {u.get("username", ""): {"name": u.get("name", ""), "role": u.get("role", "staff")} for u in all_users if u.get("username")}
+    all_users = list(db.users.find({}, {"employee_id": 1, "username": 1, "name": 1, "role": 1}))
+    user_info_map = {(u.get("employee_id") or u.get("username", "")): {"name": u.get("name", ""), "role": u.get("role", "staff")} for u in all_users if (u.get("employee_id") or u.get("username"))}
     
     for u in all_users:
-        uname = u.get("username", "")
+        uname = u.get("employee_id") or u.get("username", "")
         if uname and uname not in staff_stats_map:
             staff_stats_map[uname] = {
                 "cashier": uname,
