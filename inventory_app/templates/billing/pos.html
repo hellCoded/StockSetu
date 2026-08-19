@@ -2045,26 +2045,26 @@
       html += '<div class="smart-ac-section"><div class="smart-ac-label">Employees</div>';
       staffMatches.forEach((emp, i) => {
         const initials = (emp.name || '??').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-        html += '<div class="smart-ac-item" data-type="employee" data-idx="' + i + '">
-          <div class="smart-ac-avatar staff">' + initials + '</div>
-          <div class="smart-ac-info"><div class="smart-ac-name">' + emp.name + '</div><div class="smart-ac-meta">' + emp.employee_id + ' · ' + (emp.role || '').replace('_', ' ') + '</div></div>
-          <span class="smart-ac-badge staff-badge">Staff</span>
-        </div>';
+        html += '<div class="smart-ac-item" data-type="employee" data-idx="' + i + '">' +
+          '<div class="smart-ac-avatar staff">' + initials + '</div>' +
+          '<div class="smart-ac-info"><div class="smart-ac-name">' + emp.name + '</div><div class="smart-ac-meta">' + emp.employee_id + ' · ' + (emp.role || '').replace('_', ' ') + '</div></div>' +
+          '<span class="smart-ac-badge staff-badge">Staff</span>' +
+        '</div>';
       });
       html += '</div>';
     }
     html += '<div class="smart-ac-section"><div class="smart-ac-label">Quick Select</div>';
-    html += '<div class="smart-ac-item" data-type="walkin">
-      <div class="smart-ac-avatar customer"><i class="ri-user-3-line"></i></div>
-      <div class="smart-ac-info"><div class="smart-ac-name">Walk-in Customer</div><div class="smart-ac-meta">Quick checkout, no details needed</div></div>
-      <span class="smart-ac-badge walkin-badge">Fast</span>
-    </div>';
+    html += '<div class="smart-ac-item" data-type="walkin">' +
+      '<div class="smart-ac-avatar customer"><i class="ri-user-3-line"></i></div>' +
+      '<div class="smart-ac-info"><div class="smart-ac-name">Walk-in Customer</div><div class="smart-ac-meta">Quick checkout, no details needed</div></div>' +
+      '<span class="smart-ac-badge walkin-badge">Fast</span>' +
+    '</div>';
     if (q.length >= 2 && !staffMatches.some(e => (e.name || '').toLowerCase() === q)) {
-      html += '<div class="smart-ac-item" data-type="customer" data-name="' + q.replace(/"/g, '&quot;') + '">
-        <div class="smart-ac-avatar customer"><i class="ri-user-line"></i></div>
-        <div class="smart-ac-info"><div class="smart-ac-name">' + query + '</div><div class="smart-ac-meta">New customer</div></div>
-        <span class="smart-ac-badge disc-badge">+New</span>
-      </div>';
+      html += '<div class="smart-ac-item" data-type="customer" data-name="' + q.replace(/"/g, '&quot;') + '">' +
+        '<div class="smart-ac-avatar customer"><i class="ri-user-line"></i></div>' +
+        '<div class="smart-ac-info"><div class="smart-ac-name">' + query + '</div><div class="smart-ac-meta">New customer</div></div>' +
+        '<span class="smart-ac-badge disc-badge">+New</span>' +
+      '</div>';
     }
     html += '</div>';
     smartDropdown.innerHTML = html;
