@@ -15,13 +15,13 @@ def invalidate_user_cache(user_id: str):
     if user_id:
         cache_delete(f"auth:user:{str(user_id)}")
 
-def register_user(username: str = "", email: str = "", password: str = "", role: str = "staff", name: str = "", surname: str = "", employee_id: str = "", phone: str = "") -> tuple[bool, str, dict]:
+def register_user(email: str = "", password: str = "", role: str = "staff", name: str = "", surname: str = "", employee_id: str = "", phone: str = "") -> tuple[bool, str, dict]:
     """Registers a new user with employee_id as the primary unique business key."""
     import re
     from inventory_app.utils.validators import generate_employee_id
     db = get_db()
     
-    clean_emp_id = (employee_id or username or "").strip()
+    clean_emp_id = (employee_id or "").strip()
     if not clean_emp_id:
         clean_emp_id = generate_employee_id(name)
         
@@ -344,7 +344,7 @@ def re_escape(text: str) -> str:
     import re
     return re.escape(text)
 
-def create_role_request(user_id: str, employee_id: str = "", email: str = "", requested_role: str = "inventory_manager", reason: str = "", username: str = "") -> tuple[bool, str]:
+def create_role_request(user_id: str, employee_id: str = "", email: str = "", requested_role: str = "inventory_manager", reason: str = "") -> tuple[bool, str]:
     """Submits a role promotion/update request from user to admin for verification."""
     uid_str = str(user_id) if user_id else ""
     if not uid_str or not ObjectId.is_valid(uid_str):
@@ -357,7 +357,7 @@ def create_role_request(user_id: str, employee_id: str = "", email: str = "", re
     if not reason or not reason.strip():
         return False, "A reason / justification is required to submit a role request."
 
-    effective_emp_id = (employee_id or username or "").strip()
+    effective_emp_id = (employee_id or "").strip()
 
     try:
         existing = db.role_requests.find_one({"user_id": uid_str, "status": "PENDING"})

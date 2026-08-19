@@ -24,7 +24,7 @@ def stock_in(product_name=None):
             return redirect(request.referrer or url_for('products.list_products'))
             
         reason = request.form.get('reason', '')
-        username = session.get('username', 'System')
+        username = session.get('employee_id', 'System')
         
         success, msg, prod = stock_in_svc(p_name, quantity, reason, performed_by=username)
         if success:
@@ -54,7 +54,7 @@ def stock_out(product_name=None):
             return redirect(request.referrer or url_for('products.list_products'))
             
         reason = request.form.get('reason', '')
-        username = session.get('username', 'System')
+        username = session.get('employee_id', 'System')
         
         success, msg, prod = stock_out_svc(p_name, quantity, reason, performed_by=username)
         if success:
@@ -84,7 +84,7 @@ def adjust_stock(product_name=None):
             return redirect(request.referrer or url_for('products.list_products'))
             
         reason = request.form.get('reason', '')
-        username = session.get('username', 'System')
+        username = session.get('employee_id', 'System')
         
         success, msg, prod = stock_adjust_svc(p_name, target_quantity, reason, performed_by=username)
         if success:
@@ -177,7 +177,7 @@ def bulk_stock_in_confirm():
     new_units = request.form.getlist('new_unit[]')
     new_hsns = request.form.getlist('new_hsn[]')
     reason = request.form.get('reason', 'Bulk import from supplier bill')
-    username = session.get('username', 'System')
+    username = session.get('employee_id', 'System')
 
     items = session.pop('bulk_import_items', None)
     if not items:

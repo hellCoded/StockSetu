@@ -174,7 +174,7 @@ def view_bill(bill_id):
 def refund_bill(bill_id):
     from inventory_app.services.billing_service import refund_bill
     reason = request.form.get('reason', 'Customer Refund')
-    username = session.get('username', 'Unknown')
+    username = session.get('employee_id', 'Unknown')
     success, msg = refund_bill(bill_id, reason, username)
     if success:
         flash(msg, "success")
@@ -192,7 +192,7 @@ def refund_items(bill_id):
     from inventory_app.services.billing_service import refund_bill_lines
     line_indices = request.form.getlist('line_index[]')
     reason = request.form.get('reason', 'Line refund')
-    username = session.get('username', 'Unknown')
+    username = session.get('employee_id', 'Unknown')
     success, msg = refund_bill_lines(bill_id, line_indices, reason, username)
     flash(msg, "success" if success else "danger")
     return redirect(url_for('billing.view_bill', bill_id=bill_id))
@@ -211,7 +211,7 @@ def record_payment(bill_id):
         amount = 0
     method = request.form.get('method', 'CASH')
     reference = request.form.get('reference', '')
-    username = session.get('username', 'Unknown')
+    username = session.get('employee_id', 'Unknown')
     success, msg = record_bill_payment(bill_id, amount, method, reference, username)
     flash(msg, "success" if success else "danger")
     return redirect(url_for('billing.view_bill', bill_id=bill_id))
@@ -256,7 +256,7 @@ def edit_bill(bill_id):
         'packing_charge': request.form.get('packing_charge', '0'),
     }
 
-    username = session.get('username', 'Unknown')
+    username = session.get('employee_id', 'Unknown')
     success, msg, bill = edit_bill(bill_id, items, charges, customer_data, username)
     flash(msg, "success" if success else "danger")
     return redirect(url_for('billing.view_bill', bill_id=bill_id))

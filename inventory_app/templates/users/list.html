@@ -106,12 +106,12 @@
                     {% elif u.role == 'admin' %}um-avatar-admin
                     {% elif u.role == 'inventory_manager' %}um-avatar-manager
                     {% else %}um-avatar-staff{% endif %}">
-                    {{ (u.name or u.employee_id or u.username or 'U')[0] | upper }}
+                    {{ (u.name or u.employee_id or 'U')[0] | upper }}
                   </div>
                   <div>
-                    <strong style="color: #0f172a; display: block;">{{ u.name if u.name else (u.employee_id or u.username) }}</strong>
+                    <strong style="color: #0f172a; display: block;">{{ u.name if u.name else u.employee_id }}</strong>
                     <span style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                      <span class="badge" style="background: #e2e8f0; color: #334155; font-family: monospace; font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.35rem; border-radius: 4px;">{{ u.employee_id or u.username }}</span>
+                      <span class="badge" style="background: #e2e8f0; color: #334155; font-family: monospace; font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.35rem; border-radius: 4px;">{{ u.employee_id }}</span>
                       {% if u._id == current_user.id %}
                         <span class="um-you-chip"><i class="ri-vip-crown-line" style="font-size: 0.6rem;"></i> You</span>
                       {% endif %}
@@ -353,12 +353,12 @@ function openUpdateRoleModal(userId, name, employeeId, currentRole, e) {
   if (modal) {
     const form = document.getElementById('update-role-form');
     const nameEl = document.getElementById('role-modal-name');
-    const usernameEl = document.getElementById('role-modal-username');
+    const empIdEl = document.getElementById('role-modal-employee-id');
     const avatarEl = document.getElementById('role-modal-avatar');
 
     if (form) form.action = `/users/${userId}/role`;
     if (nameEl) nameEl.textContent = name;
-    if (usernameEl) usernameEl.textContent = employeeId;
+    if (empIdEl) empIdEl.textContent = employeeId;
     if (avatarEl) avatarEl.textContent = (name ? name[0].toUpperCase() : (employeeId ? employeeId[0].toUpperCase() : 'U'));
 
     const radio = modal.querySelector(`input[name="role"][value="${currentRole}"]`);
@@ -817,11 +817,11 @@ function clearStaffFile(e) {
             <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.85rem; flex-wrap: wrap;">
               <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
                 <div class="um-avatar um-avatar-staff" style="width: 42px; height: 42px; font-size: 1.05rem; margin-top: 2px;">
-                  {{ (req.employee_id or req.username or 'U')[0] | upper }}
+                  {{ (req.employee_id or 'U')[0] | upper }}
                 </div>
                 <div>
                   <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <strong style="color: #0f172a; font-size: 0.98rem;">{{ req.employee_id or req.username }}</strong>
+                    <strong style="color: #0f172a; font-size: 0.98rem;">{{ req.employee_id }}</strong>
                     {% if req.requested_role == 'admin' %}
                       <span class="um-role-chip um-role-admin"><i class="ri-shield-user-line"></i> Requested: Admin</span>
                     {% else %}
@@ -918,7 +918,7 @@ function clearStaffFile(e) {
         <div id="role-modal-avatar" class="um-avatar um-avatar-staff" style="width: 40px; height: 40px; font-size: 1rem;">U</div>
         <div style="flex: 1; min-width: 0;">
           <strong id="role-modal-name" style="color: #0f172a; display: block; font-size: 0.95rem;">User Name</strong>
-          <span id="role-modal-username" style="font-size: 0.8rem; color: var(--text-muted);">@username</span>
+          <span id="role-modal-employee-id" style="font-size: 0.8rem; color: var(--text-muted);">@employee_id</span>
         </div>
         <span id="role-modal-chip" class="um-role-chip um-role-staff" style="flex-shrink: 0;"><i class="ri-profile-line"></i> Staff</span>
       </div>

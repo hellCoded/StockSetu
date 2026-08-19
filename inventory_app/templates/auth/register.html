@@ -50,7 +50,7 @@
 
     <div class="form-group">
       <label for="employee_id" class="form-label"><i class="ri-fingerprint-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Employee ID <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Auto-generated unique ID)</span></label>
-      <input type="text" id="employee_id" name="employee_id" class="form-control" value="{{ (form_data.employee_id or form_data.username) if form_data else '' }}" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
+      <input type="text" id="employee_id" name="employee_id" class="form-control" value="{{ form_data.employee_id if form_data else '' }}" readonly style="background: #f8fafc; font-weight: 600; color: #0f172a;">
     </div>
 
     <div class="form-group">

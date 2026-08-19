@@ -55,7 +55,7 @@ def test_user_session_caching(app, mock_mongo):
     """Verifies that get_user_by_id caches results and invalidation clears them."""
     from inventory_app.services.auth_service import register_user, get_user_by_id, toggle_user_active
     with app.app_context():
-        ok, msg, user = register_user("perf_user", "perf@test.com", "Password@123", role="staff")
+        ok, msg, user = register_user(employee_id="perf_user", email="perf@test.com", password="Password@123", role="staff")
         assert ok
         uid = str(user["_id"])
 

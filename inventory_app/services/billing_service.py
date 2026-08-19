@@ -1449,11 +1449,11 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
     # ── Staff leaderboard ──
     staff_stats_map = {}
     for s in facet.get("staff", []):
-        username = str(s["_id"])
+        emp_id = str(s["_id"])
         total_s = float(s.get("total_sales", 0))
         count = int(s.get("bill_count", 0))
-        staff_stats_map[username] = {
-            "cashier": username,
+        staff_stats_map[emp_id] = {
+            "cashier": emp_id,
             "bill_count": count,
             "total_sales": total_s,
             "avg_sale": round(total_s / count, 2) if count > 0 else 0,

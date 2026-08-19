@@ -341,7 +341,7 @@ def rename_product(product_name):
 @csrf_protected
 def toggle_active(product_name):
     from inventory_app.services.product_service import toggle_product_active
-    username = session.get('username', 'System')
+    username = session.get('employee_id', 'System')
     success, msg, _ = toggle_product_active(product_name, performed_by=username)
     if success:
         flash(msg, "success")
