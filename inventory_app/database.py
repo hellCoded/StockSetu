@@ -57,6 +57,7 @@ def init_db(app, custom_client=None):
             retryReads=True,
         )
         current_db = db_client[db_name]
+        _setup_db_once(current_db)
 
     return current_db
 
@@ -111,14 +112,26 @@ def get_db():
 def init_db_indexes(db):
     """Create MongoDB indexes for performance and unique constraint enforcement."""
     try:
-        # Users indexes
+        # Users indexes: drop all legacy username unique indexes
         try:
             user_idx_info = db.users.index_information()
-            for idx_name in list(user_idx_info.keys()):
-                if "username" in idx_name and idx_name != "_id_":
-                    db.users.drop_index(idx_name)
-        except Exception:
-            pass
+            for idx_name, idx_spec in user_idx_info.items():
+                if idx_name != "_id_":
+                    key_fields = [k[0] for k in idx_spec.get("key", [])]
+                    if "username" in key_fields or "username" in idx_name:
+                        logger.info(f"Dropping legacy user index '{idx_name}'.")
+                        db.users.drop_index(idx_name)
+        except Exception as u_err:
+            logger.warning(f"Note on inspecting user indexes: {u_err}")
+
+        # Migration: populate missing employee_id on existing records
+        try:
+            users_missing_emp = list(db.users.find({"$or": [{"employee_id": {"$exists": False}}, {"employee_id": None}, {"employee_id": ""}]}))
+            for u in users_missing_emp:
+                fallback_id = u.get("username") or f"EMP-{str(u['_id'])[-4:]}"
+                db.users.update_one({"_id": u["_id"]}, {"$set": {"employee_id": fallback_id, "username": fallback_id}})
+        except Exception as mig_err:
+            logger.warning(f"User employee_id migration note: {mig_err}")
 
         db.users.create_index([("employee_id", ASCENDING)], unique=True)
         db.users.create_index([("email", ASCENDING)], unique=True)
