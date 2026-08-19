@@ -120,14 +120,20 @@ def deactivate_inactive_users(inactivity_hours: float = 12.0) -> int:
         return 0
 
 def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
-    """Authenticates user by employee ID or email."""
+    """Authenticates a user via employee_id or email and returns the user document."""
+    import re
     db = get_db()
-    clean_id = identifier.strip()
-    
+    clean_id = (identifier or "").strip()
+    if not clean_id or not password:
+        return False, "Employee ID/Email and password are required.", {}
+        
     user = db.users.find_one({
         "$or": [
             {"employee_id_lower": clean_id.lower()},
-            {"email_lower": clean_id.lower()}
+            {"employee_id": clean_id},
+            {"employee_id": {"$regex": f"^{re.escape(clean_id)}$", "$options": "i"}},
+            {"email_lower": clean_id.lower()},
+            {"email": clean_id.lower()}
         ]
     })
     
@@ -655,9 +661,12 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
         now = datetime.now(timezone.utc)
         user_doc = {
             "employee_id": clean_emp_id,
+            "employee_id_lower": clean_emp_id_lower,
             "name": full_name or clean_emp_id,
+            "name_lower": (full_name or clean_emp_id).lower(),
             "phone": raw_phone,
             "email": raw_email,
+            "email_lower": raw_email.lower(),
             "password_hash": hashed_password,
             "role": "staff",
             "is_active": False,

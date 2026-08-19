@@ -15,7 +15,7 @@ def login():
         
     prefilled_identifier = ""
     if 'registered_user' in session:
-        prefilled_identifier = session['registered_user'].get('employee_id') or session['registered_user'].get('username', '')
+        prefilled_identifier = session['registered_user'].get('employee_id', '')
         
     if request.method == 'POST':
         identifier = request.form.get('identifier', '').strip()
@@ -25,11 +25,10 @@ def login():
         if success:
             session.permanent = True
             now_ts = datetime.now(timezone.utc).timestamp()
-            emp_id = user.get('employee_id') or user.get('username', '')
+            emp_id = user.get('employee_id', '')
             user_name = user.get('name', '')
             session['user_id'] = user['_id']
             session['employee_id'] = emp_id
-            session['username'] = emp_id
             session['name'] = user_name
             session['email'] = user['email']
             session['role'] = user['role']
@@ -60,8 +59,7 @@ def register():
         data = {
             'name': request.form.get('name', ''),
             'surname': request.form.get('surname', ''),
-            'employee_id': request.form.get('employee_id', '') or request.form.get('username', ''),
-            'username': request.form.get('employee_id', '') or request.form.get('username', ''),
+            'employee_id': request.form.get('employee_id', ''),
             'email': request.form.get('email', ''),
             'password': request.form.get('password', ''),
             'confirm_password': request.form.get('confirm_password', '')
@@ -74,7 +72,6 @@ def register():
             
         success, msg, user = register_user(
             employee_id=data['employee_id'],
-            username=data['employee_id'],
             email=data['email'],
             password=data['password'],
             role='staff',
@@ -86,7 +83,6 @@ def register():
             session['registered_user'] = {
                 'name': f"{data['name']} {data['surname']}".strip() if data.get('surname') else data['name'],
                 'employee_id': user.get('employee_id', ''),
-                'username': user.get('employee_id', ''),
                 'email': user['email'],
             }
             flash("Registration successful! You can now log in.", "success")

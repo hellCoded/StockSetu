@@ -55,7 +55,6 @@ def add_user():
         'name': name,
         'surname': surname,
         'employee_id': employee_id,
-        'username': employee_id,
         'phone': phone,
         'email': email,
         'password': password,
@@ -70,7 +69,6 @@ def add_user():
         
     success, msg, user = register_user(
         employee_id=data['employee_id'],
-        username=data['employee_id'],
         email=data['email'],
         password=data['password'],
         role=data['role'],
@@ -83,7 +81,6 @@ def add_user():
         session['registered_user'] = {
             'name': f"{data['name']} {data['surname']}".strip() if data.get('surname') else data['name'],
             'employee_id': user.get('employee_id', ''),
-            'username': user.get('employee_id', ''),
             'email': user['email'],
             'password': data['password']
         }
@@ -143,7 +140,7 @@ def request_promotion():
         flash("Invalid user session.", "danger")
         return redirect(url_for('auth.login'))
         
-    emp_id = user.get('employee_id') or user.get('username', '')
+    emp_id = user.get('employee_id', '')
     email = user.get('email', '')
     reason = request.form.get('reason', '')
     requested_role = request.form.get('requested_role', 'inventory_manager')
@@ -173,7 +170,7 @@ def reject_promotion_request(request_id):
 def _process_role_request_action(request_id: str, action: str, success_category: str):
     """Shared handler for approve/reject role request actions."""
     from inventory_app.services.auth_service import process_role_request
-    admin_username = session.get('username', 'System Admin')
+    admin_username = session.get('employee_id', 'System Admin')
     admin_comment = request.form.get('admin_comment', '')
     success, msg = process_role_request(request_id, action=action, processed_by=admin_username, admin_comment=admin_comment)
     if success:
@@ -250,7 +247,7 @@ def bulk_import_users():
     from inventory_app.services.auth_service import import_staff_bulk
     file = request.files.get('staff_file')
     default_pw = request.form.get('default_password', 'Staff@123').strip() or 'Staff@123'
-    current_admin = session.get('username', 'admin')
+    current_admin = session.get('employee_id', 'admin')
 
     success, msg, details = import_staff_bulk(file, default_password=default_pw, imported_by=current_admin)
     if success:

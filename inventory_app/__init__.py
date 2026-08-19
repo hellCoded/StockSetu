@@ -257,7 +257,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
     def inject_utilities():
         user_id = session.get('user_id')
         user_role = session.get('role', 'staff')
-        employee_id = session.get('employee_id', session.get('username', ''))
+        employee_id = session.get('employee_id', '')
         user_name = session.get('name', '')
 
         pending_requests_count = 0
@@ -333,7 +333,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
             'current_user': {
                 'id': user_id,
                 'employee_id': employee_id,
-                'username': employee_id,
+
                 'name': user_name or employee_id,
                 'role': user_role
             },

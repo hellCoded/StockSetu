@@ -247,7 +247,7 @@ def add_product():
             'location': request.form.get('location', '')
         }
         
-        username = session.get('username', 'System')
+        username = session.get('employee_id', 'System')
         success, msg, prod = create_product(product_data, performed_by=username)
         
         if success:
@@ -296,7 +296,7 @@ def edit_product(product_name):
             'location': request.form.get('location', '')
         }
         
-        username = session.get('username', 'System')
+        username = session.get('employee_id', 'System')
         success, msg, updated_prod = update_product(product['product_name'], update_data, performed_by=username)
         
         if success:
@@ -323,7 +323,7 @@ def rename_product(product_name):
         
     if request.method == 'POST':
         new_name = request.form.get('new_product_name', '')
-        username = session.get('username', 'System')
+        username = session.get('employee_id', 'System')
         
         success, msg = rename_product_svc(product['product_name'], new_name, performed_by=username)
         if success:
