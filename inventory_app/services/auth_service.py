@@ -46,7 +46,6 @@ def register_user(username: str = "", email: str = "", password: str = "", role:
     now = datetime.now(timezone.utc)
     user_doc = {
         "employee_id": clean_emp_id,
-        "username": clean_emp_id,  # backward compatibility
         "name": full_name or clean_emp_id,
         "email": clean_email,
         "phone": clean_phone,
@@ -128,7 +127,6 @@ def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
     user = db.users.find_one({
         "$or": [
             {"employee_id": {"$regex": f"^{escaped_id}$", "$options": "i"}},
-            {"username": {"$regex": f"^{escaped_id}$", "$options": "i"}},
             {"email": clean_id.lower()}
         ]
     })
@@ -145,8 +143,6 @@ def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
         user["is_active"] = True
         user["last_active_at"] = now
         user["_id"] = str(user["_id"])
-        if not user.get("employee_id") and user.get("username"):
-            user["employee_id"] = user.get("username")
         return True, "Login successful.", user
         
     return False, "Invalid Employee ID/Email or password.", {}
@@ -160,7 +156,6 @@ def get_all_users(search: str = "", role: str = "", page: int = None, per_page: 
         escaped = re.escape(search.strip())
         query["$or"] = [
             {"employee_id": {"$regex": escaped, "$options": "i"}},
-            {"username": {"$regex": escaped, "$options": "i"}},
             {"phone": {"$regex": escaped, "$options": "i"}},
             {"email": {"$regex": escaped, "$options": "i"}},
             {"name": {"$regex": escaped, "$options": "i"}},
@@ -169,21 +164,25 @@ def get_all_users(search: str = "", role: str = "", page: int = None, per_page: 
     if role:
         query["role"] = role.strip().lower()
 
-    total_count = 0
-    if return_total:
-        total_count = db.users.count_documents(query)
+    effective_page = max(1, int(page or 1)) if page is not None else 1
+    effective_limit = max(1, int(per_page or 25)) if per_page is not None else 25
+    effective_skip = (effective_page - 1) * effective_limit
+
+    # Single-query pagination: fetch limit+1 to detect "has more"
+    fetch_limit = effective_limit + 1 if return_total else effective_limit
 
     cursor = db.users.find(query).sort("created_at", -1)
-    if page is not None and per_page is not None:
-        effective_page = max(1, int(page or 1))
-        effective_limit = max(1, int(per_page or 25))
-        cursor = cursor.skip((effective_page - 1) * effective_limit).limit(effective_limit)
+    cursor = cursor.skip(effective_skip).limit(fetch_limit)
 
     users = list(cursor)
+    has_more = len(users) > effective_limit
+    if has_more:
+        users = users[:effective_limit]
     for u in users:
         u["_id"] = str(u["_id"])
 
     if return_total:
+        total_count = len(users) if not has_more else db.users.count_documents(query)
         return users, total_count
     return users
 
@@ -359,7 +358,7 @@ def create_role_request(user_id: str, employee_id: str = "", email: str = "", re
         user = db.users.find_one({"_id": ObjectId(uid_str)})
         current_role = user.get("role", "staff") if user else "staff"
         if not effective_emp_id and user:
-            effective_emp_id = user.get("employee_id") or user.get("username", "")
+            effective_emp_id = user.get("employee_id", "")
 
         if current_role == requested_role:
             return False, f"You are already assigned the '{current_role}' role."
@@ -368,7 +367,6 @@ def create_role_request(user_id: str, employee_id: str = "", email: str = "", re
         request_doc = {
             "user_id": uid_str,
             "employee_id": effective_emp_id,
-            "username": effective_emp_id,
             "email": email or (user.get("email") if user else ""),
             "current_role": current_role,
             "requested_role": requested_role,
@@ -411,7 +409,7 @@ def cancel_role_request(request_id: str, user_id: str) -> tuple[bool, str]:
         )
         
         from inventory_app.services.audit_service import log_audit
-        log_audit("role_request_cancelled", req.get("employee_id") or req.get("username"), target_resource=uid_str, details={"request_id": req_id_str})
+        log_audit("role_request_cancelled", req.get("employee_id"), target_resource=uid_str, details={"request_id": req_id_str})
         
         return True, "Role request cancelled successfully."
     except Exception as e:
@@ -423,10 +421,12 @@ def get_user_role_requests(user_id: str) -> list:
     if not uid_str or not ObjectId.is_valid(uid_str):
         return []
     db = get_db()
-    requests = list(db.role_requests.find({"user_id": uid_str}).sort("created_at", -1))
-    for r in requests:
+    cursor = db.role_requests.find({"user_id": uid_str}).sort("created_at", -1)
+    results = []
+    for r in cursor:
         r["_id"] = str(r["_id"])
-    return requests
+        results.append(r)
+    return results
 
 def get_user_pending_role_request(user_id: str) -> dict:
     """Returns any PENDING role request for the given user."""
@@ -590,14 +590,12 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
         return False, "Could not detect required columns (Employee ID, Full Name, Phone No) in the file header.", {}
 
     db = get_db()
-    existing_users = list(db.users.find({}, {"email": 1, "username": 1, "employee_id": 1}))
+    existing_users = list(db.users.find({}, {"email": 1, "employee_id": 1}))
     existing_emails = {u.get("email", "").strip().lower() for u in existing_users if u.get("email")}
-    existing_usernames = {u.get("username", "").strip().lower() for u in existing_users if u.get("username")}
     existing_emp_ids = {u.get("employee_id", "").strip().lower() for u in existing_users if u.get("employee_id")}
 
     batch_emails = set()
     batch_emp_ids = set()
-    batch_usernames = set()
     valid_docs = []
     errors = []
     total_processed = 0
@@ -628,7 +626,7 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
             errors.append(f"Row {row_idx}: Missing employee full name.")
             continue
 
-        # 2. Employee ID resolution (used as employee_id and username)
+        # 2. Employee ID resolution
         if not raw_emp_id:
             base_id = "".join(c for c in full_name if c.isalnum()).upper()[:6] or "EMP"
             raw_emp_id = f"{base_id}-{total_processed + 1000}"
@@ -651,18 +649,9 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
             errors.append(f"Row {row_idx}: Email '{raw_email}' is already registered or duplicated in file.")
             continue
 
-        # 4. Username matching employee_id
-        final_username = clean_emp_id
-        if final_username.lower() in existing_usernames or final_username.lower() in batch_usernames:
-            suffix = 1
-            while f"{clean_emp_id}_{suffix}".lower() in existing_usernames or f"{clean_emp_id}_{suffix}".lower() in batch_usernames:
-                suffix += 1
-            final_username = f"{clean_emp_id}_{suffix}"
-
         now = datetime.now(timezone.utc)
         user_doc = {
             "employee_id": clean_emp_id,
-            "username": final_username,
             "name": full_name or clean_emp_id,
             "phone": raw_phone,
             "email": raw_email,
@@ -677,7 +666,6 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
         valid_docs.append(user_doc)
         batch_emails.add(raw_email)
         batch_emp_ids.add(clean_emp_id_lower)
-        batch_usernames.add(final_username.lower())
 
     if not valid_docs:
         err_detail = "; ".join(errors[:5]) if errors else "No valid staff records found in file."
@@ -701,7 +689,7 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
             "role_request_count": 0,
             "skipped_count": len(errors),
             "errors": errors,
-            "imported_users": [{"employee_id": d.get("employee_id", ""), "username": d["username"], "name": d["name"], "phone": d.get("phone", ""), "email": d["email"], "role": d["role"]} for d in valid_docs]
+            "imported_users": [{"employee_id": d.get("employee_id", ""), "name": d["name"], "phone": d.get("phone", ""), "email": d["email"], "role": d["role"]} for d in valid_docs]
         }
         msg = f"Successfully imported {inserted_count} staff member(s)."
         msg += " All imported accounts have the 'staff' role and must be activated by an Administrator."

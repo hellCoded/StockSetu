@@ -11,7 +11,7 @@ from inventory_app.services.audit_service import log_audit
 from inventory_app import cache_get, cache_set, cache_delete, cache_delete_prefix
 
 # ── Billing summary cache (global,60-second TTL) ──
-_BILLING_SUMMARY_TTL = 60
+_BILLING_SUMMARY_TTL = 300
 
 
 def _cached_billing_summary():
@@ -37,7 +37,7 @@ def invalidate_billing_caches():
     cache_delete_prefix("billing:bills:")
     cache_delete_prefix("billing:bill:")
     cache_delete_prefix("billing:audit:")
-    cache_delete("billing:reconciliation")
+    cache_delete_prefix("billing:reconciliation")
     cache_delete_prefix("sales:analytics:")
     cache_delete("dashboard:main")
     cache_delete_prefix("inventory:txns:")
@@ -1049,21 +1049,25 @@ def get_bills(search: str = "", limit: int = 100, payment_status: str = "", page
         "line_items": 1,
     }
 
-    total_count = 0
-    if return_total:
-        total_count = db.invoices.count_documents(query)
+    # Single-query pagination: fetch limit+1 to detect "has more" without a
+    # separate count_documents call.
+    fetch_limit = effective_limit + 1 if (return_total and effective_limit) else effective_limit
 
     cursor = db.invoices.find(query, projection).sort("created_at", -1)
     if effective_skip > 0:
         cursor = cursor.skip(effective_skip)
-    if effective_limit is not None and effective_limit > 0:
-        cursor = cursor.limit(effective_limit)
+    if fetch_limit is not None and fetch_limit > 0:
+        cursor = cursor.limit(fetch_limit)
 
     bills = list(cursor)
+    has_more = len(bills) > effective_limit if effective_limit else False
+    if has_more:
+        bills = bills[:effective_limit]
     for b in bills:
         b["_id"] = str(b["_id"])
 
     if return_total:
+        total_count = len(bills) if not has_more else db.invoices.count_documents(query)
         cache_set(_cache_key, json.dumps({"items": bills, "total": total_count}, default=str), ttl=30)
         return bills, total_count
     else:
@@ -1146,12 +1150,14 @@ def get_bill_audit_history(bill_number: str) -> list:
 # Reconciliation report
 # ──────────────────────────────────────────────────────────────────────
 
-def get_reconciliation_report() -> list:
+def get_reconciliation_report(days: int = 90) -> list:
     """
     Cross-checks invoices vs inventory_transactions vs audit_logs
     and returns a list of anomalies. Cached for 60s (heavy query).
+    Only examines bills from the last `days` days (default 90) to bound the scan.
     """
-    _cache_key = "billing:reconciliation"
+    from datetime import timedelta
+    _cache_key = f"billing:reconciliation:{days}"
     cached = cache_get(_cache_key)
     if cached is not None:
         try:
@@ -1161,13 +1167,15 @@ def get_reconciliation_report() -> list:
 
     db = get_db()
     anomalies = []
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
-    all_bills = list(db.invoices.find({}, {
-        "line_items": 1, "bill_number": 1, "created_by": 1,
-        "created_at": 1, "grand_total": 1, "subtotal": 1,
-        "gst_total": 1, "payment_status": 1, "amount_paid": 1,
-        "amount_due": 1, "discount_amount": 1,
-    }).limit(5000))
+    all_bills = list(db.invoices.find(
+        {"created_at": {"$gte": cutoff}},
+        {"line_items": 1, "bill_number": 1, "created_by": 1,
+         "created_at": 1, "grand_total": 1, "subtotal": 1,
+         "gst_total": 1, "payment_status": 1, "amount_paid": 1,
+         "amount_due": 1, "discount_amount": 1}
+    ).sort("created_at", -1).limit(10000))
 
     # ── Batch BILL_SALE lookups (replaces per-line find_one N+1) ──
     # Build a single (product_name, bill_number) index from one query, plus a
@@ -1410,11 +1418,11 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
         }
 
     # Fetch all registered users in system
-    all_users = list(db.users.find({}, {"employee_id": 1, "username": 1, "name": 1, "role": 1}))
-    user_info_map = {(u.get("employee_id") or u.get("username", "")): {"name": u.get("name", ""), "role": u.get("role", "staff")} for u in all_users if (u.get("employee_id") or u.get("username"))}
+    all_users = list(db.users.find({}, {"employee_id": 1, "name": 1, "role": 1}))
+    user_info_map = {u.get("employee_id", ""): {"name": u.get("name", ""), "role": u.get("role", "staff")} for u in all_users if u.get("employee_id")}
     
     for u in all_users:
-        uname = u.get("employee_id") or u.get("username", "")
+        uname = u.get("employee_id", "")
         if uname and uname not in staff_stats_map:
             staff_stats_map[uname] = {
                 "cashier": uname,
@@ -1519,6 +1527,6 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
         "selected_cashier": cashier or "",
     }
 
-    cache_set(_cache_key, json.dumps(result, default=str), ttl=60)
+    cache_set(_cache_key, json.dumps(result, default=str), ttl=300)
     return result
 

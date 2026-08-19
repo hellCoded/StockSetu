@@ -115,7 +115,7 @@ def reset_admin():
     now = datetime.now(timezone.utc)
     new_hash = generate_password_hash("Admin@123456")
     result = db.users.update_one(
-        {"username": "admin"},
+        {"$or": [{"role": "admin"}, {"employee_id": "EMP-0001"}]},
         {"$set": {"password_hash": new_hash, "updated_at": now}}
     )
     if result.matched_count:

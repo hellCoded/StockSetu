@@ -96,13 +96,13 @@ def test_deactivate_inactive_users_function(app, mock_mongo):
     past_2h = datetime.now(timezone.utc) - timedelta(hours=2)
     
     db.users.insert_one({
-        "username": "offlineuser",
+        "employee_id": "EMP-OFF-01",
         "email": "offline@test.com",
         "is_active": True,
         "last_active_at": past_13h
     })
     db.users.insert_one({
-        "username": "activeuser",
+        "employee_id": "EMP-ACT-01",
         "email": "active@test.com",
         "is_active": True,
         "last_active_at": past_2h
@@ -112,8 +112,8 @@ def test_deactivate_inactive_users_function(app, mock_mongo):
         deactivated_count = deactivate_inactive_users(inactivity_hours=12.0)
         assert deactivated_count >= 1
         
-        offline_u = db.users.find_one({"username": "offlineuser"})
-        active_u = db.users.find_one({"username": "activeuser"})
+        offline_u = db.users.find_one({"employee_id": "EMP-OFF-01"})
+        active_u = db.users.find_one({"employee_id": "EMP-ACT-01"})
         assert offline_u["is_active"] is False
         assert active_u["is_active"] is True
 
@@ -122,7 +122,7 @@ def test_session_auto_logout_after_12_hours_inactivity(admin_client, mock_mongo)
     from bson import ObjectId
     
     db = mock_mongo['inventory_test_db']
-    user = db.users.find_one({"username": "testadmin"})
+    user = db.users.find_one({"employee_id": "ADM-001"})
     
     # Simulate session with activity from 13 hours ago
     past_13h_ts = (datetime.now(timezone.utc) - timedelta(hours=13)).timestamp()
@@ -141,7 +141,7 @@ def test_session_auto_logout_after_12_hours_inactivity(admin_client, mock_mongo)
 def test_deactivated_user_session_redirected_to_login(admin_client, mock_mongo):
     from bson import ObjectId
     db = mock_mongo['inventory_test_db']
-    user = db.users.find_one({"username": "testadmin"})
+    user = db.users.find_one({"employee_id": "ADM-001"})
     
     # Deactivate user in DB
     db.users.update_one({"_id": ObjectId(user["_id"])}, {"$set": {"is_active": False}})

@@ -213,17 +213,20 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         "is_active": 1,
     }
 
-    total_count = 0
-    if return_total:
-        total_count = db.products.count_documents(filter_query)
+    # Single-query pagination: fetch limit+1 rows to detect "has more" without a
+    # separate count_documents call (avoids scanning the same query twice).
+    fetch_limit = effective_limit + 1 if (return_total and effective_limit) else effective_limit
 
     cursor = db.products.find(filter_query, projection).sort(sort_by, sort_dir)
     if effective_skip > 0:
         cursor = cursor.skip(effective_skip)
-    if effective_limit is not None and effective_limit > 0:
-        cursor = cursor.limit(effective_limit)
+    if fetch_limit is not None and fetch_limit > 0:
+        cursor = cursor.limit(fetch_limit)
 
     products = list(cursor)
+    has_more = len(products) > effective_limit if effective_limit else False
+    if has_more:
+        products = products[:effective_limit]
     
     result = []
     for p in products:
@@ -232,6 +235,9 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         result.append(p)
 
     if return_total:
+        # Exact count only when we genuinely need it (first page or small collections).
+        # For deeper pages the caller rarely needs the exact total — has_more is sufficient.
+        total_count = len(result) if not has_more else db.products.count_documents(filter_query)
         cache_set(_cache_key, json.dumps({"items": result, "total": total_count}, default=str), ttl=15)
         return result, total_count
     else:

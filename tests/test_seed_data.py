@@ -68,7 +68,7 @@ def test_seed_and_clean_workflow(monkeypatch, mock_mongo, app):
         
         # Verify using application's own authenticate_user function
         with app.app_context():
-            identifier = user.get("employee_id") or user.get("username")
+            identifier = user.get("employee_id")
             success, msg, auth_user = authenticate_user(identifier, TEST_PASSWORD)
             assert success, f"Failed to authenticate seeded user {identifier}: {msg}"
             assert auth_user["email"] == user["email"]
@@ -96,7 +96,6 @@ def test_seed_and_clean_workflow(monkeypatch, mock_mongo, app):
     })
     db.users.insert_one({
         "employee_id": "EMP-REAL-01",
-        "username": "realuser",
         "email": "realuser@company.com",
         "password_hash": "somehash",
         "role": "staff",
@@ -117,11 +116,11 @@ def test_seed_and_clean_workflow(monkeypatch, mock_mongo, app):
 
     # Real records must still exist
     assert db.products.count_documents({"product_name": "REAL-PRODUCT-DO-NOT-DELETE"}) == 1
-    assert db.users.count_documents({"$or": [{"username": "realuser"}, {"employee_id": "EMP-REAL-01"}]}) == 1
+    assert db.users.count_documents({"employee_id": "EMP-REAL-01"}) == 1
 
     # Cleanup mock data
     db.products.delete_one({"product_name": "REAL-PRODUCT-DO-NOT-DELETE"})
-    db.users.delete_one({"$or": [{"username": "realuser"}, {"employee_id": "EMP-REAL-01"}]})
+    db.users.delete_one({"employee_id": "EMP-REAL-01"})
 
 
 def test_safety_guard(monkeypatch, mock_mongo):

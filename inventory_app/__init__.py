@@ -288,7 +288,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 try:
                     from inventory_app.database import get_db
                     pending_requests_count = get_db().role_requests.count_documents({"status": "PENDING"})
-                    cache_set("pending:count", str(pending_requests_count), ttl=30)
+                    cache_set("pending:count", str(pending_requests_count), ttl=60)
                 except Exception:
                     pass
 
@@ -303,7 +303,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 try:
                     from inventory_app.services.product_service import get_stock_alerts
                     low_stock_alerts = get_stock_alerts(limit=6)
-                    cache_set("alerts:low_stock", json.dumps(low_stock_alerts, default=str), ttl=30)
+                    cache_set("alerts:low_stock", json.dumps(low_stock_alerts, default=str), ttl=60)
                 except Exception:
                     low_stock_alerts = []
 
@@ -319,7 +319,7 @@ def create_app(config_class=Config, custom_mongo_client=None):
                     low_stock_count = get_db().products.count_documents(
                         {"is_active": True, "$expr": {"$lte": ["$quantity", {"$ifNull": ["$minimum_stock", 5]}]}}
                     )
-                    cache_set("alerts:low_stock_count", str(low_stock_count), ttl=30)
+                    cache_set("alerts:low_stock_count", str(low_stock_count), ttl=60)
                 except Exception:
                     low_stock_count = 0
 

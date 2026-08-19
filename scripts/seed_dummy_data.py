@@ -151,7 +151,6 @@ def run_seeder():
             
             success, msg, user_doc = register_user(
                 employee_id=employee_id,
-                username=employee_id,
                 email=email,
                 password=TEST_PASSWORD,
                 role=role,

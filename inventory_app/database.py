@@ -124,18 +124,24 @@ def init_db_indexes(db):
         except Exception as u_err:
             logger.warning(f"Note on inspecting user indexes: {u_err}")
 
-        # Migration: populate missing employee_id on existing records
+        # Migration: Ensure employee_id is populated and strip username field entirely
         try:
             users_missing_emp = list(db.users.find({"$or": [{"employee_id": {"$exists": False}}, {"employee_id": None}, {"employee_id": ""}]}))
             for u in users_missing_emp:
                 fallback_id = u.get("username") or f"EMP-{str(u['_id'])[-4:]}"
-                db.users.update_one({"_id": u["_id"]}, {"$set": {"employee_id": fallback_id, "username": fallback_id}})
+                db.users.update_one({"_id": u["_id"]}, {"$set": {"employee_id": fallback_id}})
+            # Strip legacy username field from all documents in users collection
+            db.users.update_many({"username": {"$exists": True}}, {"$unset": {"username": ""}})
         except Exception as mig_err:
             logger.warning(f"User employee_id migration note: {mig_err}")
 
         db.users.create_index([("employee_id", ASCENDING)], unique=True)
         db.users.create_index([("email", ASCENDING)], unique=True)
         db.users.create_index([("phone", ASCENDING)], sparse=True)
+        # Lowercase indexes for fast case-insensitive search (avoids $regex scans)
+        db.users.create_index([("employee_id_lower", ASCENDING)], sparse=True)
+        db.users.create_index([("email_lower", ASCENDING)], sparse=True)
+        db.users.create_index([("name_lower", ASCENDING)], sparse=True)
         
         # Clean up any stale unique indexes on products (only product_name should be unique)
         try:
@@ -209,7 +215,6 @@ def seed_default_admin(db):
             now = datetime.now(timezone.utc)
             db.users.insert_one({
                 "employee_id": "EMP-0001",
-                "username": "EMP-0001",
                 "name": "System Administrator",
                 "email": "admin@inventory.local",
                 "password_hash": generate_password_hash("Admin@123456"),
