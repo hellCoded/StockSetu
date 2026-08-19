@@ -50,6 +50,7 @@ def test_bulk_import_confirm_stock_in_existing(admin_client, mock_mongo):
     db = mock_mongo['inventory_test_db']
     db.products.insert_one({
         'product_name': 'Steel Bolts M10',
+        'product_name_lower': 'steel bolts m10',
         'category': 'Fasteners',
         'unit': 'PCS',
         'quantity': 5,
@@ -162,6 +163,7 @@ def test_bulk_import_confirm_mixed_existing_and_new(admin_client, mock_mongo):
     db = mock_mongo['inventory_test_db']
     db.products.insert_one({
         'product_name': 'Steel Bolts M10',
+        'product_name_lower': 'steel bolts m10',
         'category': 'Fasteners',
         'unit': 'PCS',
         'quantity': 5,

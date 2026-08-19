@@ -89,6 +89,7 @@ def test_seed_and_clean_workflow(monkeypatch, mock_mongo, app):
     # Let's insert a real (non-seeded) product & user to verify they are NOT deleted
     db.products.insert_one({
         "product_name": "REAL-PRODUCT-DO-NOT-DELETE",
+        "product_name_lower": "real-product-do-not-delete",
         "category": "Cement",
         "quantity": 10.0,
         "price": 100.0,

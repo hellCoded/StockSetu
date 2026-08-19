@@ -5,6 +5,7 @@ from inventory_app.services.billing_service import get_reconciliation_report
 def _seed_product(db, name="Steel Rod", price="500.00", gst="18", hsn="7214"):
     db.products.insert_one({
         "product_name": name,
+        "product_name_lower": name.lower(),
         "category": "Hardware",
         "description": "",
         "quantity": 100.0,

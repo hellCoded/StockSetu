@@ -79,8 +79,10 @@ def test_products_pagination_route(staff_client, mock_mongo):
     db = mock_mongo['inventory_test_db']
     # Seed 12 products
     for i in range(12):
+        name = f"Paginated Item {i:02d}"
         db.products.insert_one({
-            "product_name": f"Paginated Item {i:02d}",
+            "product_name": name,
+            "product_name_lower": name.lower(),
             "category": "Tools",
             "quantity": 10,
             "minimum_stock": 5,
