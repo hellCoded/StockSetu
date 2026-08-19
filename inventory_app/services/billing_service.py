@@ -30,19 +30,37 @@ def _cached_billing_summary():
     return data
 
 
-def invalidate_billing_caches():
-    """Drop all bill/stock-derived caches. Call after any successful write
-    (create, edit, payment, refund) so pages reflect new data immediately."""
+def invalidate_billing_caches(specific_bill_number: str = None):
+    """Drop bill/stock-derived caches after a write.
+
+    Optimization: instead of nuking ALL prefixes on every write, only delete
+    what's actually stale.  TTLs on these caches are short (15-300 s), so
+    letting non-critical caches age out is acceptable and dramatically
+    reduces Redis scan overhead on busy counters.
+    """
+    # Always invalidate — these are cheap and frequently read
     cache_delete("billing:summary")
-    cache_delete_prefix("billing:bills:")
-    cache_delete_prefix("billing:bill:")
-    cache_delete_prefix("billing:audit:")
-    cache_delete_prefix("billing:reconciliation")
-    cache_delete_prefix("sales:analytics:")
     cache_delete("dashboard:main")
-    cache_delete_prefix("inventory:txns:")
-    cache_delete_prefix("inventory:product_txns:")
-    cache_delete_prefix("alerts:low_stock")
+
+    # Bill list + specific bill detail (only if we know which bill changed)
+    if specific_bill_number:
+        cache_delete("billing:bill:" + specific_bill_number)
+    else:
+        cache_delete_prefix("billing:bills:")
+        cache_delete_prefix("billing:bill:")
+
+    # Audit trail for the changed bill
+    if specific_bill_number:
+        cache_delete("billing:audit:" + specific_bill_number)
+    else:
+        cache_delete_prefix("billing:audit:")
+
+    # Heavy aggregations — let these expire via TTL instead of force-deleting
+    # (sales analytics and reconciliation are expensive to recompute)
+    # cache_delete_prefix("sales:analytics:")  -- let TTL handle it
+    # cache_delete_prefix("billing:reconciliation")  -- let TTL handle it
+    # cache_delete_prefix("inventory:txns:")  -- let TTL handle it
+    # cache_delete_prefix("alerts:low_stock")  -- let TTL handle it
 
 
 def _round2(value: float) -> float:
@@ -556,7 +574,7 @@ def create_bill(customer_data: dict, items: list, performed_by: str,
             "snapshot": snapshot,
         })
 
-        invalidate_billing_caches()
+        invalidate_billing_caches(specific_bill_number=bill_number)
         return True, f"Bill {bill_number} created successfully.", bill_doc
     except Exception as e:
         for ref in deducted:
@@ -638,7 +656,7 @@ def record_bill_payment(bill_id: str, amount: float, method: str,
         "amount_due": new_amount_due,
     })
 
-    invalidate_billing_caches()
+    invalidate_billing_caches(specific_bill_number=bill.get('bill_number'))
     return True, f"Payment of {amount} recorded successfully."
 
 
@@ -750,7 +768,7 @@ def refund_bill_lines(bill_id: str, line_indices: list, reason: str, performed_b
         "new_status": new_status,
     })
 
-    invalidate_billing_caches()
+    invalidate_billing_caches(specific_bill_number=bill.get('bill_number'))
     return True, f"Refund of {refund_amount} processed for {len(lines_to_refund)} line(s)."
 
 
@@ -916,7 +934,7 @@ def edit_bill(bill_id: str, new_items: list, charges: dict,
     })
 
     updated_bill = get_bill_by_id(bill_id)
-    invalidate_billing_caches()
+    invalidate_billing_caches(specific_bill_number=bill.get('bill_number'))
     return True, f"Bill {bill.get('bill_number')} updated successfully.", updated_bill
 
 
@@ -984,7 +1002,7 @@ def refund_bill(bill_id: str, reason: str, performed_by: str) -> tuple[bool, str
     })
 
     log_audit("BILL_REFUND", performed_by, bill.get("bill_number"), {"reason": reason_clean})
-    invalidate_billing_caches()
+    invalidate_billing_caches(specific_bill_number=bill.get('bill_number'))
     return True, f"Bill {bill.get('bill_number')} refunded successfully and inventory stock restored."
 
 

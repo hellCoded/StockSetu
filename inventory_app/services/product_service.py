@@ -145,7 +145,7 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
     """
     import hashlib
     effective_page = page if page is not None else 1
-    effective_limit = per_page if page is not None else limit
+    effective_limit = max(1, per_page if page is not None else limit)
     effective_skip = (effective_page - 1) * effective_limit if page is not None else 0
 
     # Build a stable cache key from all filter parameters

@@ -258,6 +258,36 @@
   overflow-y: auto;
 }
 
+/* Skeleton Loading Cards */
+.q-skel-card {
+  border: 1px solid var(--pos-border);
+  border-top: 3px solid var(--color-outline-variant);
+  border-radius: var(--r-md);
+  background: var(--color-surface);
+  padding: 0.55rem 0.65rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.q-skel-line {
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--color-surface-container) 25%, var(--color-outline-variant) 50%, var(--color-surface-container) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.q-skel-line.w40 { width: 40%; }
+.q-skel-line.w60 { width: 60%; }
+.q-skel-line.w80 { width: 80%; }
+.q-skel-line.w100 { width: 100%; }
+.q-skel-line.h14 { height: 14px; }
+.q-skel-line.h18 { height: 18px; }
+.q-skel-line.round { width: 50px; height: 10px; border-radius: 999px; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .q-prod-card {
   --cat: #0284c7;
   --cat-bg: #f0f9ff;
@@ -1216,7 +1246,7 @@
 </div>
 
 <!-- Employee data for smart search auto-detection -->
-<script id="pos-employee-data" type="application/json">{{ employees | tojson }}</script>
+<script id="pos-employee-data" type="application/json">{{ employees | tojson | e }}</script>
 
 <form method="POST" action="{{ url_for('billing.create_bill') }}" id="bill-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -1642,10 +1672,11 @@
     else { freeRow.style.display = 'none'; }
 
     const total = cart.reduce((s, i) => s + i.qty, 0);
+    const prevTotal = parseInt(badge.dataset.count || '0', 10);
     document.getElementById('t-items').textContent = total;
     badge.textContent = total + (total === 1 ? ' item' : ' items');
-    badge.classList.add('bump');
-    setTimeout(() => badge.classList.remove('bump'), 200);
+    if (total !== prevTotal) { badge.classList.add('bump'); setTimeout(() => badge.classList.remove('bump'), 200); }
+    badge.dataset.count = total;
     toggleBadge.textContent = total;
 
     /* ── Hidden Form Fields ── */
@@ -2191,6 +2222,52 @@
       if (!submitBtn.disabled) submitBtn.click();
     }
   });
+
+  /* ══════════════════════════════════════════════════════════════════
+     PROGRESSIVE ENHANCEMENT LAYER
+     Server-side cart sync, lazy employee loading, AJAX search fallback
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* ── #2: Server-side Cart Persistence (sync with API) ── */
+  let cartSyncTimer = null;
+  function syncCartToServer() {
+    clearTimeout(cartSyncTimer);
+    cartSyncTimer = setTimeout(() => {
+      fetch('/api/cart/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cart: cart,
+          customer: selectedCustomer,
+          discount_percent: (document.getElementById('discount_percent') || {}).value || '0',
+          shipping_charge: (document.getElementById('shipping_charge') || {}).value || '0',
+          packing_charge: (document.getElementById('packing_charge') || {}).value || '0',
+          payment_method: ((document.querySelector('input[name="payment_method"]:checked') || {}).value) || 'CASH',
+        }),
+      }).catch(() => {});
+    }, 2000);
+  }
+  /* Hook into cart changes */
+  const _origRenderCart = renderCart;
+  renderCart = function() {
+    _origRenderCart();
+    syncCartToServer();
+  };
+
+  /* ── #3: Lazy Employee Loading (fetch from API instead of embedded JSON) ── */
+  if (employeeList.length === 0 && smartInput) {
+    fetch('/api/employees/list')
+      .then(r => r.json())
+      .then(data => {
+        if (data.employees && data.employees.length > 0) {
+          employeeList = data.employees.map(e => ({
+            employee_id: e.id, name: e.name, phone: e.phone, role: e.role
+          }));
+        }
+      })
+      .catch(() => {});
+  }
+
 })();
 </script>
 {% endblock %}

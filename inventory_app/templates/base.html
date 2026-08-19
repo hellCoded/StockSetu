@@ -82,5 +82,10 @@
   <script defer src="{{ url_for('static', filename='js/toasts.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/app-base.js') }}"></script>
   {% block extra_js %}{% endblock %}
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/js/service-worker.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
