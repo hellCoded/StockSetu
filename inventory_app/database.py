@@ -200,7 +200,9 @@ def init_db_indexes(db):
         logger.error(f"Error initializing indexes: {e}")
 
 def seed_default_admin(db):
-    """Seed initial default administrator account if no admin exists."""
+    """Seed initial default administrator account if no admin exists and seeding is enabled."""
+    if os.getenv("SEED_DEFAULT_ADMIN", "true").lower() in ("false", "0", "no"):
+        return
     try:
         admin_user = db.users.find_one({"role": "admin"})
         if not admin_user:
