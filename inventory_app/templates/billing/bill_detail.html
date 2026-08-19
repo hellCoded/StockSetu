@@ -408,7 +408,10 @@ function printThermalSlip() {
       <div class="inv-info-left">
         <div class="inv-sec-hd">Billed To (Customer Details)</div>
         <table class="inv-dt">
-          <tr><td>Customer Name</td><td><strong>{{ bill.customer_name }}</strong></td></tr>
+          <tr><td>Customer Name</td><td><strong>{{ bill.customer_name }}</strong>{% if bill.is_employee_purchase %} <span style="background:#ede9fe; color:#6d28d9; font-size:0.6rem; padding:1px 5px; border-radius:3px; font-weight:800;">Staff Purchase</span>{% endif %}</td></tr>
+          {% if bill.is_employee_purchase and bill.buyer_employee_id %}
+            <tr><td>Employee ID</td><td><strong style="color:#6d28d9; font-family:'JetBrains Mono', monospace;">{{ bill.buyer_employee_id }}</strong></td></tr>
+          {% endif %}
           <tr><td>Contact Phone</td><td>{{ bill.customer_phone or '—' }}</td></tr>
           <tr><td>Customer GSTIN</td><td>{{ bill.customer_gstin or '—' }}</td></tr>
           <tr><td>Place of Supply</td><td>Rajasthan (08)</td></tr>

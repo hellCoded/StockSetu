@@ -201,10 +201,13 @@ def cancel_promotion_request(request_id):
 @csrf_protected
 def profile():
     from inventory_app.services.auth_service import get_user_by_id, get_user_pending_role_request, get_user_role_requests, update_user_profile_info, change_password
+    from inventory_app.services.billing_service import get_employee_purchases
     user_id = session.get('user_id')
     user = get_user_by_id(user_id)
     pending_request = get_user_pending_role_request(user_id)
     requests_history = get_user_role_requests(user_id)
+    employee_id = user.get('employee_id') if user else ''
+    my_purchases = get_employee_purchases(employee_id) if employee_id else []
     
     if request.method == 'POST':
         action_type = request.form.get('action_type', 'change_password')
@@ -227,7 +230,7 @@ def profile():
             
             if new_pw != confirm_pw:
                 flash("New password and confirmation do not match.", "danger")
-                return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history)
+                return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history, my_purchases=my_purchases)
                 
             success, msg = change_password(user_id, old_pw, new_pw)
             if success:
@@ -236,7 +239,7 @@ def profile():
             else:
                 flash(msg, "danger")
                 
-    return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history)
+    return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history, my_purchases=my_purchases)
 
 
 @user_bp.route('/users/bulk-import', methods=['POST'])

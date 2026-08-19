@@ -31,9 +31,8 @@ def register_user(username: str = "", email: str = "", password: str = "", role:
     clean_phone = phone.strip() if phone else ""
     full_name = f"{clean_name} {clean_surname}".strip() if clean_surname else clean_name
     
-    # Check duplicate employee_id
-    escaped_emp = re.escape(clean_emp_id)
-    if db.users.find_one({"employee_id": {"$regex": f"^{escaped_emp}$", "$options": "i"}}):
+    # Check duplicate employee_id via indexed lowercase field
+    if db.users.find_one({"employee_id_lower": clean_emp_id.lower()}):
         return False, f"Employee ID '{clean_emp_id}' is already registered.", {}
         
     # Check duplicate email
@@ -46,8 +45,11 @@ def register_user(username: str = "", email: str = "", password: str = "", role:
     now = datetime.now(timezone.utc)
     user_doc = {
         "employee_id": clean_emp_id,
+        "employee_id_lower": clean_emp_id.lower(),
         "name": full_name or clean_emp_id,
+        "name_lower": (full_name or clean_emp_id).lower(),
         "email": clean_email,
+        "email_lower": clean_email.lower(),
         "phone": clean_phone,
         "password_hash": generate_password_hash(password),
         "role": assigned_role,
@@ -119,15 +121,13 @@ def deactivate_inactive_users(inactivity_hours: float = 12.0) -> int:
 
 def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
     """Authenticates user by employee ID or email."""
-    import re
     db = get_db()
     clean_id = identifier.strip()
-    escaped_id = re.escape(clean_id)
     
     user = db.users.find_one({
         "$or": [
-            {"employee_id": {"$regex": f"^{escaped_id}$", "$options": "i"}},
-            {"email": clean_id.lower()}
+            {"employee_id_lower": clean_id.lower()},
+            {"email_lower": clean_id.lower()}
         ]
     })
     
@@ -154,12 +154,13 @@ def get_all_users(search: str = "", role: str = "", page: int = None, per_page: 
     if search:
         import re
         escaped = re.escape(search.strip())
+        # Use indexed lowercase fields for faster search where available,
+        # fall back to $regex on non-indexed fields (phone, surname)
         query["$or"] = [
-            {"employee_id": {"$regex": escaped, "$options": "i"}},
+            {"employee_id_lower": {"$regex": escaped, "$options": "i"}},
+            {"email_lower": {"$regex": escaped, "$options": "i"}},
+            {"name_lower": {"$regex": escaped, "$options": "i"}},
             {"phone": {"$regex": escaped, "$options": "i"}},
-            {"email": {"$regex": escaped, "$options": "i"}},
-            {"name": {"$regex": escaped, "$options": "i"}},
-            {"surname": {"$regex": escaped, "$options": "i"}},
         ]
     if role:
         query["role"] = role.strip().lower()
@@ -182,7 +183,9 @@ def get_all_users(search: str = "", role: str = "", page: int = None, per_page: 
         u["_id"] = str(u["_id"])
 
     if return_total:
-        total_count = len(users) if not has_more else db.users.count_documents(query)
+        # When has_more is False we fetched ≤ effective_limit from a limit+1 query,
+        # so we are on the last page and the true total is skip + items returned.
+        total_count = (effective_skip + len(users)) if not has_more else db.users.count_documents(query)
         return users, total_count
     return users
 
@@ -483,7 +486,7 @@ def process_role_request(request_id: str, action: str, processed_by: str, admin_
             
         now = datetime.now(timezone.utc)
         comment_str = admin_comment.strip()
-        target_emp = req.get("employee_id") or req.get("username", "")
+        target_emp = req.get("employee_id", "")
         
         if action == "approve":
             user_id = str(req["user_id"])

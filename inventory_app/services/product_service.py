@@ -33,9 +33,7 @@ def create_product(product_data: dict, performed_by: str, initial_quantity: floa
     product_name = normalize_product_name(raw_name)
     
     # 2. Check case-insensitive duplicate product_name
-    existing = db.products.find_one({
-        "product_name": {"$regex": f"^{re.escape(product_name)}$", "$options": "i"}
-    })
+    existing = db.products.find_one({"product_name_lower": product_name.lower()})
     if existing:
         return False, f"A product with the name '{product_name}' already exists.", {}
         
@@ -48,6 +46,7 @@ def create_product(product_data: dict, performed_by: str, initial_quantity: floa
     now = datetime.now(timezone.utc)
     product_doc = {
         "product_name": product_name,
+        "product_name_lower": product_name.lower(),
         "category": (product_data.get('category') or '').strip(),
         "description": (product_data.get('description') or '').strip(),
         "quantity": quantity,
@@ -110,10 +109,8 @@ def get_product_by_name(product_name: str) -> dict:
     
     product = db.products.find_one({"product_name": norm_name})
     if not product:
-        # Case-insensitive fallback lookup
-        product = db.products.find_one({
-            "product_name": {"$regex": f"^{re.escape(norm_name)}$", "$options": "i"}
-        })
+        # Case-insensitive fallback lookup via indexed lowercase field
+        product = db.products.find_one({"product_name_lower": norm_name.lower()})
         
     if product:
         product["_id"] = str(product["_id"])
@@ -173,11 +170,8 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         
     if query:
         norm_query = normalize_product_name(query)
-        # Flexible keyword search matching anywhere within product_name (case-insensitive).
-        # Intentionally NOT prefix-anchored: the UI promises "flexible" middle-substring
-        # matches (e.g. q=drill → "Heavy Duty Drill"). Products is a small collection, so
-        # the resulting scan is cheap; if the catalog ever grows large, move to a text index.
-        filter_query["product_name"] = {"$regex": re.escape(norm_query), "$options": "i"}
+        # Indexed case-insensitive substring search via product_name_lower
+        filter_query["product_name_lower"] = {"$regex": re.escape(norm_query.lower()), "$options": "i"}
         
     if category:
         filter_query["category"] = category
@@ -235,9 +229,9 @@ def search_products(query: str = "", category: str = "", location: str = "", sto
         result.append(p)
 
     if return_total:
-        # Exact count only when we genuinely need it (first page or small collections).
-        # For deeper pages the caller rarely needs the exact total — has_more is sufficient.
-        total_count = len(result) if not has_more else db.products.count_documents(filter_query)
+        # When has_more is False we fetched ≤ effective_limit from a limit+1 query,
+        # so we are on the last page and the true total is skip + items returned.
+        total_count = (effective_skip + len(result)) if not has_more else db.products.count_documents(filter_query)
         cache_set(_cache_key, json.dumps({"items": result, "total": total_count}, default=str), ttl=15)
         return result, total_count
     else:
@@ -324,9 +318,7 @@ def rename_product(old_name: str, new_name: str, performed_by: str) -> tuple[boo
         return False, "New product name is identical to the current name."
         
     # Check if target new_name already exists
-    existing = db.products.find_one({
-        "product_name": {"$regex": f"^{re.escape(canonical_new_name)}$", "$options": "i"}
-    })
+    existing = db.products.find_one({"product_name_lower": canonical_new_name.lower()})
     if existing:
         return False, f"Product name '{canonical_new_name}' is already in use by another product."
         
@@ -335,7 +327,7 @@ def rename_product(old_name: str, new_name: str, performed_by: str) -> tuple[boo
         # Update product document
         res = db.products.update_one(
             {"product_name": canonical_old_name},
-            {"$set": {"product_name": canonical_new_name, "updated_at": now}}
+            {"$set": {"product_name": canonical_new_name, "product_name_lower": canonical_new_name.lower(), "updated_at": now}}
         )
         
         if res.matched_count == 0:

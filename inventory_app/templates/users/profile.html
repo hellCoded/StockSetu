@@ -251,5 +251,107 @@
     {% endif %}
   </div>
   {% endif %}
+
+  <!-- My Store Purchases Card -->
+  <div class="card" style="grid-column: 1 / -1;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+      <h3 class="card-title" style="margin: 0;">
+        <i class="ri-shopping-bag-3-line" style="color: #7c3aed;"></i> My Store Purchases &amp; Bills
+      </h3>
+      {% if my_purchases %}
+        <span class="badge" style="background: #ede9fe; color: #6d28d9; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 999px;">
+          {{ my_purchases|length }} Purchase(s)
+        </span>
+      {% endif %}
+    </div>
+
+    {% if my_purchases %}
+      <div class="table-responsive">
+        <table class="data-table" style="font-size: 0.85rem; width: 100%;">
+          <thead style="background: #f8fafc;">
+            <tr>
+              <th><i class="ri-receipt-line"></i> Invoice #</th>
+              <th><i class="ri-calendar-line"></i> Date</th>
+              <th><i class="ri-archive-stack-line"></i> Items Summary</th>
+              <th><i class="ri-bank-card-line"></i> Payment Mode</th>
+              <th><i class="ri-record-circle-line"></i> Status</th>
+              <th style="text-align: right;"><i class="ri-money-rupee-circle-line"></i> Grand Total</th>
+              <th style="text-align: center;"><i class="ri-file-list-line"></i> Invoice</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for bill in my_purchases %}
+              <tr>
+                <td>
+                  <strong style="color: #0284c7; font-family: 'JetBrains Mono', monospace;">{{ bill.bill_number }}</strong>
+                </td>
+                <td>{{ format_datetime(bill.created_at) }}</td>
+                <td>
+                  <div style="font-size: 0.78rem; line-height: 1.3;">
+                    <span style="font-weight: 600;">{{ bill.line_items|length }} item(s)</span>
+                    <div style="color: #64748b; font-size: 0.72rem;">
+                      {% for itm in bill.line_items[:2] %}
+                        {{ itm.product_name }} (x{{ itm.quantity }}){% if not loop.last %}, {% endif %}
+                      {% endfor %}
+                      {% if bill.line_items|length > 2 %}...{% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if bill.payment_method == 'SALARY_DEDUCTION' %}
+                    <span style="background: #ede9fe; color: #6d28d9; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid #ddd6fe;">
+                      <i class="ri-wallet-3-line"></i> Salary Deduction
+                    </span>
+                  {% else %}
+                    <span class="role-pill" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">
+                      {{ bill.payment_method }}
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if bill.payment_status == 'PAID' %}
+                    <span class="role-pill role-admin" style="font-size: 0.72rem; background: #dcfce7; color: #166534; border-color: #bbf7d0;">
+                      <i class="ri-check-line"></i> Paid
+                    </span>
+                  {% elif bill.payment_status == 'REFUNDED' %}
+                    <span class="role-pill role-danger" style="font-size: 0.72rem; background: #fee2e2; color: #991b1b; border-color: #fecaca;">
+                      <i class="ri-close-line"></i> Refunded
+                    </span>
+                  {% else %}
+                    <span class="role-pill role-staff" style="font-size: 0.72rem; background: #fef3c7; color: #d97706; border-color: #fde68a;">
+                      {{ bill.payment_status }}
+                    </span>
+                  {% endif %}
+                </td>
+                <td style="text-align: right; font-weight: 800; color: #0f172a;">
+                  ₹{{ '%.2f'|format(bill.grand_total or 0) }}
+                  {% if bill.discount_percent %}
+                    <div style="font-size: 0.68rem; color: #16a34a; font-weight: 600;">
+                      -{{ bill.discount_percent }}% Staff Concession
+                    </div>
+                  {% endif %}
+                </td>
+                <td style="text-align: center;">
+                  <a href="{{ url_for('billing.view_bill', bill_id=bill._id) }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;" title="View & Print GST Tax Invoice">
+                    <i class="ri-file-text-line"></i> View
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 2.5rem 1rem; color: #64748b;">
+        <div style="width: 54px; height: 54px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 1.6rem; color: #94a3b8;">
+          <i class="ri-shopping-cart-2-line"></i>
+        </div>
+        <p style="font-weight: 600; font-size: 0.95rem; margin: 0; color: #334155;">No Store Purchases Yet</p>
+        <p style="font-size: 0.8rem; margin: 0.25rem 0 0; color: #94a3b8;">
+          Purchases made with your Employee ID at the store counter will appear here with downloadable GST invoices.
+        </p>
+      </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

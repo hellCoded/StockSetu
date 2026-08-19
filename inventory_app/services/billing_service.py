@@ -138,14 +138,14 @@ def compute_bill(customer_data: dict, items_with_products: list,
     customer_phone = (customer_data.get('customer_phone') or '').strip()
     if customer_phone and not re.match(r'^[0-9+\- ]{7,15}$', customer_phone):
         return False, "Phone number is invalid.", {}
+    
+    payment_method = (customer_data.get('payment_method') or 'CASH').strip().upper()
+    if payment_method not in ('CASH', 'UPI', 'CARD', 'CREDIT', 'SALARY_DEDUCTION'):
+        return False, "Payment method must be CASH, UPI, CARD, CREDIT or SALARY_DEDUCTION.", {}
 
     customer_gstin = (customer_data.get('customer_gstin') or '').strip().upper()
     if customer_gstin and not _validate_gstin(customer_gstin):
         return False, "GSTIN is invalid. Format: 15-character (e.g., 27ABCDE1234F1Z5).", {}
-
-    payment_method = (customer_data.get('payment_method') or 'CASH').strip().upper()
-    if payment_method not in ('CASH', 'UPI', 'CARD', 'CREDIT'):
-        return False, "Payment method must be CASH, UPI, CARD or CREDIT.", {}
 
     if not items_with_products or not isinstance(items_with_products, list):
         return False, "At least one item is required to create a bill.", {}
@@ -193,7 +193,8 @@ def compute_bill(customer_data: dict, items_with_products: list,
             "line_total": computed["line_total"],
             "is_free": computed["is_free"],
             "is_refunded": False,
-            "refund_quantity": 0.0,
+            "refunded_quantity": 0.0,
+            "refunded_amount": 0.0,
         })
         subtotal = _round2(subtotal + computed["raw_taxable"])
         cgst_total = _round2(cgst_total + computed["cgst"])
@@ -204,11 +205,19 @@ def compute_bill(customer_data: dict, items_with_products: list,
     taxable_after_line_discount = _round2(subtotal - total_line_discount)
     free_total = _round2(sum(i["line_total"] for i in bill_items if i["is_free"]))
 
-    # ── Bill-level discount ──
+    # ── Bill-level discount & Staff Concession ──
+    is_employee_purchase = bool(customer_data.get('is_employee_purchase', False))
+    buyer_employee_id = str(customer_data.get('buyer_employee_id', '') or '').strip()
+    
     try:
         discount_percent = float(customer_data.get('discount_percent', 0) or 0)
     except (ValueError, TypeError):
         discount_percent = 0.0
+
+    # Auto-apply staff concession (default 10%) if staff purchase and discount not set
+    if is_employee_purchase and discount_percent == 0.0:
+        discount_percent = float(customer_data.get('staff_discount_percent', 10.0) or 10.0)
+
     discount_percent = max(0.0, min(100.0, discount_percent))
     discount_amount = _round2(taxable_after_line_discount * discount_percent / 100)
     taxable_final = _round2(taxable_after_line_discount - discount_amount)
@@ -255,7 +264,7 @@ def compute_bill(customer_data: dict, items_with_products: list,
         return False, "Due date is required for credit sales.", {}
 
     # ── Payment status ──
-    if grand_total <= 0:
+    if grand_total <= 0 or payment_method in ('CASH', 'UPI', 'CARD', 'SALARY_DEDUCTION') and total_paid >= grand_total:
         payment_status = 'PAID'
         total_paid = grand_total
     elif total_paid >= grand_total:
@@ -272,6 +281,8 @@ def compute_bill(customer_data: dict, items_with_products: list,
         "customer_name": customer_name,
         "customer_phone": customer_phone,
         "customer_gstin": customer_gstin,
+        "is_employee_purchase": is_employee_purchase,
+        "buyer_employee_id": buyer_employee_id,
         "payment_method": payment_method,
         "payment_status": payment_status,
         "line_items": bill_items,
@@ -378,6 +389,8 @@ def _bill_snapshot(bill_doc: dict) -> dict:
         "payment_method": bill_doc.get("payment_method"),
         "payment_status": bill_doc.get("payment_status"),
         "customer_name": bill_doc.get("customer_name"),
+        "is_employee_purchase": bill_doc.get("is_employee_purchase", False),
+        "buyer_employee_id": bill_doc.get("buyer_employee_id", ""),
     }
 
 
@@ -470,9 +483,13 @@ def create_bill(customer_data: dict, items: list, performed_by: str,
     # ── Build bill document ──
     bill_doc = {
         "bill_number": bill_number,
+        "bill_number_lower": bill_number.lower(),
         "customer_name": computed["customer_name"],
+        "customer_name_lower": computed["customer_name"].lower(),
         "customer_phone": computed["customer_phone"],
         "customer_gstin": computed["customer_gstin"],
+        "is_employee_purchase": computed.get("is_employee_purchase", False),
+        "buyer_employee_id": computed.get("buyer_employee_id", ""),
         "payment_method": computed["payment_method"],
         "payment_status": computed["payment_status"],
         "line_items": computed["line_items"],
@@ -1030,8 +1047,8 @@ def get_bills(search: str = "", limit: int = 100, payment_status: str = "", page
     if search:
         escaped = re.escape(search)
         query["$or"] = [
-            {"bill_number": {"$regex": escaped, "$options": "i"}},
-            {"customer_name": {"$regex": escaped, "$options": "i"}}
+            {"bill_number_lower": {"$regex": escaped, "$options": "i"}},
+            {"customer_name_lower": {"$regex": escaped, "$options": "i"}}
         ]
     if payment_status:
         query["payment_status"] = payment_status.strip().upper()
@@ -1067,7 +1084,9 @@ def get_bills(search: str = "", limit: int = 100, payment_status: str = "", page
         b["_id"] = str(b["_id"])
 
     if return_total:
-        total_count = len(bills) if not has_more else db.invoices.count_documents(query)
+        # When has_more is False we fetched ≤ effective_limit from a limit+1 query,
+        # so we are on the last page and the true total is skip + items returned.
+        total_count = (effective_skip + len(bills)) if not has_more else db.invoices.count_documents(query)
         cache_set(_cache_key, json.dumps({"items": bills, "total": total_count}, default=str), ttl=30)
         return bills, total_count
     else:
@@ -1344,71 +1363,100 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
 
     db = get_db()
 
-    # 1. Global KPI metrics
-    kpi_pipeline = [
+    # Single $facet pipeline: scan the collection ONCE for all 5 analytics.
+    facet_pipeline = [
         {"$match": match_query},
-        {"$group": {
-            "_id": None,
-            "total_sales": {"$sum": "$grand_total"},
-            "total_bills": {"$sum": 1},
-            "total_paid": {"$sum": "$amount_paid"},
-            "total_due": {"$sum": "$amount_due"},
-            "total_tax": {"$sum": {"$add": [{"$ifNull": ["$total_cgst", 0]}, {"$ifNull": ["$total_sgst", 0]}, {"$ifNull": ["$total_igst", 0]}]}},
-            "total_discount": {"$sum": {"$ifNull": ["$discount_amount", 0]}},
-            "total_round_off": {"$sum": {"$ifNull": ["$round_off", 0]}},
+        {"$facet": {
+            "kpi": [
+                {"$group": {
+                    "_id": None,
+                    "total_sales": {"$sum": "$grand_total"},
+                    "total_bills": {"$sum": 1},
+                    "total_paid": {"$sum": "$amount_paid"},
+                    "total_due": {"$sum": "$amount_due"},
+                    "total_tax": {"$sum": {"$add": [{"$ifNull": ["$total_cgst", 0]}, {"$ifNull": ["$total_sgst", 0]}, {"$ifNull": ["$total_igst", 0]}]}},
+                    "total_discount": {"$sum": {"$ifNull": ["$discount_amount", 0]}},
+                    "total_round_off": {"$sum": {"$ifNull": ["$round_off", 0]}},
+                }}
+            ],
+            "refunds": [
+                {"$unwind": "$line_items"},
+                {"$match": {"line_items.is_refunded": True}},
+                {"$group": {
+                    "_id": None,
+                    "total_refunded": {"$sum": "$line_items.line_total"},
+                    "refund_count": {"$sum": 1}
+                }}
+            ],
+            "staff": [
+                {"$group": {
+                    "_id": {"$ifNull": ["$created_by", "Admin"]},
+                    "bill_count": {"$sum": 1},
+                    "total_sales": {"$sum": "$grand_total"},
+                    "total_paid": {"$sum": "$amount_paid"},
+                    "total_due": {"$sum": "$amount_due"},
+                    "cash_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CASH"]}, "$grand_total", 0]}},
+                    "upi_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "UPI"]}, "$grand_total", 0]}},
+                    "card_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CARD"]}, "$grand_total", 0]}},
+                    "credit_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CREDIT"]}, "$grand_total", 0]}},
+                }},
+                {"$sort": {"total_sales": -1}}
+            ],
+            "timeline": [
+                {"$group": {
+                    "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}},
+                    "sales": {"$sum": "$grand_total"},
+                    "bills": {"$sum": 1}
+                }},
+                {"$sort": {"_id": 1}}
+            ],
+            "payment_methods": [
+                {"$group": {
+                    "_id": {"$ifNull": ["$payment_method", "CASH"]},
+                    "total": {"$sum": "$grand_total"},
+                    "count": {"$sum": 1}
+                }},
+                {"$sort": {"total": -1}}
+            ],
+            "top_products": [
+                {"$unwind": "$line_items"},
+                {"$group": {
+                    "_id": "$line_items.product_name",
+                    "quantity_sold": {"$sum": "$line_items.quantity"},
+                    "revenue": {"$sum": "$line_items.line_total"},
+                    "bill_appearances": {"$sum": 1}
+                }},
+                {"$sort": {"quantity_sold": -1}},
+                {"$limit": 10}
+            ],
         }}
     ]
-    kpi_res = list(db.invoices.aggregate(kpi_pipeline))
-    kpi = kpi_res[0] if kpi_res else {
+
+    raw = list(db.invoices.aggregate(facet_pipeline))
+    facet = raw[0] if raw else {}
+
+    # ── Unpack KPI ──
+    kpi = facet["kpi"][0] if facet.get("kpi") else {
         "total_sales": 0, "total_bills": 0, "total_paid": 0,
         "total_due": 0, "total_tax": 0, "total_discount": 0, "total_round_off": 0
     }
     kpi.pop("_id", None)
     kpi["avg_bill_value"] = round(kpi["total_sales"] / kpi["total_bills"], 2) if kpi.get("total_bills", 0) > 0 else 0
+    ref = facet["refunds"][0] if facet.get("refunds") else {}
+    kpi["total_refunded"] = ref.get("total_refunded", 0)
+    kpi["refund_count"] = ref.get("refund_count", 0)
 
-    # Calculate refunded total
-    refund_pipeline = [
-        {"$match": match_query},
-        {"$unwind": "$line_items"},
-        {"$match": {"line_items.is_refunded": True}},
-        {"$group": {
-            "_id": None,
-            "total_refunded": {"$sum": "$line_items.line_total"},
-            "refund_count": {"$sum": 1}
-        }}
-    ]
-    ref_res = list(db.invoices.aggregate(refund_pipeline))
-    kpi["total_refunded"] = ref_res[0]["total_refunded"] if ref_res else 0
-    kpi["refund_count"] = ref_res[0]["refund_count"] if ref_res else 0
-
-    # 2. Staff / Cashier Performance Leaderboard (Enlists ALL registered staff + invoice cashiers)
-    staff_pipeline = [
-        {"$match": match_query},
-        {"$group": {
-            "_id": {"$ifNull": ["$created_by", "Admin"]},
-            "bill_count": {"$sum": 1},
-            "total_sales": {"$sum": "$grand_total"},
-            "total_paid": {"$sum": "$amount_paid"},
-            "total_due": {"$sum": "$amount_due"},
-            "cash_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CASH"]}, "$grand_total", 0]}},
-            "upi_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "UPI"]}, "$grand_total", 0]}},
-            "card_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CARD"]}, "$grand_total", 0]}},
-            "credit_sales": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CREDIT"]}, "$grand_total", 0]}},
-        }},
-        {"$sort": {"total_sales": -1}}
-    ]
-    staff_raw = list(db.invoices.aggregate(staff_pipeline))
+    # ── Staff leaderboard ──
     staff_stats_map = {}
-    for s in staff_raw:
+    for s in facet.get("staff", []):
         username = str(s["_id"])
         total_s = float(s.get("total_sales", 0))
         count = int(s.get("bill_count", 0))
-        avg_val = round(total_s / count, 2) if count > 0 else 0
         staff_stats_map[username] = {
             "cashier": username,
             "bill_count": count,
             "total_sales": total_s,
-            "avg_sale": avg_val,
+            "avg_sale": round(total_s / count, 2) if count > 0 else 0,
             "total_paid": float(s.get("total_paid", 0)),
             "total_due": float(s.get("total_due", 0)),
             "cash_sales": float(s.get("cash_sales", 0)),
@@ -1417,10 +1465,8 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
             "credit_sales": float(s.get("credit_sales", 0)),
         }
 
-    # Fetch all registered users in system
     all_users = list(db.users.find({}, {"employee_id": 1, "name": 1, "role": 1}))
     user_info_map = {u.get("employee_id", ""): {"name": u.get("name", ""), "role": u.get("role", "staff")} for u in all_users if u.get("employee_id")}
-    
     for u in all_users:
         uname = u.get("employee_id", "")
         if uname and uname not in staff_stats_map:
@@ -1428,78 +1474,34 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
                 "cashier": uname,
                 "name": u.get("name") or uname,
                 "role": u.get("role", "staff"),
-                "bill_count": 0,
-                "total_sales": 0.0,
-                "avg_sale": 0.0,
-                "total_paid": 0.0,
-                "total_due": 0.0,
-                "cash_sales": 0.0,
-                "upi_sales": 0.0,
-                "card_sales": 0.0,
-                "credit_sales": 0.0,
+                "bill_count": 0, "total_sales": 0.0, "avg_sale": 0.0,
+                "total_paid": 0.0, "total_due": 0.0,
+                "cash_sales": 0.0, "upi_sales": 0.0, "card_sales": 0.0, "credit_sales": 0.0,
             }
-
     for uname, s in staff_stats_map.items():
         if "name" not in s:
             info = user_info_map.get(uname, {})
             s["name"] = info.get("name") or uname
             s["role"] = info.get("role") or "staff"
+    staff_leaderboard = sorted(staff_stats_map.values(), key=lambda x: (-x["total_sales"], -x["bill_count"], x["cashier"]))
 
-    staff_leaderboard = list(staff_stats_map.values())
-    staff_leaderboard.sort(key=lambda x: (-x["total_sales"], -x["bill_count"], x["cashier"]))
-
-
-
-    # 3. Revenue Trend (Daily grouped)
-    trend_pipeline = [
-        {"$match": match_query},
-        {"$group": {
-            "_id": {
-                "$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}
-            },
-            "sales": {"$sum": "$grand_total"},
-            "bills": {"$sum": 1}
-        }},
-        {"$sort": {"_id": 1}}
-    ]
-    trend_raw = list(db.invoices.aggregate(trend_pipeline))
+    # ── Timeline ──
+    timeline_raw = facet.get("timeline", [])
     timeline = {
-        "labels": [t["_id"] for t in trend_raw if t.get("_id")],
-        "sales": [float(t["sales"]) for t in trend_raw if t.get("_id")],
-        "bills": [int(t["bills"]) for t in trend_raw if t.get("_id")]
+        "labels": [t["_id"] for t in timeline_raw if t.get("_id")],
+        "sales": [float(t["sales"]) for t in timeline_raw if t.get("_id")],
+        "bills": [int(t["bills"]) for t in timeline_raw if t.get("_id")]
     }
 
-    # 4. Payment Method Distribution
-    payment_pipeline = [
-        {"$match": match_query},
-        {"$group": {
-            "_id": {"$ifNull": ["$payment_method", "CASH"]},
-            "total": {"$sum": "$grand_total"},
-            "count": {"$sum": 1}
-        }},
-        {"$sort": {"total": -1}}
-    ]
-    pm_raw = list(db.invoices.aggregate(payment_pipeline))
+    # ── Payment methods ──
+    pm_raw = facet.get("payment_methods", [])
     payment_methods = {
         "labels": [p["_id"] for p in pm_raw],
         "amounts": [float(p["total"]) for p in pm_raw],
         "counts": [int(p["count"]) for p in pm_raw],
     }
 
-    # 5. Top 10 Selling Products
-    top_products_pipeline = [
-        {"$match": match_query},
-        {"$unwind": "$line_items"},
-        {"$group": {
-            "_id": "$line_items.product_name",
-            "quantity_sold": {"$sum": "$line_items.quantity"},
-            "revenue": {"$sum": "$line_items.line_total"},
-            "bill_appearances": {"$sum": 1}
-        }},
-        {"$sort": {"quantity_sold": -1}},
-        {"$limit": 10}
-    ]
-    top_prods_raw = list(db.invoices.aggregate(top_products_pipeline))
+    # ── Top products ──
     top_products = [
         {
             "product_name": p["_id"],
@@ -1507,12 +1509,10 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
             "revenue": float(p["revenue"]),
             "bill_count": int(p["bill_appearances"])
         }
-        for p in top_prods_raw if p.get("_id")
+        for p in facet.get("top_products", []) if p.get("_id")
     ]
 
-    # Distinct cashiers for dropdown filter
-    distinct_cashiers = db.invoices.distinct("created_by")
-    distinct_cashiers = [c for c in distinct_cashiers if c]
+    distinct_cashiers = [c for c in db.invoices.distinct("created_by") if c]
 
     result = {
         "kpi": kpi,
@@ -1529,4 +1529,42 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
 
     cache_set(_cache_key, json.dumps(result, default=str), ttl=300)
     return result
+
+
+def get_employee_purchases(employee_id: str, limit: int = 100) -> list[dict]:
+    """
+    Fetches purchase history for a specific employee.
+    Matches invoices where buyer_employee_id == employee_id or is marked as employee purchase.
+    """
+    if not employee_id:
+        return []
+    db = get_db()
+    clean_id = str(employee_id).strip()
+    user = db.users.find_one({"employee_id": clean_id})
+    user_phone = user.get("phone", "") if user else ""
+
+    query_parts = [
+        {"buyer_employee_id": clean_id},
+        {"buyer_employee_id": {"$regex": f"^{re.escape(clean_id)}$", "$options": "i"}}
+    ]
+    if user_phone:
+        query_parts.append({"customer_phone": user_phone, "is_employee_purchase": True})
+
+    invoices = list(db.invoices.find({"$or": query_parts}).sort("created_at", -1).limit(limit))
+    for inv in invoices:
+        inv["_id"] = str(inv["_id"])
+    return invoices
+
+
+def get_active_employees_for_billing() -> list[dict]:
+    """Fetches list of active employees for POS cashier dropdown/search."""
+    db = get_db()
+    users = list(db.users.find(
+        {"is_active": True},
+        {"employee_id": 1, "name": 1, "phone": 1, "email": 1, "role": 1}
+    ).sort("employee_id", 1))
+    for u in users:
+        u["_id"] = str(u["_id"])
+    return users
+
 

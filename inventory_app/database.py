@@ -163,6 +163,8 @@ def init_db_indexes(db):
         db.products.create_index([("is_active", ASCENDING), ("category", ASCENDING)])
         db.products.create_index([("is_active", ASCENDING), ("location", ASCENDING)])
         db.products.create_index([("is_active", ASCENDING), ("quantity", ASCENDING)])
+        # Lowercase index for fast case-insensitive search
+        db.products.create_index([("product_name_lower", ASCENDING)])
         
         # Inventory transactions indexes
         db.inventory_transactions.create_index([("product_name", ASCENDING)])
@@ -194,6 +196,9 @@ def init_db_indexes(db):
         db.invoices.create_index([("customer_phone", ASCENDING)])
         db.invoices.create_index([("payment_status", ASCENDING), ("created_at", DESCENDING)])
         db.invoices.create_index([("created_by", ASCENDING), ("created_at", DESCENDING)])
+        # Lowercase indexes for fast case-insensitive search
+        db.invoices.create_index([("bill_number_lower", ASCENDING)])
+        db.invoices.create_index([("customer_name_lower", ASCENDING)])
 
         # Bill payments indexes
         db.bill_payments.create_index([("bill_number", ASCENDING)])

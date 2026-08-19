@@ -551,9 +551,56 @@
   height: 30px;
   font-size: 0.74rem !important;
 }
+.cust-type-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  background: var(--color-surface-container);
+  padding: 0.2rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--pos-border);
+  margin-bottom: 0.15rem;
+}
+.cust-type-btn {
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: var(--r-xs);
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  transition: all 0.15s;
+}
+.cust-type-btn.active {
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.cust-type-btn#btn-type-staff.active {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+}
+.staff-badge-pill {
+  display: none;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: var(--r-xs);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  align-items: center;
+  justify-content: space-between;
+}
+.staff-badge-pill.show { display: flex; }
+
 .cart-payment-methods {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
   gap: 0.25rem;
   margin-top: 0.1rem;
 }
@@ -578,6 +625,11 @@
 .q-pay-opt.is-active {
   background: var(--color-primary);
   border-color: var(--color-primary);
+  color: #ffffff;
+}
+.q-pay-opt.q-pay-salary.is-active {
+  background: #7c3aed;
+  border-color: #7c3aed;
   color: #ffffff;
 }
 
@@ -1016,6 +1068,34 @@
 
       <!-- Integrated Customer & Billing Configuration inside Cart -->
       <div class="cart-customer-section">
+        <!-- Customer Type Toggle (Retail vs Staff Purchase) -->
+        <div class="cust-type-toggle">
+          <button type="button" class="cust-type-btn active" id="btn-type-retail"><i class="ri-user-line"></i> Retail</button>
+          <button type="button" class="cust-type-btn" id="btn-type-staff"><i class="ri-user-star-line"></i> Staff Purchase</button>
+        </div>
+
+        <input type="hidden" name="is_employee_purchase" id="is_employee_purchase" value="0">
+        <input type="hidden" name="buyer_employee_id" id="buyer_employee_id" value="">
+        <input type="hidden" name="staff_discount_percent" id="staff_discount_percent" value="10">
+
+        <!-- Staff Select Dropdown (Shown in Staff Purchase Mode) -->
+        <div id="staff-select-container" style="display: none; margin-bottom: 0.15rem;">
+          <select id="staff_picker" class="form-control" style="height: 32px; font-size: 0.74rem; font-weight: 600;">
+            <option value="">-- Choose Employee (ID / Name) --</option>
+            {% for emp in employees or [] %}
+              <option value="{{ emp.employee_id }}" data-name="{{ emp.name }}" data-phone="{{ emp.phone or '' }}" data-role="{{ emp.role }}">
+                {{ emp.employee_id }} — {{ emp.name }} ({{ emp.role|title }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- 10% Staff Concession Notice -->
+        <div class="staff-badge-pill" id="staff-concession-notice">
+          <span><i class="ri-discount-percent-line"></i> 10% Staff Concession Applied</span>
+          <span style="background:#d97706; color:#fff; font-size:0.6rem; padding:1px 5px; border-radius:4px;">Staff Rate</span>
+        </div>
+
         <div class="cart-customer-name-row">
           <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Customer Name *" required maxlength="120">
           <button type="button" class="q-walkin-btn" id="walkin-btn" title="Quick walk-in customer"><i class="ri-user-3-line"></i> Walk-in</button>
@@ -1029,6 +1109,7 @@
           <label class="q-pay-opt q-pay-upi"><input type="radio" name="payment_method" value="UPI"><i class="ri-smartphone-line"></i> UPI</label>
           <label class="q-pay-opt q-pay-card"><input type="radio" name="payment_method" value="CARD"><i class="ri-bank-card-line"></i> Card</label>
           <label class="q-pay-opt q-pay-credit"><input type="radio" name="payment_method" value="CREDIT"><i class="ri-time-line"></i> Credit</label>
+          <label class="q-pay-opt q-pay-salary" id="opt-salary-deduction" style="display: none;"><input type="radio" name="payment_method" value="SALARY_DEDUCTION"><i class="ri-wallet-3-line"></i> Salary Ded.</label>
         </div>
 
         <div class="cart-charges-inline">
@@ -1598,6 +1679,78 @@
     }
   }, true);
 
+  /* ── Customer Type (Retail vs Staff Purchase) ── */
+  const btnTypeRetail = document.getElementById('btn-type-retail');
+  const btnTypeStaff = document.getElementById('btn-type-staff');
+  const isEmpInput = document.getElementById('is_employee_purchase');
+  const buyerEmpInput = document.getElementById('buyer_employee_id');
+  const staffSelectCont = document.getElementById('staff-select-container');
+  const staffPicker = document.getElementById('staff_picker');
+  const staffNotice = document.getElementById('staff-concession-notice');
+  const salaryDedOpt = document.getElementById('opt-salary-deduction');
+  const discPercentInput = document.getElementById('discount_percent');
+
+  function setCustomerType(mode) {
+    if (mode === 'staff') {
+      btnTypeRetail.classList.remove('active');
+      btnTypeStaff.classList.add('active');
+      if (isEmpInput) isEmpInput.value = '1';
+      if (staffSelectCont) staffSelectCont.style.display = '';
+      if (staffNotice) staffNotice.classList.add('show');
+      if (salaryDedOpt) salaryDedOpt.style.display = 'flex';
+      if (discPercentInput && (!discPercentInput.value || parseFloat(discPercentInput.value) === 0)) {
+        discPercentInput.value = '10';
+        renderCart();
+      }
+    } else {
+      btnTypeRetail.classList.add('active');
+      btnTypeStaff.classList.remove('active');
+      if (isEmpInput) isEmpInput.value = '0';
+      if (buyerEmpInput) buyerEmpInput.value = '';
+      if (staffSelectCont) staffSelectCont.style.display = 'none';
+      if (staffNotice) staffNotice.classList.remove('show');
+      if (salaryDedOpt) {
+        salaryDedOpt.style.display = 'none';
+        const salaryRadio = salaryDedOpt.querySelector('input');
+        if (salaryRadio && salaryRadio.checked) {
+          const cashRadio = document.querySelector('.q-pay-cash input');
+          if (cashRadio) { cashRadio.checked = true; }
+          document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
+        }
+      }
+      if (discPercentInput && parseFloat(discPercentInput.value) === 10) {
+        discPercentInput.value = '0';
+        renderCart();
+      }
+    }
+  }
+
+  if (btnTypeRetail) btnTypeRetail.addEventListener('click', () => setCustomerType('retail'));
+  if (btnTypeStaff) btnTypeStaff.addEventListener('click', () => setCustomerType('staff'));
+
+  if (staffPicker) {
+    staffPicker.addEventListener('change', function() {
+      const selected = this.options[this.selectedIndex];
+      if (selected && selected.value) {
+        const empId = selected.value;
+        const empName = selected.dataset.name || '';
+        const empPhone = selected.dataset.phone || '';
+        if (buyerEmpInput) buyerEmpInput.value = empId;
+        const nameEl = document.getElementById('customer_name');
+        const phoneEl = document.getElementById('customer_phone');
+        if (nameEl) nameEl.value = empName;
+        if (phoneEl && empPhone) phoneEl.value = empPhone;
+        if (discPercentInput && (!discPercentInput.value || parseFloat(discPercentInput.value) === 0)) {
+          discPercentInput.value = '10';
+        }
+        renderCart();
+        if (typeof showToast === 'function') {
+          showToast('Selected ' + empName + ' (' + empId + ') - 10% Staff Rate Applied', 'info', 2000);
+        }
+      }
+    });
+  }
+
   /* ── Clear & Walk-in ── */
   clearBtn.addEventListener('click', async () => {
     if (cart.length === 0) return;
@@ -1611,6 +1764,7 @@
   });
 
   walkinBtn.addEventListener('click', () => {
+    setCustomerType('retail');
     const nameEl = document.getElementById('customer_name');
     if (nameEl) nameEl.value = 'Walk-in Customer';
     saveCartToStorage();

@@ -349,3 +349,66 @@ def test_reconciliation_detects_missing_sale_tx(app):
         a.get("type") == "MISSING_SALE_TX" and a.get("bill_number") == "INV/MANUAL/1"
         for a in anomalies
     )
+
+
+def test_employee_purchase_with_staff_discount_and_salary_deduction(staff_client, mock_mongo):
+    from inventory_app.services.billing_service import create_bill, get_employee_purchases
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Staff Steel Rods", price=1000.0, gst=18)
+
+    customer_data = {
+        'customer_name': 'Test Staff Member',
+        'customer_phone': '9876543210',
+        'is_employee_purchase': True,
+        'buyer_employee_id': 'STF-001',
+        'staff_discount_percent': 10.0,
+        'payment_method': 'SALARY_DEDUCTION',
+        'discount_percent': 0.0,
+    }
+    items = [{
+        'product_name': 'Staff Steel Rods',
+        'quantity': 1.0,
+    }]
+
+    success, msg, bill = create_bill(customer_data, items, performed_by='ADM-001')
+    assert success is True
+    assert bill["is_employee_purchase"] is True
+    assert bill["buyer_employee_id"] == "STF-001"
+    assert bill["payment_method"] == "SALARY_DEDUCTION"
+    assert bill["payment_status"] == "PAID"
+    # Taxable subtotal is 1000. With 10% discount: 900. GST 18%: 162. Grand Total: 1062.
+    assert bill["discount_percent"] == 10.0
+    assert bill["discount_amount"] == 100.0
+    assert bill["grand_total"] == 1080.0
+
+    # Query employee purchases
+    purchases = get_employee_purchases("STF-001")
+    assert len(purchases) >= 1
+    assert any(p["bill_number"] == bill["bill_number"] for p in purchases)
+
+
+def test_profile_displays_employee_purchases(staff_client, mock_mongo):
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Profile Cement", price=500.0, gst=18)
+
+    # Post bill for staff
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Test Staff',
+        'customer_phone': '9998887776',
+        'is_employee_purchase': '1',
+        'buyer_employee_id': 'STF-001',
+        'staff_discount_percent': '10',
+        'payment_method': 'SALARY_DEDUCTION',
+        'discount_percent': '10',
+        'item_name[]': ['Profile Cement'],
+        'item_quantity[]': ['2'],
+    }, follow_redirects=True)
+    assert resp.status_code == 200
+
+    # View profile as staff
+    profile_resp = staff_client.get('/profile')
+    assert profile_resp.status_code == 200
+    assert b"My Store Purchases" in profile_resp.data
+    assert b"Salary Deduction" in profile_resp.data
+    assert b"Profile Cement" in profile_resp.data

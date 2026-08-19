@@ -51,14 +51,17 @@ def _limiter():
 def pos():
     """POS quick-billing screen: search products, build cart, create GST invoice."""
     from inventory_app.services.product_service import search_products, get_distinct_categories
+    from inventory_app.services.billing_service import get_active_employees_for_billing
     query = request.args.get('q', '').strip()
     category = request.args.get('category', '').strip()
     products = search_products(query=query, category=category, is_active=True, sort_by="product_name", sort_dir=1)
     categories = get_distinct_categories()
+    employees = get_active_employees_for_billing()
     return render_template(
         'billing/pos.html',
         products=products,
         categories=categories,
+        employees=employees,
         current_query=query,
         current_category=category
     )
@@ -71,10 +74,14 @@ def pos():
 def create_bill():
     """Handles POS bill submission. Rate limited to 30 creates/min per user."""
     from inventory_app.services.billing_service import create_bill
+    is_employee_purchase = request.form.get('is_employee_purchase') in ('1', 'true', 'True', 'on')
     customer_data = {
         'customer_name': request.form.get('customer_name', ''),
         'customer_phone': request.form.get('customer_phone', ''),
         'customer_gstin': request.form.get('customer_gstin', ''),
+        'is_employee_purchase': is_employee_purchase,
+        'buyer_employee_id': request.form.get('buyer_employee_id', '').strip(),
+        'staff_discount_percent': request.form.get('staff_discount_percent', '10'),
         'payment_method': request.form.get('payment_method', 'CASH'),
         'discount_percent': request.form.get('discount_percent', '0'),
         'due_date': request.form.get('due_date', '') or None,
@@ -103,9 +110,9 @@ def create_bill():
         'packing_charge': request.form.get('packing_charge', '0'),
     }
 
-    username = session.get('username', 'System')
+    performed_by = session.get('employee_id') or session.get('name') or 'System'
     success, msg, bill = create_bill(
-        customer_data, items, performed_by=username,
+        customer_data, items, performed_by=performed_by,
         charges=charges,
     )
 

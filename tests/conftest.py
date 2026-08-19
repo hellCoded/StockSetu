@@ -25,8 +25,11 @@ def app(mock_mongo):
     db.users.insert_many([
         {
             "employee_id": "ADM-001",
+            "employee_id_lower": "adm-001",
             "name": "Test Admin",
+            "name_lower": "test admin",
             "email": "admin@test.com",
+            "email_lower": "admin@test.com",
             "password_hash": generate_password_hash("AdminPass123"),
             "role": "admin",
             "is_active": True,
@@ -35,8 +38,11 @@ def app(mock_mongo):
         },
         {
             "employee_id": "MGR-001",
+            "employee_id_lower": "mgr-001",
             "name": "Test Manager",
+            "name_lower": "test manager",
             "email": "manager@test.com",
+            "email_lower": "manager@test.com",
             "password_hash": generate_password_hash("ManagerPass123"),
             "role": "inventory_manager",
             "is_active": True,
@@ -45,8 +51,11 @@ def app(mock_mongo):
         },
         {
             "employee_id": "STF-001",
+            "employee_id_lower": "stf-001",
             "name": "Test Staff",
+            "name_lower": "test staff",
             "email": "staff@test.com",
+            "email_lower": "staff@test.com",
             "password_hash": generate_password_hash("StaffPass123"),
             "role": "staff",
             "is_active": True,
