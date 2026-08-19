@@ -1575,11 +1575,11 @@ def get_employee_purchases(employee_id: str, limit: int = 100) -> list[dict]:
 
 
 def get_active_employees_for_billing() -> list[dict]:
-    """Fetches list of active employees for POS cashier dropdown/search."""
+    """Fetches list of employees for POS cashier dropdown/search."""
     db = get_db()
     users = list(db.users.find(
-        {"is_active": True},
-        {"employee_id": 1, "name": 1, "phone": 1, "email": 1, "role": 1}
+        {"employee_id": {"$exists": True, "$ne": ""}},
+        {"employee_id": 1, "name": 1, "phone": 1, "email": 1, "role": 1, "is_active": 1}
     ).sort("employee_id", 1))
     for u in users:
         u["_id"] = str(u["_id"])
