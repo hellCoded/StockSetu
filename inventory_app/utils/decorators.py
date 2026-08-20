@@ -29,14 +29,24 @@ def roles_required(*roles):
             if session.get('role') in roles:
                 return f(*args, **kwargs)
 
-            from inventory_app.services.auth_service import get_user_by_id
-            user = get_user_by_id(session['user_id'])
-            if not user:
+            # Query DB directly (not via cached get_user_by_id) to avoid
+            # serving a stale role when cache invalidation fails silently.
+            try:
+                from inventory_app.database import get_db
+                from bson import ObjectId
+                _u = get_db().users.find_one(
+                    {"_id": ObjectId(session['user_id'])},
+                    {"role": 1, "is_active": 1},
+                )
+            except Exception:
+                _u = None
+
+            if not _u or not _u.get('is_active', True):
                 session.clear()
                 flash("User account not found.", "danger")
                 return redirect(url_for('auth.login'))
-                
-            user_role = user.get('role', 'staff')
+
+            user_role = _u.get('role', 'staff')
             session['role'] = user_role
             
             if user_role not in roles:

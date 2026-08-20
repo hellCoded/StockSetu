@@ -75,8 +75,8 @@ def cache_delete(key):
         return
     try:
         c.delete(key)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning(f"cache_delete failed for key={key}: {exc}")
 
 
 def cache_delete_prefix(prefix):
@@ -183,23 +183,36 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 pass
 
         # Check if user has been deactivated in the database and sync role
-        from inventory_app.services.auth_service import get_user_by_id, record_user_activity
-        user = get_user_by_id(user_id)
-        if not user or not user.get('is_active', True):
+        # NOTE: We query the DB directly (not via cached get_user_by_id) to
+        # ensure cross-device role/name changes are picked up immediately.
+        # get_user_by_id caches for 30s; if cache_delete fails silently on
+        # Upstash Redis, stale data persists and the session never syncs.
+        from inventory_app.services.auth_service import record_user_activity
+        try:
+            from inventory_app.database import get_db
+            from bson import ObjectId
+            _db_user = get_db().users.find_one(
+                {"_id": ObjectId(user_id)},
+                {"role": 1, "name": 1, "employee_id": 1, "is_active": 1},
+            )
+        except Exception:
+            _db_user = None
+
+        if not _db_user or not _db_user.get('is_active', True):
             session.clear()
             flash("Your account has been deactivated. Please contact an administrator.", "danger")
             return redirect(url_for('auth.login'))
 
-        # Sync role from DB so cross-device role changes take effect quickly
-        db_role = user.get('role', 'staff')
+        # Sync role from DB so cross-device role changes take effect immediately
+        db_role = _db_user.get('role', 'staff')
         if session.get('role') != db_role:
             session['role'] = db_role
 
-        # Sync name and employee_id from DB so cross-device edits take effect quickly
-        db_name = user.get('name', '')
+        # Sync name and employee_id from DB so cross-device edits take effect immediately
+        db_name = _db_user.get('name', '')
         if db_name and session.get('name') != db_name:
             session['name'] = db_name
-        db_emp = user.get('employee_id', '')
+        db_emp = _db_user.get('employee_id', '')
         if db_emp and session.get('employee_id') != db_emp:
             session['employee_id'] = db_emp
 
