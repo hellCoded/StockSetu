@@ -99,7 +99,10 @@
             if (d.role !== prevRole) {
               prevRole = d.role;
               var pill = document.querySelector('.role-pill');
-              if (pill) pill.textContent = d.role.charAt(0).toUpperCase() + d.role.slice(1);
+              if (pill) {
+                pill.textContent = d.role.charAt(0).toUpperCase() + d.role.slice(1);
+                pill.className = 'role-pill role-' + d.role;
+              }
               if (typeof showToast === 'function') showToast('Your role has been updated to ' + d.role, 'info');
             }
           })
