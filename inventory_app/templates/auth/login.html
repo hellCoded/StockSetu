@@ -40,7 +40,7 @@
     
     <div class="form-group">
       <label for="identifier" class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Employee ID or Email</label>
-      <input type="text" id="identifier" name="identifier" class="form-control" value="{{ prefilled_identifier if prefilled_identifier else '' }}" placeholder="e.g. EMP-1001 or email@domain.com" required autofocus>
+      <input type="text" id="identifier" name="identifier" class="form-control" value="{{ prefilled_identifier if prefilled_identifier else '' }}" placeholder="e.g. emp-1001 or email@domain.com" required autofocus oninput="this.value=this.value.toLowerCase()">
     </div>
 
     <div class="form-group">

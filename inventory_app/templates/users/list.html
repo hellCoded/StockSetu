@@ -440,7 +440,7 @@ function autoGenModalEmployeeId() {
   const empEl = document.getElementById('new_employee_id');
   if (!empEl) return;
   if (!empEl.value) {
-    empEl.value = 'EMP-' + Math.floor(1000 + Math.random() * 9000);
+    empEl.value = 'emp-' + Math.floor(1000 + Math.random() * 9000);
   }
 }
 
@@ -451,7 +451,7 @@ function autoGenModalUsername() {
 function validateAddUserForm(form) {
   const empEl = form.querySelector('#new_employee_id');
   if (empEl && !empEl.value.trim()) {
-    empEl.value = 'EMP-' + Math.floor(1000 + Math.random() * 9000);
+    empEl.value = 'emp-' + Math.floor(1000 + Math.random() * 9000);
   }
 
   const p1 = form.querySelector('#new_password')?.value || '';
@@ -647,12 +647,12 @@ function clearStaffFile(e) {
 
         <div class="form-group">
           <label for="new_name" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
-          <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex" required oninput="autoGenModalEmployeeId()">
+          <input type="text" id="new_name" name="name" class="form-control" placeholder="e.g. Alex" required oninput="this.value=this.value.toLowerCase();autoGenModalEmployeeId()">
         </div>
 
         <div class="form-group">
           <label for="new_surname" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
-          <input type="text" id="new_surname" name="surname" class="form-control" placeholder="e.g. Smith" oninput="autoGenModalEmployeeId()">
+          <input type="text" id="new_surname" name="surname" class="form-control" placeholder="e.g. Smith" oninput="this.value=this.value.toLowerCase();autoGenModalEmployeeId()">
         </div>
 
         <div class="form-group">
@@ -662,7 +662,7 @@ function clearStaffFile(e) {
 
         <div class="form-group">
           <label for="new_email" class="form-label"><i class="ri-mail-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
-          <input type="email" id="new_email" name="email" class="form-control" placeholder="alex@inventory.com" required>
+          <input type="email" id="new_email" name="email" class="form-control" placeholder="alex@inventory.com" required oninput="this.value=this.value.toLowerCase()">
         </div>
 
         <div class="form-group">

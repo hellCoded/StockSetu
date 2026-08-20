@@ -182,13 +182,26 @@ def create_app(config_class=Config, custom_mongo_client=None):
             except (ValueError, TypeError):
                 pass
 
-        # Check if user has been deactivated in the database
+        # Check if user has been deactivated in the database and sync role
         from inventory_app.services.auth_service import get_user_by_id, record_user_activity
         user = get_user_by_id(user_id)
         if not user or not user.get('is_active', True):
             session.clear()
             flash("Your account has been deactivated. Please contact an administrator.", "danger")
             return redirect(url_for('auth.login'))
+
+        # Sync role from DB so cross-device role changes take effect quickly
+        db_role = user.get('role', 'staff')
+        if session.get('role') != db_role:
+            session['role'] = db_role
+
+        # Sync name and employee_id from DB so cross-device edits take effect quickly
+        db_name = user.get('name', '')
+        if db_name and session.get('name') != db_name:
+            session['name'] = db_name
+        db_emp = user.get('employee_id', '')
+        if db_emp and session.get('employee_id') != db_emp:
+            session['employee_id'] = db_emp
 
         # Update session activity timestamp
         session['last_active_at'] = now_ts

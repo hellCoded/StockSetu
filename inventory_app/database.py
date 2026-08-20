@@ -219,15 +219,18 @@ def seed_default_admin(db):
         if not admin_user:
             now = datetime.now(timezone.utc)
             db.users.insert_one({
-                "employee_id": "EMP-0001",
-                "name": "System Administrator",
+                "employee_id": "emp-0001",
+                "employee_id_lower": "emp-0001",
+                "name": "system administrator",
+                "name_lower": "system administrator",
                 "email": "admin@inventory.local",
+                "email_lower": "admin@inventory.local",
                 "password_hash": generate_password_hash("Admin@123456"),
                 "role": "admin",
                 "is_active": True,
                 "created_at": now,
                 "updated_at": now
             })
-            logger.info("Default administrator account created (EMP-0001 / Admin@123456)")
+            logger.info("Default administrator account created (emp-0001 / Admin@123456)")
     except Exception as e:
         logger.error(f"Error seeding default admin user: {e}")

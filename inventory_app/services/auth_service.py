@@ -25,14 +25,14 @@ def register_user(email: str = "", password: str = "", role: str = "staff", name
     if not clean_emp_id:
         clean_emp_id = generate_employee_id(name)
         
-    clean_email = email.strip().lower()
+    clean_email = email.strip()
     clean_name = name.strip()
     clean_surname = surname.strip() if surname else ""
     clean_phone = phone.strip() if phone else ""
     full_name = f"{clean_name} {clean_surname}".strip() if clean_surname else clean_name
     
     # Check duplicate employee_id via indexed lowercase field
-    if db.users.find_one({"employee_id_lower": clean_emp_id.lower()}):
+    if db.users.find_one({"employee_id_lower": clean_emp_id}):
         return False, f"Employee ID '{clean_emp_id}' is already registered.", {}
         
     # Check duplicate email
@@ -45,11 +45,11 @@ def register_user(email: str = "", password: str = "", role: str = "staff", name
     now = datetime.now(timezone.utc)
     user_doc = {
         "employee_id": clean_emp_id,
-        "employee_id_lower": clean_emp_id.lower(),
+        "employee_id_lower": clean_emp_id,
         "name": full_name or clean_emp_id,
-        "name_lower": (full_name or clean_emp_id).lower(),
+        "name_lower": full_name or clean_emp_id,
         "email": clean_email,
-        "email_lower": clean_email.lower(),
+        "email_lower": clean_email,
         "phone": clean_phone,
         "password_hash": generate_password_hash(password),
         "role": assigned_role,
@@ -323,7 +323,7 @@ def update_user_profile_info(user_id: str, name: str, email: str) -> tuple[bool,
         return False, "Please provide a valid email address."
         
     try:
-        existing = db.users.find_one({"email": email.strip().lower(), "_id": {"$ne": ObjectId(uid_str)}})
+        existing = db.users.find_one({"email": email.strip(), "_id": {"$ne": ObjectId(uid_str)}})
         if existing:
             return False, "This email address is already registered to another account."
             
@@ -331,7 +331,7 @@ def update_user_profile_info(user_id: str, name: str, email: str) -> tuple[bool,
             {"_id": ObjectId(uid_str)},
             {"$set": {
                 "name": name.strip(),
-                "email": email.strip().lower(),
+                "email": email.strip(),
                 "updated_at": datetime.now(timezone.utc)
             }}
         )
@@ -663,10 +663,10 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
             "employee_id": clean_emp_id,
             "employee_id_lower": clean_emp_id_lower,
             "name": full_name or clean_emp_id,
-            "name_lower": (full_name or clean_emp_id).lower(),
+            "name_lower": full_name or clean_emp_id,
             "phone": raw_phone,
             "email": raw_email,
-            "email_lower": raw_email.lower(),
+            "email_lower": raw_email,
             "password_hash": hashed_password,
             "role": "staff",
             "is_active": False,

@@ -40,12 +40,12 @@
 
     <div class="form-group">
       <label for="name" class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
-      <input type="text" id="name" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}" placeholder="e.g. John" required oninput="autoGenerateEmployeeId()">
+      <input type="text" id="name" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}" placeholder="e.g. John" required oninput="this.value=this.value.toLowerCase();autoGenerateEmployeeId()">
     </div>
 
     <div class="form-group">
       <label for="surname" class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Surname <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
-      <input type="text" id="surname" name="surname" class="form-control" value="{{ form_data.surname if form_data else '' }}" placeholder="e.g. Doe" oninput="autoGenerateEmployeeId()">
+      <input type="text" id="surname" name="surname" class="form-control" value="{{ form_data.surname if form_data else '' }}" placeholder="e.g. Doe" oninput="this.value=this.value.toLowerCase();autoGenerateEmployeeId()">
     </div>
 
     <div class="form-group">
@@ -55,7 +55,7 @@
 
     <div class="form-group">
       <label for="email" class="form-label"><i class="ri-mail-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
-      <input type="email" id="email" name="email" class="form-control" value="{{ form_data.email if form_data else '' }}" placeholder="john@example.com" required>
+      <input type="email" id="email" name="email" class="form-control" value="{{ form_data.email if form_data else '' }}" placeholder="john@example.com" required oninput="this.value=this.value.toLowerCase()">
     </div>
 
     <div class="form-group">
@@ -98,7 +98,7 @@ function autoGenerateEmployeeId() {
     if (!empEl.dataset.digits) {
       empEl.dataset.digits = Math.floor(1000 + Math.random() * 9000).toString();
     }
-    empEl.value = 'EMP-' + empEl.dataset.digits;
+    empEl.value = 'emp-' + empEl.dataset.digits;
   } else {
     empEl.value = '';
     delete empEl.dataset.digits;

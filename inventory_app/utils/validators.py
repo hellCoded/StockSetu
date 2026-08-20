@@ -77,7 +77,7 @@ def validate_user_registration(data: dict) -> tuple[bool, str]:
     name = (data.get('name') or '').strip()
     surname = (data.get('surname') or '').strip()
     employee_id = (data.get('employee_id') or '').strip()
-    email = (data.get('email') or '').strip().lower()
+    email = (data.get('email') or '').strip()
     password = data.get('password') or ''
     confirm_password = data.get('confirm_password') or ''
     
