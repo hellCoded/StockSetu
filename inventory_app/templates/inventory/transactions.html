@@ -3,32 +3,7 @@
 {% block title %}Transaction History - StockSetu{% endblock %}
 
 {% block content %}
-<!-- Executive Gradient Hero Banner -->
-<div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
-    <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
-      <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
-        <i class="ri-history-line"></i>
-      </div>
-      <div>
-        <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
-          Inventory Transaction Ledger
-        </h1>
-        <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
-          Chronological audit trail of all warehouse stock ins, stock outs, adjustments, and receipts
-        </p>
-      </div>
-    </div>
-    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
-      <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
-        <i class="ri-file-pdf-2-line" style="color: #fca5a5; margin-right: 0.35rem;"></i> Export PDF
-      </a>
-      <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
-        <i class="ri-file-excel-2-line" style="color: #86efac; margin-right: 0.35rem;"></i> Export Excel
-      </a>
-    </div>
-  </div>
-
-  <!-- KPI Summary Banner -->
+  <!-- Calculate Stats -->
   {% set in_count = namespace(val=0) %}
   {% set out_count = namespace(val=0) %}
   {% set adj_count = namespace(val=0) %}
@@ -38,44 +13,47 @@
     {% if tx.transaction_type == 'ADJUSTMENT' %}{% set adj_count.val = adj_count.val + 1 %}{% endif %}
   {% endfor %}
 
-  <div class="tx-kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-primary, #0b3d6e); display: flex; align-items: center; gap: 0.85rem;">
-      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-primary-light, rgba(11,61,110,0.1)); display: flex; align-items: center; justify-content: center; color: var(--color-primary, #0b3d6e); font-size: 1.1rem;">
+  <!-- Unified Executive Hero & Stats Bar -->
+  <div class="executive-hero">
+    <div style="display: flex; align-items: center; gap: 0.75rem; position: relative; z-index: 2;">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: #ffffff; box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35); flex-shrink: 0;">
         <i class="ri-history-line"></i>
       </div>
       <div>
-        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Total Logged</div>
-        <div style="font-size: 1.2rem; font-weight: 800; color: var(--color-on-surface, #0f172a);">{{ transactions|length }}</div>
+        <h1>Inventory Transaction Ledger</h1>
+        <p>Chronological audit trail of all warehouse stock ins, stock outs, adjustments, and receipts</p>
       </div>
     </div>
+    <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+      <a href="{{ url_for('inventory.export_transactions_pdf', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to PDF">
+        <i class="ri-file-pdf-2-line" style="color: #fca5a5;"></i> PDF
+      </a>
+      <a href="{{ url_for('inventory.export_transactions_excel', product_name=current_product, type=current_type) }}" class="btn btn-secondary no-print" title="Export Transaction History to Excel">
+        <i class="ri-file-excel-2-line" style="color: #86efac;"></i> Excel
+      </a>
+    </div>
 
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-success, #10b981); display: flex; align-items: center; gap: 0.85rem;">
-      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-success-bg, #dcfce7); display: flex; align-items: center; justify-content: center; color: var(--color-success, #10b981); font-size: 1.1rem;">
+    <!-- Integrated Centered Micro-Stats Row -->
+    <div class="hero-stats-row">
+      <div class="hero-stat-pill" title="Total Logged Transactions">
+        <i class="ri-history-line" style="color: #93c5fd;"></i>
+        <span class="hero-stat-num">{{ transactions|length }}</span>
+        <span class="hero-stat-label">Total Logged</span>
+      </div>
+      <div class="hero-stat-pill stat-success" title="Stock In Events">
         <i class="ri-arrow-down-line"></i>
+        <span class="hero-stat-num">{{ in_count.val }}</span>
+        <span class="hero-stat-label">Stock In</span>
       </div>
-      <div>
-        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Stock In Events</div>
-        <div style="font-size: 1.2rem; font-weight: 800; color: #166534;">{{ in_count.val }}</div>
-      </div>
-    </div>
-
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-danger, #ef4444); display: flex; align-items: center; gap: 0.85rem;">
-      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-danger-bg, #fee2e2); display: flex; align-items: center; justify-content: center; color: var(--color-danger, #ef4444); font-size: 1.1rem;">
+      <div class="hero-stat-pill stat-danger" title="Stock Out Events">
         <i class="ri-arrow-up-line"></i>
+        <span class="hero-stat-num">{{ out_count.val }}</span>
+        <span class="hero-stat-label">Stock Out</span>
       </div>
-      <div>
-        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Stock Out Events</div>
-        <div style="font-size: 1.2rem; font-weight: 800; color: #991b1b;">{{ out_count.val }}</div>
-      </div>
-    </div>
-
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-warning, #f59e0b); display: flex; align-items: center; gap: 0.85rem;">
-      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-warning-bg, #fef9c3); display: flex; align-items: center; justify-content: center; color: var(--color-warning, #f59e0b); font-size: 1.1rem;">
+      <div class="hero-stat-pill stat-warning" title="Stock Adjustments">
         <i class="ri-equalizer-2-line"></i>
-      </div>
-      <div>
-        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Adjustments</div>
-        <div style="font-size: 1.2rem; font-weight: 800; color: #92400e;">{{ adj_count.val }}</div>
+        <span class="hero-stat-num">{{ adj_count.val }}</span>
+        <span class="hero-stat-label">Adjustments</span>
       </div>
     </div>
   </div>
