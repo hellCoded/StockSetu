@@ -26,14 +26,14 @@
       {# Previous button #}
       {% if pagination.has_prev %}
         <li>
-          <a href="{{ pagination.url_for_page(pagination.prev_num, request.args) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.55rem; font-size: 0.78rem; min-height: 32px; border-radius: var(--r-sm, 6px); display: inline-flex; align-items: center; gap: 0.25rem;" title="Previous page">
-            <i class="ri-arrow-left-s-line" style="font-size: 0.7rem;"></i> Prev
+          <a href="{{ pagination.url_for_page(pagination.prev_num, request.args) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.65rem; font-size: 0.78rem; min-height: 30px; border-radius: var(--r-full, 9999px); display: inline-flex; align-items: center; gap: 0.25rem;" title="Previous page">
+            <i class="ri-arrow-left-s-line" style="font-size: 0.75rem;"></i> Prev
           </a>
         </li>
       {% else %}
         <li>
-          <span class="btn btn-secondary btn-sm disabled" style="padding: 0.25rem 0.55rem; font-size: 0.78rem; min-height: 32px; border-radius: var(--r-sm, 6px); opacity: 0.45; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.25rem;">
-            <i class="ri-arrow-left-s-line" style="font-size: 0.7rem;"></i> Prev
+          <span class="btn btn-secondary btn-sm disabled" style="padding: 0.25rem 0.65rem; font-size: 0.78rem; min-height: 30px; border-radius: var(--r-full, 9999px); opacity: 0.45; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <i class="ri-arrow-left-s-line" style="font-size: 0.75rem;"></i> Prev
           </span>
         </li>
       {% endif %}
@@ -43,13 +43,13 @@
         {% if p %}
           {% if p == pagination.page %}
             <li>
-              <span class="btn btn-primary btn-sm" style="min-width: 32px; height: 32px; padding: 0 0.5rem; font-size: 0.8rem; font-weight: 700; border-radius: var(--r-sm, 6px); display: inline-flex; align-items: center; justify-content: center; background: var(--color-primary, #0b3d6e); color: #fff;">
+              <span class="btn btn-primary btn-sm" style="min-width: 30px; height: 30px; padding: 0 0.5rem; font-size: 0.8rem; font-weight: 700; border-radius: var(--r-full, 9999px); display: inline-flex; align-items: center; justify-content: center; background: var(--color-primary, #881337); color: #fff; box-shadow: 0 2px 6px rgba(136, 19, 55, 0.3);">
                 {{ p }}
               </span>
             </li>
           {% else %}
             <li>
-              <a href="{{ pagination.url_for_page(p, request.args) }}" class="btn btn-secondary btn-sm" style="min-width: 32px; height: 32px; padding: 0 0.5rem; font-size: 0.8rem; border-radius: var(--r-sm, 6px); display: inline-flex; align-items: center; justify-content: center; color: var(--color-on-surface, #0f172a);" title="Page {{ p }}">
+              <a href="{{ pagination.url_for_page(p, request.args) }}" class="btn btn-secondary btn-sm" style="min-width: 30px; height: 30px; padding: 0 0.5rem; font-size: 0.8rem; border-radius: var(--r-full, 9999px); display: inline-flex; align-items: center; justify-content: center; color: var(--color-on-surface, #0f172a);" title="Page {{ p }}">
                 {{ p }}
               </a>
             </li>
@@ -62,7 +62,7 @@
       {# Next button #}
       {% if pagination.has_next %}
         <li>
-          <a href="{{ pagination.url_for_page(pagination.next_num, request.args) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.55rem; font-size: 0.78rem; min-height: 32px; border-radius: var(--r-sm, 6px); display: inline-flex; align-items: center; gap: 0.25rem;" title="Next page">
+          <a href="{{ pagination.url_for_page(pagination.next_num, request.args) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.65rem; font-size: 0.78rem; min-height: 30px; border-radius: var(--r-full, 9999px); display: inline-flex; align-items: center; gap: 0.25rem;" title="Next page">
             Next <i class="ri-arrow-right-s-line" style="font-size: 0.7rem;"></i>
           </a>
         </li>

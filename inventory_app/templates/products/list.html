@@ -70,45 +70,6 @@
     </div>
   </div>
 
-  <!-- Search and Filter Bar -->
-  <form method="GET" action="{{ url_for('products.list_products') }}" class="filter-bar" style="margin-bottom: 1rem;">
-    <div class="filter-item" style="flex: 2; min-width: 220px;">
-      <input type="text" name="q" class="form-control" placeholder="Search product name..." value="{{ current_query }}">
-    </div>
-
-    <div class="filter-item">
-      <select name="category" class="form-select">
-        <option value="">All Categories</option>
-        {% for cat in categories %}
-          <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>{{ cat }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <div class="filter-item">
-      <select name="location" class="form-select">
-        <option value="">All Locations</option>
-        {% for loc in locations %}
-          <option value="{{ loc }}" {% if current_location == loc %}selected{% endif %}>{{ loc }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <div class="filter-item">
-      <select name="status" class="form-select">
-        <option value="">All Stock Statuses</option>
-        <option value="IN STOCK" {% if current_status == 'IN STOCK' %}selected{% endif %}>IN STOCK</option>
-        <option value="LOW STOCK" {% if current_status == 'LOW STOCK' %}selected{% endif %}>LOW STOCK</option>
-        <option value="OUT OF STOCK" {% if current_status == 'OUT OF STOCK' %}selected{% endif %}>OUT OF STOCK</option>
-      </select>
-    </div>
-
-    <div class="filter-item" style="flex: 0 0 auto; display: flex; gap: 0.4rem;">
-      <button type="submit" class="btn btn-secondary" style="font-size: 0.82rem;"><i class="ri-search-2-line"></i> Filter</button>
-      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm" title="Clear Filters"><i class="ri-refund-2-line"></i></a>
-    </div>
-  </form>
-
   <!-- Product List Table Card -->
   <div class="card">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
