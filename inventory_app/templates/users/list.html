@@ -35,8 +35,8 @@
   </div>
 
   <!-- Integrated Micro-Stats & Live Filter Bar -->
-  <div class="hero-stats-row" style="display: flex; align-items: center; justify-content: space-between; gap: 0.65rem; width: 100%; flex-wrap: wrap;">
-    <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+  <div class="hero-stats-row" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 0.45rem; flex-wrap: wrap;">
       <a href="{{ url_for('users.list_users') }}" class="hero-stat-pill {% if not current_role %}is-active{% endif %}" title="All system accounts">
         <i class="ri-team-line" style="color: #93c5fd;"></i>
         <span class="hero-stat-label">All</span>

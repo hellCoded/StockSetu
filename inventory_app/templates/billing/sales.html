@@ -235,20 +235,20 @@
       <span class="hero-stat-num">{{ format_currency(kpi.total_paid or 0) }}</span>
       <span class="hero-stat-label">Total Collected</span>
     </div>
-    <div class="hero-stat-pill" style="border-color: rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.1);" title="Total physical cash collected in drawer">
-      <i class="ri-money-dollar-circle-line" style="color: #22c55e;"></i>
-      <span class="hero-stat-num" style="color: #16a34a;">{{ format_currency(kpi.cash_collected or 0) }}</span>
+    <div class="hero-stat-pill stat-success" title="Total physical cash collected in drawer">
+      <i class="ri-money-dollar-circle-line" style="color: #4ade80;"></i>
+      <span class="hero-stat-num">{{ format_currency(kpi.cash_collected or 0) }}</span>
       <span class="hero-stat-label">Cash In Drawer</span>
     </div>
-    <div class="hero-stat-pill" style="border-color: rgba(14, 165, 233, 0.35); background: rgba(14, 165, 233, 0.1);" title="Total digital UPI/QR payments received">
-      <i class="ri-smartphone-line" style="color: #0ea5e9;"></i>
-      <span class="hero-stat-num" style="color: #0284c7;">{{ format_currency(kpi.upi_collected or 0) }}</span>
-      <span class="hero-stat-label">UPI / QR Collected</span>
+    <div class="hero-stat-pill" style="border-color: rgba(56, 189, 248, 0.4); background: rgba(14, 165, 233, 0.2);" title="Total digital UPI/QR payments received">
+      <i class="ri-smartphone-line" style="color: #38bdf8;"></i>
+      <span class="hero-stat-num" style="color: #bae6fd;">{{ format_currency(kpi.upi_collected or 0) }}</span>
+      <span class="hero-stat-label">UPI / QR</span>
     </div>
     {% if (kpi.total_due or 0) > 0 %}
-    <div class="hero-stat-pill" style="border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.1);" title="Unpaid credit balance">
-      <i class="ri-time-line" style="color: #f59e0b;"></i>
-      <span class="hero-stat-num" style="color: #d97706;">{{ format_currency(kpi.total_due) }}</span>
+    <div class="hero-stat-pill stat-warning" title="Unpaid credit balance">
+      <i class="ri-time-line" style="color: #fde047;"></i>
+      <span class="hero-stat-num">{{ format_currency(kpi.total_due) }}</span>
       <span class="hero-stat-label">Pending Due</span>
     </div>
     {% endif %}
