@@ -108,3 +108,14 @@ def api_cart_clear():
     db = get_db()
     db.pos_drafts.delete_one({'employee_id': employee_id})
     return jsonify({'ok': True})
+
+
+@api_bp.route('/user/session-info')
+@login_required
+def api_user_session_info():
+    """Lightweight endpoint for JS polling — returns current session role/name/employee_id."""
+    return jsonify({
+        'role': session.get('role', 'staff'),
+        'name': session.get('name', ''),
+        'employee_id': session.get('employee_id', ''),
+    })

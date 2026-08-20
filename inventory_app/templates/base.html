@@ -86,5 +86,28 @@
       navigator.serviceWorker.register('/static/js/service-worker.js').catch(() => {});
     }
   </script>
+  {% if current_user.id %}
+  <script>
+    (function() {
+      const POLL_MS = 30000;
+      let prevRole = {{ current_user.role|tojson }};
+      function poll() {
+        fetch('/api/user/session-info', { credentials: 'same-origin' })
+          .then(function(r) { if (r.status === 401) { window.location.href = '/auth/login'; return null; } return r.json(); })
+          .then(function(d) {
+            if (!d) return;
+            if (d.role !== prevRole) {
+              prevRole = d.role;
+              var pill = document.querySelector('.role-pill');
+              if (pill) pill.textContent = d.role.charAt(0).toUpperCase() + d.role.slice(1);
+              if (typeof showToast === 'function') showToast('Your role has been updated to ' + d.role, 'info');
+            }
+          })
+          .catch(function() {});
+      }
+      setInterval(poll, POLL_MS);
+    })();
+  </script>
+  {% endif %}
 </body>
 </html>
