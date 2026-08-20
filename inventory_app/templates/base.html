@@ -89,7 +89,7 @@
   {% if current_user.id %}
   <script>
     (function() {
-      const POLL_MS = 30000;
+      const POLL_MS = 5000;
       let prevRole = {{ current_user.role|tojson }};
 
       function applyRoleVisibility(role) {
