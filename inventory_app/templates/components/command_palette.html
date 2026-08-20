@@ -112,9 +112,9 @@
 .cmd-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   z-index: 9999;
   display: flex;
   align-items: flex-start;
@@ -133,10 +133,12 @@
 .cmd-modal {
   width: 100%;
   max-width: 620px;
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-outline-variant, #e2e8f0);
+  background: var(--glass-bg-heavy, #ffffff);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid var(--glass-border, #e2e8f0);
   border-radius: var(--r-xl, 16px);
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: var(--glass-shadow-lg, 0 20px 48px rgba(0, 0, 0, 0.28));
   overflow: hidden;
   transform: translateY(-12px) scale(0.98);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -152,9 +154,9 @@
   display: flex;
   align-items: center;
   padding: 0.9rem 1.15rem;
-  border-bottom: 1px solid var(--color-outline-variant, #e2e8f0);
+  border-bottom: 1px solid var(--glass-border, var(--color-outline-variant, #e2e8f0));
   gap: 0.75rem;
-  background: var(--color-surface);
+  background: transparent;
 }
 
 .cmd-search-icon {

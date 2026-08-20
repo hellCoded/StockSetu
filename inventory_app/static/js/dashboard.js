@@ -32,7 +32,7 @@
       legend: {
         position: 'bottom',
         labels: {
-          font: { family: 'Inter', size: 10, weight: '500' },
+          font: { family: 'Plus Jakarta Sans', size: 10, weight: '500' },
           boxWidth: 12,
           padding: 8
         }
@@ -90,12 +90,12 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { font: { family: 'Inter', size: 9 }, maxRotation: 45, minRotation: 0 }
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 9 }, maxRotation: 45, minRotation: 0 }
             },
             y: {
               beginAtZero: true,
               grid: { color: '#f1f5f9' },
-              ticks: { font: { family: 'Inter', size: 10 } }
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 10 } }
             }
           }
         }
@@ -176,11 +176,11 @@
             x: {
               beginAtZero: true,
               grid: { color: '#f1f5f9' },
-              ticks: { font: { family: 'Inter', size: 10 } }
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 10 } }
             },
             y: {
               grid: { display: false },
-              ticks: { font: { family: 'Inter', size: 9 }, autoSkip: false }
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 9 }, autoSkip: false }
             }
           }
         }
