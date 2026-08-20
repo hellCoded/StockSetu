@@ -48,13 +48,13 @@
       </a>
     </li>
     {% if current_user.role in ['admin', 'inventory_manager'] %}
-    <li>
+    <li data-role-require="admin,inventory_manager">
       <a href="{{ url_for('inventory.bulk_stock_in') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('inventory.bulk_stock_in') %}active{% endif %}">
         <i class="ri-upload-cloud-2-line"></i>
         <span>Bulk Stock In</span>
       </a>
     </li>
-    <li>
+    <li data-role-require="admin,inventory_manager">
       <a href="{{ url_for('inventory.adjust_stock') }}" class="sidebar-link {% if request.endpoint == 'inventory.adjust_stock' %}active{% endif %}">
         <i class="ri-equalizer-2-line"></i>
         <span>Adjust Stock</span>
@@ -87,7 +87,7 @@
     </li>
 
     {% if current_user.role == 'admin' %}
-    <li style="margin-top: 1rem; border-top: 1px solid var(--bg-card-border); padding-top: 1rem;">
+    <li style="margin-top: 1rem; border-top: 1px solid var(--bg-card-border); padding-top: 1rem;" data-role-require="admin">
       <a href="{{ url_for('users.list_users') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('users.') and request.endpoint not in ['users.profile', 'users.request_promotion'] %}active{% endif %}">
         <i class="ri-user-settings-line"></i>
         <span>User Management</span>

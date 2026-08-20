@@ -113,9 +113,30 @@ def api_cart_clear():
 @api_bp.route('/user/session-info')
 @login_required
 def api_user_session_info():
-    """Lightweight endpoint for JS polling — returns current session role/name/employee_id."""
+    """Lightweight endpoint for JS polling — queries DB directly for fresh role,
+    then syncs back into session so subsequent server renders are also correct."""
+    from inventory_app.database import get_db
+    from bson import ObjectId
+    uid = session.get('user_id')
+    try:
+        db_user = get_db().users.find_one(
+            {"_id": ObjectId(uid)},
+            {"role": 1, "name": 1, "employee_id": 1, "is_active": 1},
+        )
+    except Exception:
+        db_user = None
+
+    if not db_user or not db_user.get('is_active', True):
+        session.clear()
+        return jsonify({'error': 'session_expired'}), 401
+
+    # Force-sync session from DB so next page load is also correct
+    session['role'] = db_user.get('role', 'staff')
+    session['name'] = db_user.get('name', '')
+    session['employee_id'] = db_user.get('employee_id', '')
+
     return jsonify({
-        'role': session.get('role', 'staff'),
-        'name': session.get('name', ''),
-        'employee_id': session.get('employee_id', ''),
+        'role': session['role'],
+        'name': session['name'],
+        'employee_id': session['employee_id'],
     })

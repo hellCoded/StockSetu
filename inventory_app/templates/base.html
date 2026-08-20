@@ -91,6 +91,14 @@
     (function() {
       const POLL_MS = 30000;
       let prevRole = {{ current_user.role|tojson }};
+
+      function applyRoleVisibility(role) {
+        document.querySelectorAll('[data-role-require]').forEach(function(el) {
+          var allowed = el.getAttribute('data-role-require').split(',').map(function(s){ return s.trim(); });
+          el.style.display = allowed.indexOf(role) === -1 ? 'none' : '';
+        });
+      }
+
       function poll() {
         fetch('/api/user/session-info', { credentials: 'same-origin' })
           .then(function(r) { if (r.status === 401) { window.location.href = '/auth/login'; return null; } return r.json(); })
@@ -103,11 +111,14 @@
                 pill.textContent = d.role.charAt(0).toUpperCase() + d.role.slice(1);
                 pill.className = 'role-pill role-' + d.role;
               }
+              applyRoleVisibility(d.role);
               if (typeof showToast === 'function') showToast('Your role has been updated to ' + d.role, 'info');
             }
           })
           .catch(function() {});
       }
+
+      applyRoleVisibility(prevRole);
       setInterval(poll, POLL_MS);
     })();
   </script>

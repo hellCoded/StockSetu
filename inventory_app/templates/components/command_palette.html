@@ -37,7 +37,7 @@
         </a>
 
         {% if current_user.role in ['admin', 'inventory_manager'] %}
-        <a href="{{ url_for('products.add_product') }}" class="cmd-item" data-index="2">
+        <a href="{{ url_for('products.add_product') }}" class="cmd-item" data-index="2" data-role-require="admin,inventory_manager">
           <div class="cmd-item-icon" style="background: rgba(22, 163, 74, 0.12); color: #16a34a;">
             <i class="ri-add-circle-line"></i>
           </div>
@@ -47,7 +47,7 @@
           </div>
         </a>
 
-        <a href="{{ url_for('inventory.bulk_stock_in') }}" class="cmd-item" data-index="3">
+        <a href="{{ url_for('inventory.bulk_stock_in') }}" class="cmd-item" data-index="3" data-role-require="admin,inventory_manager">
           <div class="cmd-item-icon" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
             <i class="ri-upload-cloud-2-line"></i>
           </div>
@@ -57,7 +57,7 @@
           </div>
         </a>
 
-        <a href="{{ url_for('inventory.adjust_stock') }}" class="cmd-item" data-index="4">
+        <a href="{{ url_for('inventory.adjust_stock') }}" class="cmd-item" data-index="4" data-role-require="admin,inventory_manager">
           <div class="cmd-item-icon" style="background: rgba(217, 119, 6, 0.12); color: #d97706;">
             <i class="ri-equalizer-2-line"></i>
           </div>
