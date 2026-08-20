@@ -45,6 +45,16 @@ def _limiter():
     return current_app.extensions.get('limiter')
 
 
+def get_category_theme_idx(category_name):
+    """Deterministic hash for category name to map to one of 16 theme colors."""
+    if not category_name:
+        return 0
+    h = 0
+    for char in str(category_name).strip().lower():
+        h = (h * 31 + ord(char)) % 16
+    return h
+
+
 @billing_bp.route('/billing')
 @login_required
 @roles_required('admin', 'inventory_manager', 'staff')
@@ -63,7 +73,8 @@ def pos():
         categories=categories,
         employees=employees,
         current_query=query,
-        current_category=category
+        current_category=category,
+        get_category_theme_idx=get_category_theme_idx
     )
 
 

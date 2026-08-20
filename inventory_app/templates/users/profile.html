@@ -1,357 +1,513 @@
 {% extends "base.html" %}
 
-{% block title %}User Profile - StockSetu{% endblock %}
+{% block title %}My Profile - {{ user.name if user.name else user.employee_id }} - StockSetu{% endblock %}
 
 {% block content %}
-  <!-- Executive Gradient Hero Banner -->
-  <div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
-    <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
-      <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
-        <i class="ri-shield-user-line"></i>
-      </div>
-      <div>
-        <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
-          My Account Profile
+<!-- Executive Profile Hero & Identity Command Bar -->
+<div class="executive-hero" style="margin-bottom: 1rem;">
+  <div style="display: flex; align-items: center; gap: 0.85rem; position: relative; z-index: 2; flex-wrap: wrap;">
+    <div style="width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; color: #ffffff; box-shadow: 0 3px 10px rgba(234, 88, 12, 0.35); flex-shrink: 0;">
+      {{ (user.name or user.employee_id or 'U')[0]|upper }}
+    </div>
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <h1 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff; line-height: 1.2;">
+          {{ user.name if user.name else user.employee_id }}
         </h1>
-        <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
-          Manage personal details, update credentials, review permissions, and change password
-        </p>
-      </div>
-    </div>
-    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
-      <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(239, 68, 68, 0.2); color: #fee2e2; border: 1px solid rgba(239, 68, 68, 0.4); backdrop-filter: blur(8px);" title="Logout of current session">
-        <i class="ri-logout-box-r-line"></i> Logout
-      </a>
-    </div>
-  </div>
-
-<div class="form-grid" style="max-width: 900px;">
-  <!-- Edit Account Profile Card -->
-  <div class="card">
-    <h3 class="card-title"><i class="ri-id-card-line"></i> Edit Personal Info</h3>
-    <form method="POST" action="{{ url_for('users.profile') }}" style="margin-top: 1rem;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="hidden" name="action_type" value="update_profile">
-
-      <div class="form-group">
-        <label for="profile_name" class="form-label"><i class="ri-user-3-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Name <span style="color: #dc2626;">*</span></label>
-        <input type="text" id="profile_name" name="name" class="form-control" value="{{ user.name if user.name else user.employee_id }}" required>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label"><i class="ri-id-card-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Employee ID <span style="font-size:0.75rem; color:var(--text-muted);">(cannot be changed)</span></label>
-        <input type="text" class="form-control" value="{{ user.employee_id }}" readonly disabled style="background: #f8fafc; font-weight: 600;">
-      </div>
-
-      <div class="form-group">
-        <label for="profile_email" class="form-label"><i class="ri-mail-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Email Address <span style="color: #dc2626;">*</span></label>
-        <input type="email" id="profile_email" name="email" class="form-control" value="{{ user.email }}" required>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label"><i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Assigned Role</label>
-        <div>
-          <span class="role-pill role-{{ user.role }}" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">
-            {{ user.role | replace('_', ' ') }}
-          </span>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label"><i class="ri-time-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Account Created</label>
-        <input type="text" class="form-control" value="{{ format_datetime(user.created_at) }}" readonly disabled style="background: #f8fafc;">
-      </div>
-
-      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="ri-save-3-line"></i> Save Profile Details</button>
-    </form>
-  </div>
-
-  <!-- Change Password Card -->
-  <div class="card">
-    <h3 class="card-title"><i class="ri-key-2-line"></i> Change Password</h3>
-    <form method="POST" action="{{ url_for('users.profile') }}" style="margin-top: 1rem;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="hidden" name="action_type" value="change_password">
-
-      <div class="form-group">
-        <label for="current_password" class="form-label"><i class="ri-lock-2-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Current Password <span style="color: #dc2626;">*</span></label>
-        <div class="password-input-group">
-          <input type="password" id="current_password" name="current_password" class="form-control" placeholder="••••••••" required>
-          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('current_password', this)" title="Show/Hide Password">
-            <i class="ri-eye-line"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="new_password" class="form-label"><i class="ri-key-2-line" style="color: var(--primary); margin-right: 0.3rem;"></i> New Password <span style="color: #dc2626;">*</span></label>
-        <div class="password-input-group">
-          <input type="password" id="new_password" name="password" class="form-control" placeholder="At least 6 characters" required>
-          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_password', this)" title="Show/Hide Password">
-            <i class="ri-eye-line"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="confirm_password" class="form-label"><i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Confirm New Password <span style="color: #dc2626;">*</span></label>
-        <div class="password-input-group">
-          <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat new password" required>
-          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm_password', this)" title="Show/Hide Password">
-            <i class="ri-eye-line"></i>
-          </button>
-        </div>
-      </div>
-
-      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="ri-lock-2-line"></i> Update Password</button>
-    </form>
-  </div>
-
-  <!-- Role Elevation Request Card for Non-Admin Staff -->
-  {% if user.role != 'admin' %}
-  <div class="card" style="grid-column: 1 / -1; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-      <div style="width: 38px; height: 38px; border-radius: 10px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-        <i class="ri-user-settings-line"></i>
-      </div>
-      <div>
-        <h3 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0;">Request Role Change</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0 0;">
-          Request a role change from an administrator.
-        </p>
-      </div>
-    </div>
-
-    {% if pending_request %}
-      <div class="alert alert-warning" style="margin-top: 1rem; margin-bottom: 0; padding: 1.25rem; border-radius: 10px; border-left: 4px solid #f59e0b; background: #fffbeb;">
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; width: 100%;">
-          <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-            <i class="ri-hourglass-line" style="font-size: 1.4rem; color: #d97706; margin-top: 2px;"></i>
-            <div>
-              <h4 style="font-size: 0.95rem; font-weight: 700; color: #92400e; margin: 0 0 0.25rem 0;">
-                Request Pending
-              </h4>
-              <div style="font-size: 0.85rem; color: #b45309; line-height: 1.5;">
-                Requested Role: <strong><i class="ri-shield-check-line"></i> {{ pending_request.requested_role | replace('_', ' ') | title }}</strong><br>
-                Submitted Date: {{ format_datetime(pending_request.created_at) }}<br>
-                Justification: <em>"{{ pending_request.reason or 'No note provided' }}"</em>
-              </div>
-            </div>
-          </div>
-          <div>
-            <form method="POST" action="{{ url_for('users.cancel_promotion_request', request_id=pending_request._id) }}" style="margin: 0;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-secondary btn-sm" style="color: #dc2626; border-color: #fca5a5; background: white; font-weight: 600;" onclick="return confirm('Are you sure you want to withdraw this role request?');">
-                <i class="ri-close-line"></i> Withdraw
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    {% else %}
-      <form method="POST" action="{{ url_for('users.request_promotion') }}" style="margin-top: 1.25rem;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
-          <div>
-            <label for="requested_role" class="form-label">
-              <i class="ri-shield-check-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Requested Role <span style="color: #dc2626;">*</span>
-            </label>
-            <select id="requested_role" name="requested_role" class="form-select" required onchange="profileRoleHint(this.value)">
-              {% if user.role == 'staff' %}
-                <option value="inventory_manager" selected>Inventory Manager</option>
-              {% endif %}
-              <option value="admin">Administrator</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="reason" class="form-label">
-              <i class="ri-edit-line" style="color: var(--primary); margin-right: 0.3rem;"></i> Reason for Request <span style="color: #dc2626;">*</span>
-            </label>
-            <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g., Assigned to manage catalog, stock counts & transactions" required>
-          </div>
-        </div>
-
-        <div id="profile-role-hint-box" style="background: #e0f2fe; border-left: 3px solid #0284c7; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; color: #075985; margin-bottom: 1.25rem; line-height: 1.5;">
-          <i class="ri-archive-stack-line"></i> <strong>Inventory Manager</strong>: Full access to manage products, post stock adjustments, view audit logs, and create bills.
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.25rem;">
-          <i class="ri-send-plane-line"></i> Submit Request
-        </button>
-      </form>
-      
-      <script>
-      function profileRoleHint(role) {
-        const hintBox = document.getElementById('profile-role-hint-box');
-        if (!hintBox) return;
-        if (role === 'admin') {
-          hintBox.innerHTML = '<i class="ri-shield-user-line"></i> <strong>Administrator</strong>: Full access to manage users, approve role changes, view audit logs, and configure settings.';
-          hintBox.style.background = '#f3e8ff';
-          hintBox.style.borderColor = '#9333ea';
-          hintBox.style.color = '#6b21a8';
-        } else {
-          hintBox.innerHTML = '<i class="ri-archive-stack-line"></i> <strong>Inventory Manager</strong>: Full access to manage products, post stock adjustments, view audit logs, and create bills.';
-          hintBox.style.background = '#e0f2fe';
-          hintBox.style.borderColor = '#0284c7';
-          hintBox.style.color = '#075985';
-        }
-      }
-      </script>
-    {% endif %}
-
-    <!-- Request History Section -->
-    {% if requests_history %}
-      <div style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
-        <h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.75rem;"><i class="ri-history-line"></i> My Requests History</h4>
-        <div class="table-responsive">
-          <table class="data-table" style="font-size: 0.85rem; width: 100%;">
-            <thead>
-              <tr>
-                <th>Requested Role</th>
-                <th>Status</th>
-                <th>Submitted Date</th>
-                <th>Reviewed Date</th>
-                <th>Admin Comment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for req in requests_history %}
-                <tr>
-                  <td><strong>{{ req.requested_role | replace('_', ' ') | title }}</strong></td>
-                  <td>
-                    {% if req.status == 'PENDING' %}
-                      <span class="role-pill role-staff" style="background: #fef3c7; color: #d97706; border-color: #fde68a;"><i class="ri-hourglass-line"></i> Pending</span>
-                    {% elif req.status == 'APPROVED' %}
-                      <span class="role-pill role-admin" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;"><i class="ri-check-line"></i> Approved</span>
-                    {% elif req.status == 'REJECTED' %}
-                      <span class="role-pill role-danger" style="background: #fee2e2; color: #991b1b; border-color: #fecaca;"><i class="ri-close-line"></i> Rejected</span>
-                    {% elif req.status == 'CANCELLED' %}
-                      <span class="role-pill" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;"><i class="ri-prohibited-line"></i> Cancelled</span>
-                    {% else %}
-                      <span class="role-pill">{{ req.status | title }}</span>
-                    {% endif %}
-                  </td>
-                  <td>{{ format_datetime(req.created_at) }}</td>
-                  <td>{{ format_datetime(req.updated_at) if req.updated_at and req.status != 'PENDING' else '-' }}</td>
-                  <td>
-                    {% if req.admin_comment %}
-                      <span style="font-style: italic; color: var(--text-sub);">"{{ req.admin_comment }}"</span>
-                    {% else %}
-                      <span style="color: var(--text-faint);">-</span>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    {% endif %}
-  </div>
-  {% endif %}
-
-  <!-- My Store Purchases Card -->
-  <div class="card" style="grid-column: 1 / -1;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
-      <h3 class="card-title" style="margin: 0;">
-        <i class="ri-shopping-bag-3-line" style="color: #7c3aed;"></i> My Store Purchases &amp; Bills
-      </h3>
-      {% if my_purchases %}
-        <span class="badge" style="background: #ede9fe; color: #6d28d9; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 999px;">
-          {{ my_purchases|length }} Purchase(s)
+        <span class="role-pill role-{{ user.role }}" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; background: rgba(255,255,255,0.2); color: #ffffff; border: 1px solid rgba(255,255,255,0.35); text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em;">
+          {{ user.role | replace('_', ' ') }}
         </span>
-      {% endif %}
+      </div>
+      <p style="margin: 0.15rem 0 0 0; color: rgba(255, 255, 255, 0.85); font-size: 0.78rem;">
+        <i class="ri-mail-line" style="margin-right: 0.2rem;"></i> {{ user.email }} &nbsp;&bull;&nbsp;
+        <i class="ri-id-card-line" style="margin-right: 0.2rem;"></i> ID: <strong>{{ user.employee_id }}</strong>
+      </p>
     </div>
+  </div>
 
-    {% if my_purchases %}
-      <div class="table-responsive">
-        <table class="data-table" style="font-size: 0.85rem; width: 100%;">
-          <thead style="background: #f8fafc;">
-            <tr>
-              <th><i class="ri-receipt-line"></i> Invoice #</th>
-              <th><i class="ri-calendar-line"></i> Date</th>
-              <th><i class="ri-archive-stack-line"></i> Items Summary</th>
-              <th><i class="ri-bank-card-line"></i> Payment Mode</th>
-              <th><i class="ri-record-circle-line"></i> Status</th>
-              <th style="text-align: right;"><i class="ri-money-rupee-circle-line"></i> Grand Total</th>
-              <th style="text-align: center;"><i class="ri-file-list-line"></i> Invoice</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for bill in my_purchases %}
-              <tr>
-                <td>
-                  <strong style="color: #0284c7; font-family: 'JetBrains Mono', monospace;">{{ bill.bill_number }}</strong>
-                </td>
-                <td>{{ format_datetime(bill.created_at) }}</td>
-                <td>
-                  <div style="font-size: 0.78rem; line-height: 1.3;">
-                    <span style="font-weight: 600;">{{ bill.line_items|length }} item(s)</span>
-                    <div style="color: #64748b; font-size: 0.72rem;">
-                      {% for itm in bill.line_items[:2] %}
-                        {{ itm.product_name }} (x{{ itm.quantity }}){% if not loop.last %}, {% endif %}
-                      {% endfor %}
-                      {% if bill.line_items|length > 2 %}...{% endif %}
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  {% if bill.payment_method == 'SALARY_DEDUCTION' %}
-                    <span style="background: #ede9fe; color: #6d28d9; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid #ddd6fe;">
-                      <i class="ri-wallet-3-line"></i> Salary Deduction
-                    </span>
-                  {% else %}
-                    <span class="role-pill" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">
-                      {{ bill.payment_method }}
-                    </span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if bill.payment_status == 'PAID' %}
-                    <span class="role-pill role-admin" style="font-size: 0.72rem; background: #dcfce7; color: #166534; border-color: #bbf7d0;">
-                      <i class="ri-check-line"></i> Paid
-                    </span>
-                  {% elif bill.payment_status == 'REFUNDED' %}
-                    <span class="role-pill role-danger" style="font-size: 0.72rem; background: #fee2e2; color: #991b1b; border-color: #fecaca;">
-                      <i class="ri-close-line"></i> Refunded
-                    </span>
-                  {% else %}
-                    <span class="role-pill role-staff" style="font-size: 0.72rem; background: #fef3c7; color: #d97706; border-color: #fde68a;">
-                      {{ bill.payment_status }}
-                    </span>
-                  {% endif %}
-                </td>
-                <td style="text-align: right; font-weight: 800; color: #0f172a;">
-                  ₹{{ '%.2f'|format(bill.grand_total or 0) }}
-                  {% if bill.discount_percent %}
-                    <div style="font-size: 0.68rem; color: #16a34a; font-weight: 600;">
-                      -{{ bill.discount_percent }}% Staff Concession
-                    </div>
-                  {% endif %}
-                </td>
-                <td style="text-align: center;">
-                  <a href="{{ url_for('billing.view_bill', bill_id=bill._id) }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;" title="View & Print GST Tax Invoice">
-                    <i class="ri-file-text-line"></i> View
-                  </a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <div style="text-align: center; padding: 2.5rem 1rem; color: #64748b;">
-        <div style="width: 54px; height: 54px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 1.6rem; color: #94a3b8;">
-          <i class="ri-shopping-cart-2-line"></i>
-        </div>
-        <p style="font-weight: 600; font-size: 0.95rem; margin: 0; color: #334155;">No Store Purchases Yet</p>
-        <p style="font-size: 0.8rem; margin: 0.25rem 0 0; color: #94a3b8;">
-          Purchases made with your Employee ID at the store counter will appear here with downloadable GST invoices.
-        </p>
-      </div>
+  <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+    <a href="{{ url_for('billing.pos') }}" class="btn btn-secondary no-print" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);" title="Open POS Billing Counter">
+      <i class="ri-shopping-cart-2-line" style="color: #fb923c;"></i> POS Counter
+    </a>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary no-print" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; background: rgba(239, 68, 68, 0.25); color: #fee2e2; border: 1px solid rgba(239, 68, 68, 0.45); backdrop-filter: blur(8px);" title="Logout of current session">
+      <i class="ri-logout-box-r-line"></i> Logout
+    </a>
+  </div>
+
+  <!-- Integrated Micro-Stats Row -->
+  <div class="hero-stats-row">
+    <div class="hero-stat-pill stat-success" title="Current session is verified and active">
+      <i class="ri-checkbox-circle-fill"></i>
+      <span class="hero-stat-num">Active</span>
+      <span class="hero-stat-label">Session</span>
+    </div>
+    <div class="hero-stat-pill" title="Assigned system permission tier">
+      <i class="ri-shield-user-line" style="color: #93c5fd;"></i>
+      <span class="hero-stat-num">{{ user.role | replace('_', ' ') | title }}</span>
+      <span class="hero-stat-label">Role</span>
+    </div>
+    <div class="hero-stat-pill" title="Date of account creation">
+      <i class="ri-calendar-check-line" style="color: #cbd5e1;"></i>
+      <span class="hero-stat-num">{{ format_datetime(user.created_at).split(' ')[0] if user.created_at else 'System' }}</span>
+      <span class="hero-stat-label">Joined</span>
+    </div>
+    <div class="hero-stat-pill stat-accent" title="Personal purchases made at counter">
+      <i class="ri-shopping-bag-3-line"></i>
+      <span class="hero-stat-num">{{ my_purchases|length if my_purchases else 0 }}</span>
+      <span class="hero-stat-label">Store Purchases</span>
+    </div>
+    {% if pending_request %}
+    <div class="hero-stat-pill stat-warning" title="Promotion request is currently awaiting admin approval">
+      <i class="ri-hourglass-fill"></i>
+      <span class="hero-stat-num">Pending</span>
+      <span class="hero-stat-label">Role Review</span>
+    </div>
     {% endif %}
   </div>
 </div>
+
+<!-- 3 Full-Height Column Grid in One Row -->
+<div class="profile-3col-layout" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: stretch; min-height: calc(100vh - 210px); margin-bottom: 1.5rem;">
+  
+  <!-- COLUMN 1: Merged Account Info & Security / Password -->
+  <div class="card" style="padding: 1.15rem; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.85rem; border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 0.65rem;">
+        <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(11, 61, 110, 0.1); color: var(--color-primary, #0b3d6e); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+          <i class="ri-shield-keyhole-line"></i>
+        </div>
+        <div>
+          <h3 class="card-title" style="margin: 0; font-size: 0.98rem; font-weight: 700;">Account &amp; Security</h3>
+          <span style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b);">Profile details &amp; password credentials</span>
+        </div>
+      </div>
+
+      <!-- Section A: Personal Information -->
+      <form method="POST" action="{{ url_for('users.profile') }}" style="margin-bottom: 1.15rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action_type" value="update_profile">
+
+        <div class="form-group" style="margin-bottom: 0.65rem;">
+          <label for="profile_name" class="form-label" style="font-size: 0.78rem; font-weight: 600; margin-bottom: 0.2rem;">
+            <i class="ri-user-3-line" style="color: var(--color-primary); margin-right: 0.2rem;"></i> Full Name <span style="color: #dc2626;">*</span>
+          </label>
+          <input type="text" id="profile_name" name="name" class="form-control" value="{{ user.name if user.name else user.employee_id }}" required style="font-size: 0.84rem; padding: 0.38rem 0.65rem;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.65rem;">
+          <label for="profile_email" class="form-label" style="font-size: 0.78rem; font-weight: 600; margin-bottom: 0.2rem;">
+            <i class="ri-mail-line" style="color: var(--color-primary); margin-right: 0.2rem;"></i> Email Address <span style="color: #dc2626;">*</span>
+          </label>
+          <input type="email" id="profile_email" name="email" class="form-control" value="{{ user.email }}" required style="font-size: 0.84rem; padding: 0.38rem 0.65rem;">
+        </div>
+
+        <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center; font-weight: 700; padding: 0.38rem 0.75rem; font-size: 0.78rem;">
+          <i class="ri-save-3-line"></i> Save Profile Details
+        </button>
+      </form>
+
+      <!-- Section B: Password Change -->
+      <div style="border-top: 1px dashed var(--color-outline-variant); padding-top: 0.85rem; margin-top: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.65rem;">
+          <i class="ri-lock-password-line" style="color: #ea580c; font-size: 0.9rem;"></i>
+          <strong style="font-size: 0.82rem; color: var(--color-on-surface);">Change Password</strong>
+        </div>
+
+        <form method="POST" action="{{ url_for('users.profile') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action_type" value="change_password">
+
+          <div class="form-group" style="margin-bottom: 0.65rem;">
+            <label for="current_password" class="form-label" style="font-size: 0.76rem; font-weight: 600; margin-bottom: 0.2rem;">
+              Current Password <span style="color: #dc2626;">*</span>
+            </label>
+            <div class="password-input-group">
+              <input type="password" id="current_password" name="current_password" class="form-control" placeholder="••••••••" required style="font-size: 0.84rem; padding: 0.38rem 0.65rem;">
+              <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('current_password', this)" title="Show/Hide">
+                <i class="ri-eye-line"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.65rem;">
+            <label for="new_password" class="form-label" style="font-size: 0.76rem; font-weight: 600; margin-bottom: 0.2rem;">
+              New Password <span style="color: #dc2626;">*</span>
+            </label>
+            <div class="password-input-group">
+              <input type="password" id="new_password" name="password" class="form-control" placeholder="Min. 6 chars" required style="font-size: 0.84rem; padding: 0.38rem 0.65rem;">
+              <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new_password', this)" title="Show/Hide">
+                <i class="ri-eye-line"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label for="confirm_password" class="form-label" style="font-size: 0.76rem; font-weight: 600; margin-bottom: 0.2rem;">
+              Confirm Password <span style="color: #dc2626;">*</span>
+            </label>
+            <div class="password-input-group">
+              <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat new password" required style="font-size: 0.84rem; padding: 0.38rem 0.65rem;">
+              <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm_password', this)" title="Show/Hide">
+                <i class="ri-eye-line"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center; font-weight: 700; padding: 0.42rem 0.75rem; font-size: 0.8rem;">
+            <i class="ri-key-2-line"></i> Update Password
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUMN 2: Live Team Presence Radar -->
+  <div class="card" style="padding: 1.15rem; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+    <div>
+      <!-- Header -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.65rem; border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 0.65rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+            <i class="ri-radar-line"></i>
+          </div>
+          <div>
+            <h3 class="card-title" style="margin: 0; font-size: 0.98rem; font-weight: 700;">Live Team Radar</h3>
+            <span style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b);">Active personnel &amp; presence</span>
+          </div>
+        </div>
+        <span id="radar-live-count" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px;">
+          <span class="presence-beacon is-online" style="width: 6px; height: 6px;"></span>
+          <span id="radar-active-num">0</span> Online
+        </span>
+      </div>
+
+      <!-- Search Bar -->
+      <div style="margin-bottom: 0.45rem; position: relative;">
+        <i class="ri-search-2-line" style="position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); font-size: 0.76rem; color: var(--color-on-surface-variant); pointer-events: none;"></i>
+        <input type="text" id="radar-search-input" class="form-control" placeholder="Search teammate, role, ID..." style="padding-left: 1.8rem; font-size: 0.78rem; height: 30px; border-radius: 6px;" oninput="filterTeamRadar()" autocomplete="off">
+      </div>
+
+      <!-- Role / Status Quick Filter Chips -->
+      <div style="display: flex; gap: 0.25rem; flex-wrap: wrap; margin-bottom: 0.55rem;">
+        <button type="button" class="btn btn-secondary btn-sm radar-chip is-active" onclick="setRadarFilter('all', this)" style="padding: 0.1rem 0.45rem; font-size: 0.68rem; border-radius: 999px; min-height: 22px;">All</button>
+        <button type="button" class="btn btn-secondary btn-sm radar-chip" onclick="setRadarFilter('online', this)" style="padding: 0.1rem 0.45rem; font-size: 0.68rem; border-radius: 999px; min-height: 22px;">Online</button>
+        <button type="button" class="btn btn-secondary btn-sm radar-chip" onclick="setRadarFilter('admin', this)" style="padding: 0.1rem 0.45rem; font-size: 0.68rem; border-radius: 999px; min-height: 22px;">Admin</button>
+        <button type="button" class="btn btn-secondary btn-sm radar-chip" onclick="setRadarFilter('inventory_manager', this)" style="padding: 0.1rem 0.45rem; font-size: 0.68rem; border-radius: 999px; min-height: 22px;">Managers</button>
+        <button type="button" class="btn btn-secondary btn-sm radar-chip" onclick="setRadarFilter('staff', this)" style="padding: 0.1rem 0.45rem; font-size: 0.68rem; border-radius: 999px; min-height: 22px;">Staff</button>
+      </div>
+
+      <!-- Team Members Radar Feed -->
+      <div id="radar-list-container" style="max-height: calc(100vh - 380px); min-height: 220px; overflow-y: auto; padding-right: 0.15rem;">
+        <div id="radar-cards-wrap" style="display: flex; flex-direction: column; gap: 0.35rem;">
+          {% for u in online_users %}
+            {% set is_me = (u._id|string == user._id|string or u.employee_id == user.employee_id) %}
+            {% set is_user_online = u.is_active or is_me %}
+            <div class="online-user-card {% if is_me %}is-current-user{% endif %}"
+                 data-search="{{ (u.name ~ ' ' ~ u.employee_id ~ ' ' ~ u.role ~ ' ' ~ u.email) | lower }}"
+                 data-role="{{ u.role }}"
+                 data-status="{% if is_user_online %}online{% else %}offline{% endif %}">
+              
+              <div style="display: flex; align-items: center; gap: 0.45rem; min-width: 0; flex: 1;">
+                <!-- Avatar with Presence Beacon -->
+                <div style="position: relative; flex-shrink: 0;">
+                  <div style="width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 0.76rem; display: flex; align-items: center; justify-content: center;
+                    {% if u.role == 'admin' %}
+                      background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff;
+                    {% elif u.role == 'inventory_manager' %}
+                      background: linear-gradient(135deg, #ea580c, #f97316); color: #fff;
+                    {% else %}
+                      background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff;
+                    {% endif %}
+                  ">
+                    {{ u.name[0] | upper if u.name else 'U' }}
+                  </div>
+                  <span class="presence-beacon {% if is_user_online %}is-online{% else %}is-offline{% endif %}" 
+                        style="position: absolute; bottom: -1px; right: -1px; border: 1.5px solid var(--color-surface, #fff);"></span>
+                </div>
+
+                <!-- User Meta -->
+                <div style="min-width: 0; flex: 1; line-height: 1.2;">
+                  <div style="display: flex; align-items: center; gap: 0.3rem;">
+                    <strong style="font-size: 0.78rem; color: var(--color-on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      {{ u.name }}
+                    </strong>
+                    {% if is_me %}
+                      <span style="background: rgba(16, 185, 129, 0.18); color: #059669; font-size: 0.6rem; font-weight: 800; padding: 0.05rem 0.2rem; border-radius: 3px;">YOU</span>
+                    {% endif %}
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.66rem; color: var(--color-on-surface-variant); margin-top: 0.1rem;">
+                    <span style="font-family: var(--font-mono, monospace);">@{{ u.employee_id }}</span>
+                    <span>&bull;</span>
+                    <span style="text-transform: capitalize;">{{ u.role|replace('_', ' ') }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Status / Action -->
+              <div style="display: flex; align-items: center; gap: 0.3rem; flex-shrink: 0;">
+                {% if is_user_online %}
+                  <span style="font-size: 0.64rem; color: #16a34a; font-weight: 700; background: rgba(16, 185, 129, 0.12); padding: 0.08rem 0.3rem; border-radius: 999px;">
+                    Active
+                  </span>
+                {% else %}
+                  <span style="font-size: 0.64rem; color: var(--color-on-surface-variant); background: var(--color-surface); padding: 0.08rem 0.3rem; border-radius: 999px; border: 1px solid var(--color-outline-variant);">
+                    Offline
+                  </span>
+                {% endif %}
+                {% if u.email %}
+                  <a href="mailto:{{ u.email }}" class="btn btn-secondary btn-sm" style="padding: 0.1rem 0.3rem; font-size: 0.68rem; min-height: 20px;" title="Send email to {{ u.name }}">
+                    <i class="ri-mail-send-line"></i>
+                  </a>
+                {% endif %}
+              </div>
+
+            </div>
+          {% endfor %}
+        </div>
+
+        <div id="radar-no-results" style="display: none; text-align: center; padding: 1.5rem 0.5rem; color: var(--color-on-surface-variant); font-size: 0.78rem;">
+          <i class="ri-radar-line" style="font-size: 1.2rem; display: block; margin-bottom: 0.3rem; opacity: 0.6;"></i>
+          No team members match filter.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUMN 3: My Store Purchases & GST Receipts -->
+  <div class="card" style="padding: 1.15rem; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.65rem; border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 0.65rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(124, 58, 237, 0.12); color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+            <i class="ri-shopping-bag-3-line"></i>
+          </div>
+          <div>
+            <h3 class="card-title" style="margin: 0; font-size: 0.98rem; font-weight: 700;">My Store Purchases</h3>
+            <span style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b);">Invoices for @{{ user.employee_id }}</span>
+          </div>
+        </div>
+        {% if my_purchases %}
+          <span class="badge" id="purchases-total-badge" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.7rem;">
+            {{ my_purchases|length }}
+          </span>
+        {% endif %}
+      </div>
+
+      {% if my_purchases %}
+        <!-- Search & Filter Input -->
+        <div style="margin-bottom: 0.65rem; position: relative;">
+          <i class="ri-search-2-line" style="position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); font-size: 0.76rem; color: var(--color-on-surface-variant); pointer-events: none;"></i>
+          <input type="text" id="purchases-search-input" class="form-control" placeholder="Search invoice, item, mode..." style="padding-left: 1.8rem; font-size: 0.78rem; height: 30px; border-radius: 6px;" oninput="filterPurchases()" autocomplete="off">
+        </div>
+
+        <!-- Scrollable / Paginated Purchases Container -->
+        <div id="purchases-list-container" style="max-height: calc(100vh - 360px); min-height: 220px; overflow-y: auto; padding-right: 0.15rem;">
+          <div id="purchases-items-wrap" style="display: flex; flex-direction: column; gap: 0.35rem;">
+            {% for bill in my_purchases %}
+              {% set item_names = bill.line_items|map(attribute='product_name')|join(', ') %}
+              <div class="purchase-item-card" 
+                   data-search="{{ (bill.bill_number ~ ' ' ~ (bill.payment_method or '') ~ ' ' ~ (bill.payment_status or '') ~ ' ' ~ item_names ~ ' ' ~ (bill.grand_total|string)) | lower }}"
+                   style="background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); border-radius: 6px; padding: 0.42rem 0.65rem; transition: background 0.15s ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.35rem;">
+                  <div style="display: flex; align-items: center; gap: 0.4rem; min-width: 0;">
+                    <strong style="color: #0284c7; font-family: var(--font-mono, monospace); font-size: 0.76rem; white-space: nowrap;">
+                      {{ bill.bill_number }}
+                    </strong>
+                    <span style="font-size: 0.68rem; color: var(--color-on-surface-variant); white-space: nowrap;">
+                      {{ format_datetime(bill.created_at).split(' ')[0] }}
+                    </span>
+                  </div>
+                  <span style="font-size: 0.8rem; font-weight: 800; color: var(--color-on-surface); font-family: var(--font-mono, monospace); white-space: nowrap;">
+                    ₹{{ '%.2f'|format(bill.grand_total or 0) }}
+                  </span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.35rem; margin-top: 0.2rem;">
+                  <div style="display: flex; align-items: center; gap: 0.35rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.68rem; color: var(--color-on-surface-variant);" title="{{ item_names }}">
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ bill.line_items|length }} item(s){% if item_names %} &bull; {{ item_names }}{% endif %}</span>
+                    {% if bill.payment_method == 'SALARY_DEDUCTION' %}
+                      <span style="background: rgba(124, 58, 237, 0.12); color: #7c3aed; font-weight: 700; padding: 0.05rem 0.25rem; border-radius: 3px; font-size: 0.64rem;">Salary Deduction</span>
+                    {% else %}
+                      <span style="background: rgba(16, 185, 129, 0.12); color: #166534; font-weight: 700; padding: 0.05rem 0.25rem; border-radius: 3px; font-size: 0.64rem;">{{ bill.payment_method }}</span>
+                    {% endif %}
+                  </div>
+                  <a href="{{ url_for('billing.view_bill', bill_id=bill._id) }}" class="btn btn-secondary btn-sm" style="font-size: 0.68rem; padding: 0.1rem 0.45rem; min-height: 20px; line-height: 1;" title="View & Print GST Invoice">
+                    <i class="ri-file-text-line"></i> View
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div id="purchases-no-results" style="display: none; text-align: center; padding: 1.5rem 0.5rem; color: var(--color-on-surface-variant); font-size: 0.78rem;">
+            <i class="ri-search-line" style="font-size: 1.2rem; display: block; margin-bottom: 0.3rem; opacity: 0.6;"></i>
+            No purchases matching search filter.
+          </div>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div id="purchases-pagination" style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--color-outline-variant); padding-top: 0.45rem; margin-top: 0.45rem; font-size: 0.72rem; flex-wrap: wrap; gap: 0.4rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span id="purchases-page-info" style="color: var(--color-on-surface-variant); font-weight: 600;">Page 1</span>
+            <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
+              <label for="purchases-page-size" style="margin: 0; color: var(--color-on-surface-variant); font-size: 0.7rem;">Show:</label>
+              <select id="purchases-page-size" class="form-control" style="width: auto; height: 22px; padding: 0 0.3rem; font-size: 0.7rem; border-radius: 4px;" onchange="setPurchasesPageSize(this.value)">
+                <option value="4">4</option>
+                <option value="8" selected>8</option>
+                <option value="16">16</option>
+                <option value="24">24</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.25rem;">
+            <button type="button" id="purchases-prev-btn" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.7rem; min-height: 24px;" onclick="changePurchasesPage(-1)">
+              <i class="ri-arrow-left-s-line"></i> Prev
+            </button>
+            <button type="button" id="purchases-next-btn" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.7rem; min-height: 24px;" onclick="changePurchasesPage(1)">
+              Next <i class="ri-arrow-right-s-line"></i>
+            </button>
+          </div>
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 2.5rem 1rem; color: var(--color-on-surface-variant);">
+          <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--color-surface-container); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.6rem; font-size: 1.3rem; color: var(--color-on-surface-variant); opacity: 0.7;">
+            <i class="ri-shopping-cart-2-line"></i>
+          </div>
+          <p style="font-weight: 700; font-size: 0.85rem; margin: 0; color: var(--color-on-surface);">No Store Purchases</p>
+          <p style="font-size: 0.74rem; margin: 0.2rem 0 0; color: var(--color-on-surface-variant);">
+            Purchases billed under your Employee ID at the POS counter will appear here.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentPurchasesPage = 1;
+let purchasesPerPage = 8;
+
+function setPurchasesPageSize(newSize) {
+  purchasesPerPage = parseInt(newSize, 10) || 8;
+  currentPurchasesPage = 1;
+  updatePurchasesPagination();
+}
+
+function getFilteredPurchaseCards() {
+  const query = (document.getElementById('purchases-search-input')?.value || '').toLowerCase().trim();
+  const allCards = Array.from(document.querySelectorAll('.purchase-item-card'));
+  if (!query) return allCards;
+  return allCards.filter(card => {
+    const searchData = card.getAttribute('data-search') || '';
+    return searchData.includes(query);
+  });
+}
+
+function updatePurchasesPagination() {
+  const filtered = getFilteredPurchaseCards();
+  const totalItems = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / purchasesPerPage));
+
+  if (currentPurchasesPage > totalPages) currentPurchasesPage = totalPages;
+  if (currentPurchasesPage < 1) currentPurchasesPage = 1;
+
+  // Hide all cards first
+  document.querySelectorAll('.purchase-item-card').forEach(c => c.style.display = 'none');
+
+  // Show only current page items among filtered
+  const startIndex = (currentPurchasesPage - 1) * purchasesPerPage;
+  const endIndex = startIndex + purchasesPerPage;
+  filtered.slice(startIndex, endIndex).forEach(c => c.style.display = 'block');
+
+  // Empty notice
+  const emptyNotice = document.getElementById('purchases-no-results');
+  if (emptyNotice) {
+    emptyNotice.style.display = totalItems === 0 ? 'block' : 'none';
+  }
+
+  // Page info & buttons
+  const pageInfo = document.getElementById('purchases-page-info');
+  const prevBtn = document.getElementById('purchases-prev-btn');
+  const nextBtn = document.getElementById('purchases-next-btn');
+  const paginRow = document.getElementById('purchases-pagination');
+
+  if (pageInfo) {
+    pageInfo.textContent = totalItems === 0 ? '0 items' : `Page ${currentPurchasesPage} of ${totalPages} (${totalItems})`;
+  }
+  if (prevBtn) prevBtn.disabled = currentPurchasesPage <= 1;
+  if (nextBtn) nextBtn.disabled = currentPurchasesPage >= totalPages;
+  if (paginRow) paginRow.style.display = totalItems === 0 ? 'none' : 'flex';
+}
+
+function filterPurchases() {
+  currentPurchasesPage = 1;
+  updatePurchasesPagination();
+}
+
+function changePurchasesPage(delta) {
+  currentPurchasesPage += delta;
+  updatePurchasesPagination();
+}
+
+// ── Team Presence Radar Script ──
+let activeRadarRoleFilter = 'all';
+
+function updateRadarActiveCount() {
+  const onlineCards = document.querySelectorAll('.online-user-card[data-status="online"]');
+  const countEl = document.getElementById('radar-active-num');
+  if (countEl) countEl.textContent = onlineCards.length;
+}
+
+function setRadarFilter(role, btnEl) {
+  activeRadarRoleFilter = role;
+  document.querySelectorAll('.radar-chip').forEach(b => {
+    b.classList.remove('btn-primary', 'is-active');
+    b.classList.add('btn-secondary');
+  });
+  if (btnEl) {
+    btnEl.classList.remove('btn-secondary');
+    btnEl.classList.add('btn-primary', 'is-active');
+  }
+  filterTeamRadar();
+}
+
+function filterTeamRadar() {
+  const query = (document.getElementById('radar-search-input')?.value || '').toLowerCase().trim();
+  const allCards = document.querySelectorAll('.online-user-card');
+  let matchCount = 0;
+
+  allCards.forEach(card => {
+    const searchData = card.getAttribute('data-search') || '';
+    const cardRole = card.getAttribute('data-role') || '';
+    const cardStatus = card.getAttribute('data-status') || '';
+
+    const matchesQuery = !query || searchData.includes(query);
+    let matchesRole = true;
+
+    if (activeRadarRoleFilter === 'online') {
+      matchesRole = (cardStatus === 'online');
+    } else if (activeRadarRoleFilter !== 'all') {
+      matchesRole = (cardRole === activeRadarRoleFilter);
+    }
+
+    if (matchesQuery && matchesRole) {
+      card.style.display = 'flex';
+      matchCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  const emptyEl = document.getElementById('radar-no-results');
+  if (emptyEl) emptyEl.style.display = matchCount === 0 ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateRadarActiveCount();
+  if (document.querySelector('.purchase-item-card')) {
+    updatePurchasesPagination();
+  }
+});
+</script>
 {% endblock %}

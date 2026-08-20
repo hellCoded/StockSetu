@@ -153,13 +153,19 @@
         <h3 class="card-title" style="font-size: 1.05rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.45rem;">
           <i class="ri-history-line" style="color: var(--color-accent, #ea580c);"></i> Inventory Movement Ledger
         </h3>
-        <span style="font-size: 0.76rem; color: var(--color-on-surface-variant);">
-          Showing last {{ transactions|length }} audit events
-        </span>
+        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+          <span style="font-size: 0.76rem; color: var(--color-on-surface-variant);">
+            Showing <strong class="table-live-count" data-for="sku-ledger-table">{{ transactions|length }}</strong> audit events
+          </span>
+          <div class="instant-search-wrap" style="min-width: 200px;">
+            <i class="ri-search-2-line search-icon"></i>
+            <input type="text" data-table="sku-ledger-table" class="form-control instant-search-input" placeholder="Filter ledger events…" autocomplete="off">
+          </div>
+        </div>
       </div>
 
       <div class="table-responsive">
-        <table class="data-table">
+        <table class="data-table" id="sku-ledger-table">
           <thead>
             <tr>
               <th>Timestamp</th>
@@ -196,7 +202,7 @@
                   </td>
                   <td style="text-align: right; color: var(--color-on-surface-variant);">{{ tx.previous_quantity }}</td>
                   <td style="text-align: right; font-weight: 700;">{{ tx.new_quantity }}</td>
-                  <td style="color: var(--color-on-surface-variant); font-size: 0.82rem;">{{ tx.reason or '—' }}</td>
+                  <td style="color: var(--color-on-surface-variant); font-size: 0.82rem;">{{ tx.reason.split(' (performed by')[0] if tx.reason else '—' }}</td>
                   <td><span class="role-pill" style="background: rgba(136, 19, 55, 0.1); color: #881337;">{{ tx.performed_by }}</span></td>
                 </tr>
               {% endfor %}

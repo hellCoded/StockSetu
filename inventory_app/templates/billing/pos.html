@@ -27,112 +27,211 @@
 .q-cat-8 { --cat: #4f46e5; --cat-bg: #eef2ff; --cat-border: #c7d2fe; --cat-glow: rgba(79, 70, 229, 0.2); }
 .q-cat-9 { --cat: #e11d48; --cat-bg: #fff1f2; --cat-border: #fecdd3; --cat-glow: rgba(225, 29, 72, 0.2); }
 
-/* ── Hero Top Header ── */
+/* ── Enhanced POS Hero Header ── */
 .pos-hero-container {
-  background: var(--pos-header-gradient);
-  border-radius: var(--r-xl);
-  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #1c0505 0%, #450a0a 35%, #7f1d1d 70%, #991b1b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--r-lg, 14px);
+  padding: 0.55rem 1.1rem;
   margin-bottom: 0.75rem;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.85rem;
   flex-wrap: wrap;
-  box-shadow: 0 4px 18px rgba(69, 10, 10, 0.25);
+  box-shadow: 0 8px 24px -4px rgba(69, 10, 10, 0.35), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.pos-hero-container::before {
+  content: '';
+  position: absolute;
+  top: -60%;
+  right: -5%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(251, 146, 60, 0.22) 0%, transparent 68%);
+  pointer-events: none;
+  z-index: 1;
+}
+.pos-hero-container::after {
+  content: '';
+  position: absolute;
+  bottom: -50%;
+  left: 20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
 }
 .pos-hero-left {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
   position: relative;
   z-index: 2;
 }
 .pos-hero-badge-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   background: linear-gradient(135deg, #fb923c, #ea580c);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.45);
   flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.pos-hero-badge-icon:hover {
+  transform: scale(1.05);
+}
+.pos-hero-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
 }
 .pos-hero-title-group h1 {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
-.pos-hero-title-group p {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin: 0.1rem 0 0;
+.pos-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #86efac;
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 0.12rem 0.5rem;
+  border-radius: var(--r-full);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
 }
-
+.pos-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: posPulse 2s infinite;
+}
+@keyframes posPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+.pos-cashier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.12rem 0.55rem;
+  border-radius: var(--r-md, 8px);
+  backdrop-filter: blur(6px);
+}
+.pos-hero-center {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  position: relative;
+  z-index: 2;
+}
+.pos-shortcut-pill {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--r-md, 8px);
+  padding: 0.18rem 0.6rem;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.pos-shortcut-pill kbd {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  padding: 0.08rem 0.35rem;
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
 .pos-hero-right {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   position: relative;
   z-index: 2;
   flex-wrap: wrap;
 }
 .pos-pill-clock {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--r-md);
-  padding: 0.25rem 0.6rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--r-md, 8px);
+  padding: 0.2rem 0.6rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
   color: #ffffff;
-}
-.pos-pill-clock span {
-  display: block;
-  font-size: 0.52rem;
-  font-family: var(--font-ui);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.03em;
 }
 .pos-store-tag {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--r-md);
-  padding: 0.25rem 0.6rem;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.85);
-  line-height: 1.25;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--r-md, 8px);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
 }
 .pos-store-tag strong {
-  display: block;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: #ffffff;
 }
 .pos-hero-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.26);
   color: #ffffff;
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--r-md);
-  font-size: 0.78rem;
+  padding: 0.25rem 0.68rem;
+  border-radius: var(--r-md, 8px);
+  font-size: 0.74rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
+  gap: 0.35rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 .pos-hero-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.28);
   color: #ffffff;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 /* ── POS 2-Column Responsive Layout ── */
@@ -199,17 +298,31 @@
   white-space: nowrap;
 }
 
-/* Category Chips */
+/* Category Chips with Hidden Scrollbar & Active Drag-to-Scroll */
 .q-pos-chips {
   display: flex;
-  gap: 0.35rem;
-  padding: 0.5rem 0.9rem;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem 0.55rem;
   border-bottom: 1px solid var(--pos-border);
   overflow-x: auto;
+  overflow-y: hidden;
   flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
 }
-.q-pos-chips::-webkit-scrollbar { display: none; }
+.q-pos-chips::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.q-pos-chips.is-dragging {
+  cursor: grabbing !important;
+  scroll-behavior: auto !important;
+}
 .q-pos-chip {
   display: inline-flex;
   align-items: center;
@@ -288,13 +401,31 @@
   100% { background-position: -200% 0; }
 }
 
+/* ── 16 Deterministic Color-coded Category Themes for Item Cards & Filter Chips ── */
+.cat-theme-0, .q-cat-0 { --cat: #0284c7; --cat-bg: rgba(2, 132, 199, 0.1); --cat-border: rgba(2, 132, 199, 0.3); --cat-glow: rgba(2, 132, 199, 0.22); }
+.cat-theme-1, .q-cat-1 { --cat: #059669; --cat-bg: rgba(5, 150, 105, 0.1); --cat-border: rgba(5, 150, 105, 0.3); --cat-glow: rgba(5, 150, 105, 0.22); }
+.cat-theme-2, .q-cat-2 { --cat: #7c3aed; --cat-bg: rgba(124, 58, 237, 0.1); --cat-border: rgba(124, 58, 237, 0.3); --cat-glow: rgba(124, 58, 237, 0.22); }
+.cat-theme-3, .q-cat-3 { --cat: #ea580c; --cat-bg: rgba(234, 88, 12, 0.1); --cat-border: rgba(234, 88, 12, 0.3); --cat-glow: rgba(234, 88, 12, 0.22); }
+.cat-theme-4, .q-cat-4 { --cat: #e11d48; --cat-bg: rgba(225, 29, 72, 0.1); --cat-border: rgba(225, 29, 72, 0.3); --cat-glow: rgba(225, 29, 72, 0.22); }
+.cat-theme-5, .q-cat-5 { --cat: #0d9488; --cat-bg: rgba(13, 148, 136, 0.1); --cat-border: rgba(13, 148, 136, 0.3); --cat-glow: rgba(13, 148, 136, 0.22); }
+.cat-theme-6, .q-cat-6 { --cat: #4f46e5; --cat-bg: rgba(79, 70, 229, 0.1); --cat-border: rgba(79, 70, 229, 0.3); --cat-glow: rgba(79, 70, 229, 0.22); }
+.cat-theme-7, .q-cat-7 { --cat: #d97706; --cat-bg: rgba(217, 119, 6, 0.1); --cat-border: rgba(217, 119, 6, 0.3); --cat-glow: rgba(217, 119, 6, 0.22); }
+.cat-theme-8, .q-cat-8 { --cat: #c026d3; --cat-bg: rgba(192, 38, 211, 0.1); --cat-border: rgba(192, 38, 211, 0.3); --cat-glow: rgba(192, 38, 211, 0.22); }
+.cat-theme-9, .q-cat-9 { --cat: #0891b2; --cat-bg: rgba(8, 145, 178, 0.1); --cat-border: rgba(8, 145, 178, 0.3); --cat-glow: rgba(8, 145, 178, 0.22); }
+.cat-theme-10, .q-cat-10 { --cat: #65a30d; --cat-bg: rgba(101, 163, 13, 0.1); --cat-border: rgba(101, 163, 13, 0.3); --cat-glow: rgba(101, 163, 13, 0.22); }
+.cat-theme-11, .q-cat-11 { --cat: #dc2626; --cat-bg: rgba(220, 38, 38, 0.1); --cat-border: rgba(220, 38, 38, 0.3); --cat-glow: rgba(220, 38, 38, 0.22); }
+.cat-theme-12, .q-cat-12 { --cat: #2563eb; --cat-bg: rgba(37, 99, 235, 0.1); --cat-border: rgba(37, 99, 235, 0.3); --cat-glow: rgba(37, 99, 235, 0.22); }
+.cat-theme-13, .q-cat-13 { --cat: #b45309; --cat-bg: rgba(180, 83, 9, 0.1); --cat-border: rgba(180, 83, 9, 0.3); --cat-glow: rgba(180, 83, 9, 0.22); }
+.cat-theme-14, .q-cat-14 { --cat: #9333ea; --cat-bg: rgba(147, 51, 234, 0.1); --cat-border: rgba(147, 51, 234, 0.3); --cat-glow: rgba(147, 51, 234, 0.22); }
+.cat-theme-15, .q-cat-15 { --cat: #15803d; --cat-bg: rgba(21, 128, 61, 0.1); --cat-border: rgba(21, 128, 61, 0.3); --cat-glow: rgba(21, 128, 61, 0.22); }
+
 .q-prod-card {
   --cat: #0284c7;
-  --cat-bg: #f0f9ff;
-  --cat-border: #bae6fd;
+  --cat-bg: rgba(2, 132, 199, 0.08);
+  --cat-border: rgba(2, 132, 199, 0.25);
   --cat-glow: rgba(2, 132, 199, 0.2);
   border: 1px solid var(--pos-border);
-  border-top: 3px solid var(--cat);
+  border-top: 3.5px solid var(--cat);
   border-radius: var(--r-md);
   background: var(--color-surface);
   padding: 0.55rem 0.65rem 0.5rem;
@@ -328,6 +459,10 @@
   font-size: 0.58rem;
   font-weight: 700;
   color: var(--cat);
+  background: var(--cat-bg);
+  border: 1px solid var(--cat-border);
+  padding: 0.06rem 0.35rem;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   white-space: nowrap;
@@ -1074,63 +1209,138 @@
   color: var(--color-on-surface-variant);
 }
 
-/* Customer status strip below search */
+/* ── Creative Active Customer VIP Card (replaces search input when selected) ── */
 .smart-customer-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.3rem 0;
-  min-height: 26px;
+  gap: 0.55rem;
+  padding: 0.4rem 0.65rem;
+  min-height: 42px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--pos-border);
+  border-radius: var(--r-md, 8px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+  animation: custSlideIn 0.25s var(--ease-spring);
+  transition: all 0.2s ease;
 }
 .smart-customer-strip.empty {
-  display: none;
+  display: none !important;
 }
-.smart-cust-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  line-height: 1;
+.smart-customer-strip.is-staff {
+  border-color: rgba(124, 58, 237, 0.4);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(79, 70, 229, 0.03) 100%), var(--color-surface);
 }
-.smart-cust-chip.retail {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
+.smart-customer-strip.is-walkin {
+  border-color: rgba(2, 132, 199, 0.4);
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(14, 165, 233, 0.03) 100%), var(--color-surface);
 }
-.smart-cust-chip.staff {
-  background: #ede9fe;
-  color: #6d28d9;
-  border: 1px solid #c4b5fd;
+.smart-customer-strip.is-customer {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.03) 100%), var(--color-surface);
 }
-.smart-cust-chip .remove-btn {
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-size: 0.62rem;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 0.15rem;
-  opacity: 0.7;
+@keyframes custSlideIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
-.smart-cust-chip .remove-btn:hover { opacity: 1; }
-.smart-cust-info {
+
+.pos-cust-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.66rem;
-  color: var(--color-on-surface-variant);
-}
-.smart-cust-info .discount-tag {
-  background: #dcfce7;
-  color: #15803d;
+  justify-content: center;
   font-weight: 800;
-  padding: 0.1rem 0.35rem;
-  border-radius: var(--r-xs);
-  font-size: 0.6rem;
+  font-size: 0.78rem;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.pos-cust-avatar.staff { background: linear-gradient(135deg, #7c3aed, #4f46e5); }
+.pos-cust-avatar.walkin { background: linear-gradient(135deg, #0284c7, #0ea5e9); font-size: 1rem; }
+.pos-cust-avatar.customer { background: linear-gradient(135deg, #059669, #10b981); }
+
+.pos-cust-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+.pos-cust-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pos-cust-sub {
+  font-size: 0.68rem;
+  color: var(--color-on-surface-variant);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.08rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pos-cust-concession-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.32);
+  font-weight: 800;
+  font-size: 0.68rem;
+  padding: 0.18rem 0.48rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.12);
+}
+
+.pos-cust-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  font-weight: 700;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.48rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pos-cust-change-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--pos-border);
+  background: var(--color-surface);
+  color: var(--color-on-surface-variant);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.pos-cust-change-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  transform: rotate(90deg);
 }
 
 /* Enhanced cart row */
@@ -1219,28 +1429,47 @@
   <span class="q-toggle-badge" id="toggle-badge">0</span>
 </button>
 
-<!-- Hero Top Header -->
+<!-- Enhanced POS Hero Header -->
 <div class="pos-hero-container">
   <div class="pos-hero-left">
-    <div class="pos-hero-badge-icon">
-      <i class="ri-funds-box-line"></i>
+    <div class="pos-hero-badge-icon" title="StockSetu POS Counter">
+      <i class="ri-store-2-line"></i>
     </div>
     <div class="pos-hero-title-group">
-      <h1>Quick POS Billing Counter</h1>
-      <p>Tap products to add &middot; Real-time tax, discount, &amp; stock sync</p>
+      <h1>Quick POS Counter</h1>
+      <span class="pos-live-status"><span class="pos-live-dot"></span> Online</span>
+      {% if current_user.name or current_user.email %}
+        <span class="pos-cashier-pill" title="Active Cashier">
+          <i class="ri-user-smile-line" style="color: #fb923c;"></i> {{ current_user.name or (current_user.email.split('@')[0] | title) }}
+        </span>
+      {% endif %}
     </div>
   </div>
+  
+  <div class="pos-hero-center desk-only">
+    <div class="pos-shortcut-pill" title="POS Keyboard Navigation">
+      <span><kbd>Ctrl+K</kbd> Search</span>
+      <span style="opacity: 0.35;">·</span>
+      <span><kbd>F2</kbd> Pay</span>
+      <span style="opacity: 0.35;">·</span>
+      <span><kbd>Esc</kbd> Clear</span>
+    </div>
+  </div>
+
   <div class="pos-hero-right">
-    <div class="pos-pill-clock">
-      <span>Counter Clock</span>
+    <div class="pos-pill-clock" title="Counter Local Time">
+      <i class="ri-time-line" style="color: #fb923c;"></i>
       <span id="pos-clock">--:--:--</span>
     </div>
-    <div class="pos-store-tag">
+    <div class="pos-store-tag" title="Store GSTIN">
       <strong>StockSetu</strong>
-      GSTIN: 27AABCU9603R1ZM | State: 27-MH
+      <span>GST: 27AABCU9603R1ZM</span>
     </div>
-    <a href="{{ url_for('billing.list_bills') }}" class="pos-hero-btn">
-      <i class="ri-bill-line"></i> Past Bills
+    <a href="{{ url_for('billing.list_bills') }}" class="pos-hero-btn" title="View Bill & Invoice History">
+      <i class="ri-history-line"></i> Past Bills
+    </a>
+    <a href="{{ url_for('billing.sales_analytics') }}" class="pos-hero-btn desk-only" title="View Sales Analytics">
+      <i class="ri-line-chart-line"></i> Sales
     </a>
   </div>
 </div>
@@ -1267,14 +1496,16 @@
       <div class="q-pos-chips" id="q-pos-chips">
         <button type="button" class="q-pos-chip q-cat-0 is-active" data-cat="all">All <span class="q-pos-chip-count">0</span></button>
         {% for cat in categories %}
-          <button type="button" class="q-pos-chip" data-cat="{{ cat }}">{{ cat }} <span class="q-pos-chip-count">0</span></button>
+          {% set cat_idx = get_category_theme_idx(cat) if get_category_theme_idx is defined else (loop.index0 % 16) %}
+          <button type="button" class="q-pos-chip cat-theme-{{ cat_idx }}" data-cat="{{ cat }}">{{ cat }} <span class="q-pos-chip-count">0</span></button>
         {% endfor %}
       </div>
 
       <!-- Product Cards Grid -->
       <div class="q-pos-grid" id="q-pos-grid">
         {% for p in products %}
-          <div class="q-prod-card {% if (p.quantity or 0) <= 0 %}disabled{% endif %}"
+          {% set cat_idx = get_category_theme_idx(p.category) if get_category_theme_idx is defined else 0 %}
+          <div class="q-prod-card cat-theme-{{ cat_idx }} {% if (p.quantity or 0) <= 0 %}disabled{% endif %}"
                data-name="{{ p.product_name }}"
                data-stock="{{ p.quantity }}"
                data-price="{{ '%.2f'|format(p.price or 0) }}"
@@ -1472,11 +1703,12 @@
   const cartOverlay = document.getElementById('cart-overlay');
   let currentCat = 'all';
 
-  /* ── Category Colors ── */
-  const CAT_CLASSES = ['q-cat-0','q-cat-1','q-cat-2','q-cat-3','q-cat-4','q-cat-5','q-cat-6','q-cat-7','q-cat-8','q-cat-9'];
+  /* ── Category Colors (16 deterministic themes) ── */
+  const CAT_CLASSES = ['cat-theme-0','cat-theme-1','cat-theme-2','cat-theme-3','cat-theme-4','cat-theme-5','cat-theme-6','cat-theme-7','cat-theme-8','cat-theme-9','cat-theme-10','cat-theme-11','cat-theme-12','cat-theme-13','cat-theme-14','cat-theme-15'];
   function catClass(cat) {
     let h = 0;
-    for (let i = 0; i < cat.length; i++) h = (h * 31 + cat.charCodeAt(i)) >>> 0;
+    const s = (cat || '').trim().toLowerCase();
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
     return CAT_CLASSES[h % CAT_CLASSES.length];
   }
   const catClassMap = { all: 'q-cat-0' };
@@ -1488,6 +1720,127 @@
   document.querySelectorAll('#q-pos-chips .q-pos-chip').forEach(chip => {
     const key = chip.dataset.cat;
     if (catClassMap[key]) chip.classList.add(catClassMap[key]);
+  });
+
+  /* ── Category Filter Logic & Chip Selection ── */
+  function applyFilters() {
+    const q = (searchInput && searchInput.value ? searchInput.value : '').trim().toLowerCase();
+    let visible = 0;
+    cardEls.forEach(card => {
+      const matchCat = (currentCat === 'all' || (card.dataset.category || '') === currentCat);
+      const matchText = !q || (card.dataset.search || '').includes(q);
+      const isMatch = matchCat && matchText;
+      card.style.display = isMatch ? '' : 'none';
+      if (isMatch) visible++;
+    });
+    if (resultCountEl) {
+      resultCountEl.textContent = visible + ' of ' + totalCount + ' items';
+    }
+    if (noneEl) {
+      noneEl.style.display = visible === 0 ? 'flex' : 'none';
+    }
+  }
+
+  function updateChipCounts() {
+    const counts = { all: totalCount };
+    cardEls.forEach(c => {
+      const cat = c.dataset.category || '';
+      if (cat) counts[cat] = (counts[cat] || 0) + 1;
+    });
+    document.querySelectorAll('#q-pos-chips .q-pos-chip').forEach(chip => {
+      const cat = chip.dataset.cat;
+      const countEl = chip.querySelector('.q-pos-chip-count');
+      if (countEl) countEl.textContent = counts[cat] || 0;
+    });
+  }
+
+  function selectCategory(catName, clickedChip) {
+    document.querySelectorAll('#q-pos-chips .q-pos-chip').forEach(c => c.classList.remove('is-active'));
+    if (clickedChip) clickedChip.classList.add('is-active');
+    currentCat = catName || 'all';
+    applyFilters();
+  }
+
+  let isDragging = false;
+  document.querySelectorAll('#q-pos-chips .q-pos-chip').forEach(chip => {
+    chip.addEventListener('click', function(e) {
+      if (isDragging) return;
+      selectCategory(this.dataset.cat, this);
+    });
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+
+  /* ── Category Chips Drag-to-Scroll & Mouse-Wheel Interaction ── */
+  const chipsContainer = document.getElementById('q-pos-chips');
+  if (chipsContainer) {
+    /* Mouse wheel: scroll up/down scrolls horizontally left/right */
+    chipsContainer.addEventListener('wheel', function(e) {
+      if (e.deltaY !== 0 || e.deltaX !== 0) {
+        e.preventDefault();
+        const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
+        chipsContainer.scrollLeft += delta * 1.2;
+      }
+    }, { passive: false });
+
+    /* Click & Drag (Pick and Drag to scroll left/right) */
+    let isDown = false;
+    let startX = 0;
+    let scrollStart = 0;
+
+    chipsContainer.addEventListener('mousedown', function(e) {
+      isDown = true;
+      isDragging = false;
+      startX = e.pageX - chipsContainer.offsetLeft;
+      scrollStart = chipsContainer.scrollLeft;
+    });
+
+    chipsContainer.addEventListener('mousemove', function(e) {
+      if (!isDown) return;
+      const currentX = e.pageX - chipsContainer.offsetLeft;
+      const diff = Math.abs(currentX - startX);
+      if (diff > 5) {
+        isDragging = true;
+        chipsContainer.classList.add('is-dragging');
+        e.preventDefault();
+        const walk = (currentX - startX) * 1.3;
+        chipsContainer.scrollLeft = scrollStart - walk;
+      }
+    });
+
+    window.addEventListener('mouseup', function(e) {
+      if (!isDown) return;
+      isDown = false;
+      setTimeout(() => {
+        chipsContainer.classList.remove('is-dragging');
+        isDragging = false;
+      }, 50);
+    });
+
+    chipsContainer.addEventListener('mouseleave', function() {
+      if (isDown) {
+        isDown = false;
+        chipsContainer.classList.remove('is-dragging');
+        isDragging = false;
+      }
+    });
+  }
+
+  function updatePaymentUI() {
+    const checkedRadio = document.querySelector('input[name="payment_method"]:checked');
+    const dueDateRow = document.getElementById('due-date-row');
+    if (dueDateRow) {
+      dueDateRow.style.display = (checkedRadio && checkedRadio.value === 'CREDIT') ? 'flex' : 'none';
+    }
+    document.querySelectorAll('.q-pay-opt').forEach(opt => {
+      const radio = opt.querySelector('input');
+      opt.classList.toggle('is-active', radio && radio.checked);
+    });
+  }
+  document.querySelectorAll('input[name="payment_method"]').forEach(r => {
+    r.addEventListener('change', updatePaymentUI);
   });
 
   /* ── Live Clock ── */
@@ -1951,13 +2304,15 @@
     if (buyerEmpInput) buyerEmpInput.value = emp.employee_id;
     if (custNameInput) custNameInput.value = emp.name;
     if (custPhoneInput) custPhoneInput.value = emp.phone || '';
-    if (discPercentInput && (!discPercentInput.value || parseFloat(discPercentInput.value) === 0)) {
-      discPercentInput.value = '10';
+    if (salaryDedOpt) {
+      salaryDedOpt.style.display = 'flex';
+      const sr = salaryDedOpt.querySelector('input');
+      if (sr) sr.checked = true;
+      document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
     }
-    if (salaryDedOpt) salaryDedOpt.style.display = 'flex';
     updateCustomerStrip();
     renderCart();
-    if (typeof showToast === 'function') showToast(emp.name + ' (' + emp.employee_id + ') — 10% Staff Rate applied', 'info', 2000);
+    if (typeof showToast === 'function') showToast(emp.name + ' (@' + emp.employee_id + ') · Salary Deduction auto-selected', 'info', 1800);
   }
 
   function selectWalkin() {
@@ -1989,9 +2344,6 @@
         document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
       }
     }
-    if (discPercentInput && parseFloat(discPercentInput.value) === 10) {
-      discPercentInput.value = '0';
-    }
   }
 
   function clearCustomerSelection() {
@@ -2000,29 +2352,77 @@
     if (custNameInput) custNameInput.value = '';
     if (custPhoneInput) custPhoneInput.value = '';
     if (custGstinInput) custGstinInput.value = '';
+    const searchWrap = document.getElementById('smart-search-wrap');
+    if (searchWrap) searchWrap.style.display = 'block';
     const strip = document.getElementById('smart-customer-strip');
-    if (strip) strip.classList.add('empty');
+    if (strip) {
+      strip.className = 'smart-customer-strip empty';
+      strip.innerHTML = '';
+      strip.style.display = 'none';
+    }
+    const smartInput = document.getElementById('smart-search');
+    if (smartInput) {
+      smartInput.value = '';
+      setTimeout(() => smartInput.focus(), 50);
+    }
     renderCart();
   }
 
   function updateCustomerStrip() {
+    const searchWrap = document.getElementById('smart-search-wrap');
     const strip = document.getElementById('smart-customer-strip');
-    const chip = document.getElementById('smart-cust-chip');
-    const info = document.getElementById('smart-cust-info');
-    if (!strip || !chip || !info || !selectedCustomer) { if (strip) strip.classList.add('empty'); return; }
-    strip.classList.remove('empty');
+    if (!strip || !selectedCustomer) {
+      if (strip) {
+        strip.className = 'smart-customer-strip empty';
+        strip.innerHTML = '';
+        strip.style.display = 'none';
+      }
+      if (searchWrap) searchWrap.style.display = 'block';
+      return;
+    }
+    strip.style.display = 'flex';
+    if (searchWrap) searchWrap.style.display = 'none';
+
+    function esc(s) { return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
     if (selectedCustomer.type === 'employee') {
-      chip.className = 'smart-cust-chip staff';
-      chip.innerHTML = '<i class="ri-user-star-line"></i> ' + selectedCustomer.name + ' <button type="button" class="remove-btn" onclick="window.__posClearCustomer()"><i class="ri-close-line"></i></button>';
-      info.innerHTML = '<span class="discount-tag">10% OFF</span> Staff purchase';
+      strip.className = 'smart-customer-strip is-staff';
+      const initials = (selectedCustomer.name || 'EM').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      strip.innerHTML =
+        '<div style="display: flex; align-items: center; gap: 0.55rem; min-width: 0; flex: 1;">' +
+          '<div class="pos-cust-avatar staff">' + initials + '</div>' +
+          '<div class="pos-cust-meta">' +
+            '<div class="pos-cust-name" title="' + esc(selectedCustomer.name) + '">' + esc(selectedCustomer.name) + '</div>' +
+            '<div class="pos-cust-sub"><span style="font-family: var(--font-mono); font-weight: 700;">@' + esc(selectedCustomer.employee_id) + '</span><span>&bull;</span><span>Staff Account</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">' +
+          '<span class="pos-cust-type-badge"><i class="ri-user-star-line"></i> Staff</span>' +
+          '<button type="button" class="pos-cust-change-btn" onclick="window.__posClearCustomer()" title="Change customer (✕)"><i class="ri-close-line"></i></button>' +
+        '</div>';
     } else if (selectedCustomer.type === 'walkin') {
-      chip.className = 'smart-cust-chip retail';
-      chip.innerHTML = '<i class="ri-user-3-line"></i> Walk-in <button type="button" class="remove-btn" onclick="window.__posClearCustomer()"><i class="ri-close-line"></i></button>';
-      info.innerHTML = '';
+      strip.className = 'smart-customer-strip is-walkin';
+      strip.innerHTML =
+        '<div style="display: flex; align-items: center; gap: 0.55rem; min-width: 0; flex: 1;">' +
+          '<div class="pos-cust-avatar walkin"><i class="ri-user-smile-line"></i></div>' +
+          '<div class="pos-cust-meta">' +
+            '<div class="pos-cust-name">Walk-in Customer</div>' +
+            '<div class="pos-cust-sub"><span>Retail Counter Billing</span><span>&bull;</span><span>Standard Rate</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<button type="button" class="pos-cust-change-btn" onclick="window.__posClearCustomer()" title="Change customer (✕)"><i class="ri-close-line"></i></button>';
     } else {
-      chip.className = 'smart-cust-chip retail';
-      chip.innerHTML = '<i class="ri-user-line"></i> ' + selectedCustomer.name + ' <button type="button" class="remove-btn" onclick="window.__posClearCustomer()"><i class="ri-close-line"></i></button>';
-      info.innerHTML = '';
+      strip.className = 'smart-customer-strip is-customer';
+      const initials = (selectedCustomer.name || 'CU').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      strip.innerHTML =
+        '<div style="display: flex; align-items: center; gap: 0.55rem; min-width: 0; flex: 1;">' +
+          '<div class="pos-cust-avatar customer">' + initials + '</div>' +
+          '<div class="pos-cust-meta">' +
+            '<div class="pos-cust-name" title="' + esc(selectedCustomer.name) + '">' + esc(selectedCustomer.name) + '</div>' +
+            '<div class="pos-cust-sub"><span>Client Account</span><span>&bull;</span><span>Standard Rate</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<button type="button" class="pos-cust-change-btn" onclick="window.__posClearCustomer()" title="Change customer (✕)"><i class="ri-close-line"></i></button>';
     }
   }
   window.__posClearCustomer = clearCustomerSelection;
@@ -2267,6 +2667,16 @@
       })
       .catch(() => {});
   }
+
+  /* ── Live POS Clock ── */
+  function updatePosClock() {
+    const el = document.getElementById('pos-clock');
+    if (!el) return;
+    const now = new Date();
+    el.textContent = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  updatePosClock();
+  setInterval(updatePosClock, 1000);
 
 })();
 </script>

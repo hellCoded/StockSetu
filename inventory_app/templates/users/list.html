@@ -10,74 +10,80 @@
 {% set staff_count = user_stats.staff if user_stats else (users | selectattr('role', 'equalto', 'staff') | list | length) %}
 {% set inactive_count = user_stats.inactive if user_stats else (total_count - active_count) %}
 
-<!-- Page Hero -->
+<!-- Page Hero with Integrated Stats -->
 <div class="um-hero">
-  <div class="um-hero-left">
-    <div class="um-hero-icon"><i class="ri-user-settings-line"></i></div>
-    <div>
-      <h1>System User Management</h1>
-      <p>Review staff requests, manage user roles, and monitor account activity</p>
+  <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.85rem; flex-wrap: wrap;">
+    <div class="um-hero-left">
+      <div class="um-hero-icon"><i class="ri-user-settings-line"></i></div>
+      <div>
+        <h1>System User Management</h1>
+        <p>Review staff requests, manage user roles, and monitor account activity</p>
+      </div>
+    </div>
+    <div class="um-hero-actions">
+      <button id="btn-open-add-user" type="button" class="btn btn-primary btn-sm" onclick="openAddUserModal('single', event)" title="Add Single or Bulk Import Staff">
+        <i class="ri-user-add-line"></i> Add / Import Staff
+      </button>
+      <button id="btn-open-inbox" type="button" class="btn um-btn-glass btn-sm um-inbox-btn" onclick="openInboxModal(event)" title="Review Staff Requests">
+        <i class="ri-inbox-line"></i> Staff Requests
+        {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
+        {% if pending_reqs | length > 0 %}
+          <span class="um-inbox-count">{{ pending_reqs | length }}</span>
+        {% endif %}
+      </button>
     </div>
   </div>
-  <div class="um-hero-actions">
-    <button id="btn-open-add-user" type="button" class="btn btn-primary btn-sm" onclick="openAddUserModal('single', event)" title="Add Single or Bulk Import Staff">
-      <i class="ri-user-add-line"></i> Add / Import Staff
-    </button>
-    <button id="btn-open-inbox" type="button" class="btn um-btn-glass btn-sm um-inbox-btn" onclick="openInboxModal(event)" title="Review Staff Requests">
-      <i class="ri-inbox-line"></i> Staff Requests
-      {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
+
+  <!-- Integrated Micro-Stats & Live Filter Bar -->
+  <div class="hero-stats-row" style="display: flex; align-items: center; justify-content: space-between; gap: 0.65rem; width: 100%; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+      <a href="{{ url_for('users.list_users') }}" class="hero-stat-pill {% if not current_role %}is-active{% endif %}" title="All system accounts">
+        <i class="ri-team-line" style="color: #93c5fd;"></i>
+        <span class="hero-stat-label">All</span>
+        <span class="hero-stat-num">{{ (user_stats.total_count if user_stats else total_count) or total_count }}</span>
+      </a>
+      <a href="{{ url_for('users.list_users', role='active') }}" class="hero-stat-pill stat-success {% if current_role == 'active' %}is-active{% endif %}" title="Active user accounts">
+        <i class="ri-user-follow-line"></i>
+        <span class="hero-stat-label">Active</span>
+        <span class="hero-stat-num">{{ (user_stats.active_count if user_stats else active_count) or active_count }}</span>
+      </a>
+      <a href="{{ url_for('users.list_users', role='admin') }}" class="hero-stat-pill {% if current_role == 'admin' %}is-active{% endif %}" title="Administrator accounts">
+        <i class="ri-shield-user-line" style="color: #fca5a5;"></i>
+        <span class="hero-stat-label">Admins</span>
+        <span class="hero-stat-num">{{ (user_stats.admin_count if user_stats else admin_count) or admin_count }}</span>
+      </a>
+      <a href="{{ url_for('users.list_users', role='inventory_manager') }}" class="hero-stat-pill {% if current_role == 'inventory_manager' %}is-active{% endif %}" title="Inventory manager accounts">
+        <i class="ri-archive-stack-line" style="color: #fed7aa;"></i>
+        <span class="hero-stat-label">Managers</span>
+        <span class="hero-stat-num">{{ (user_stats.manager_count if user_stats else manager_count) or manager_count }}</span>
+      </a>
+      <a href="{{ url_for('users.list_users', role='staff') }}" class="hero-stat-pill {% if current_role == 'staff' %}is-active{% endif %}" title="Staff accounts">
+        <i class="ri-profile-line" style="color: #cbd5e1;"></i>
+        <span class="hero-stat-label">Staff</span>
+        <span class="hero-stat-num">{{ (user_stats.staff_count if user_stats else staff_count) or staff_count }}</span>
+      </a>
+      <a href="{{ url_for('users.list_users', role='inactive') }}" class="hero-stat-pill stat-danger {% if current_role == 'inactive' %}is-active{% endif %}" title="Deactivated accounts">
+        <i class="ri-user-unfollow-line"></i>
+        <span class="hero-stat-label">Deactivated</span>
+        <span class="hero-stat-num">{{ (user_stats.inactive_count if user_stats else inactive_count) or inactive_count }}</span>
+      </a>
+      {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list if role_requests else [] %}
       {% if pending_reqs | length > 0 %}
-        <span class="um-inbox-count">{{ pending_reqs | length }}</span>
+      <button type="button" class="hero-stat-pill stat-warning" onclick="openInboxModal(event)" style="cursor: pointer;" title="Pending promotion requests">
+        <i class="ri-inbox-line"></i>
+        <span class="hero-stat-label">Pending Req</span>
+        <span class="hero-stat-num">{{ pending_reqs | length }}</span>
+      </button>
       {% endif %}
-    </button>
-  </div>
-</div>
+    </div>
 
-<!-- Interactive KPI Stats -->
-<div class="kpi-grid">
-  <div class="kpi-card um-kpi-total um-kpi-card is-active" data-role-filter="all" title="Show all accounts">
-    <div class="kpi-icon"><i class="ri-team-line"></i></div>
-    <div>
-      <div class="kpi-value" data-counter="{{ total_count }}">{{ total_count }}</div>
-      <div class="kpi-label">Total Accounts</div>
-    </div>
-  </div>
-  <div class="kpi-card um-kpi-active um-kpi-card" data-role-filter="active" title="Show active accounts">
-    <div class="kpi-icon"><i class="ri-user-follow-line"></i></div>
-    <div>
-      <div class="kpi-value" data-counter="{{ active_count }}">{{ active_count }}</div>
-      <div class="kpi-label">Active Accounts</div>
-    </div>
-  </div>
-  <div class="kpi-card um-kpi-pending um-kpi-card" data-role-filter="pending" title="Open staff requests inbox">
-    <div class="kpi-icon"><i class="ri-inbox-line"></i></div>
-    <div>
-      {% set pending_reqs = role_requests | selectattr('status', 'equalto', 'PENDING') | list %}
-      <div class="kpi-value" data-counter="{{ pending_reqs | length }}">{{ pending_reqs | length }}</div>
-      <div class="kpi-label">Pending Requests</div>
-    </div>
-  </div>
-  <div class="kpi-card um-kpi-off um-kpi-card" data-role-filter="inactive" title="Show deactivated accounts">
-    <div class="kpi-icon"><i class="ri-user-unfollow-line"></i></div>
-    <div>
-      <div class="kpi-value" data-counter="{{ inactive_count }}">{{ inactive_count }}</div>
-      <div class="kpi-label">Deactivated</div>
-    </div>
-  </div>
-</div>
-
-<!-- Toolbar: Role Filter Pills + Quick Search -->
-<div class="um-toolbar">
-  <div class="um-pills" id="um-filter-pills">
-    <button type="button" class="um-pill is-active" data-role-filter="all">All <span class="um-pill-count">{{ total_count }}</span></button>
-    <button type="button" class="um-pill" data-role-filter="admin">Admins <span class="um-pill-count">{{ admin_count }}</span></button>
-    <button type="button" class="um-pill" data-role-filter="inventory_manager">Managers <span class="um-pill-count">{{ manager_count }}</span></button>
-    <button type="button" class="um-pill" data-role-filter="staff">Staff <span class="um-pill-count">{{ staff_count }}</span></button>
-    <button type="button" class="um-pill" data-role-filter="inactive">Deactivated <span class="um-pill-count">{{ inactive_count }}</span></button>
-  </div>
-  <div class="instant-search-wrap">
-    <i class="ri-search-2-line search-icon"></i>
-    <input type="text" id="um-search" class="form-control instant-search-input" data-table="user-table" placeholder="Quick filter users…" autocomplete="off">
+    <!-- In-Hero Quick Search Form -->
+    <form method="GET" action="{{ url_for('users.list_users') }}" style="position: relative; min-width: 200px; flex: 1; max-width: 280px; margin: 0;">
+      {% if current_role %}<input type="hidden" name="role" value="{{ current_role }}">{% endif %}
+      <i class="ri-search-2-line" style="position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); font-size: 0.76rem; color: rgba(255, 255, 255, 0.7); pointer-events: none;"></i>
+      <input type="text" name="q" value="{{ current_search or '' }}" id="um-search" class="form-control" placeholder="Search users (Press Enter)…" autocomplete="off"
+             style="padding-left: 1.8rem; font-size: 0.76rem; height: 28px; border-radius: 999px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff;">
+    </form>
   </div>
 </div>
 

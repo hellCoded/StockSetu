@@ -1,0 +1,390 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>StockSetu - User Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "tertiary-fixed-dim": "#70e01a",
+                "surface-container-highest": "#e1e3e4",
+                "on-tertiary-container": "#2b6100",
+                "inverse-surface": "#2e3132",
+                "primary-container": "#18e878",
+                "surface-bright": "#f8f9fa",
+                "surface-tint": "#006d34",
+                "tertiary-container": "#74e421",
+                "primary-fixed-dim": "#06e474",
+                "primary": "#006d34",
+                "surface": "#f8f9fa",
+                "on-secondary-fixed-variant": "#005144",
+                "background": "#f8f9fa",
+                "on-surface": "#191c1d",
+                "inverse-primary": "#06e474",
+                "surface-container": "#eceeef",
+                "on-surface-variant": "#3c4a3d",
+                "on-background": "#191c1d",
+                "secondary": "#076b5b",
+                "on-primary": "#ffffff",
+                "primary-fixed": "#62ff95",
+                "secondary-fixed-dim": "#85d6c2",
+                "surface-dim": "#d8dadb",
+                "on-secondary": "#ffffff",
+                "outline": "#6b7b6c",
+                "inverse-on-surface": "#eff1f2",
+                "on-primary-container": "#00632f",
+                "surface-container-lowest": "#ffffff",
+                "outline-variant": "#bacbb9",
+                "on-error-container": "#93000a",
+                "tertiary-fixed": "#8bfd3d",
+                "on-secondary-fixed": "#00201a",
+                "error": "#ba1a1a",
+                "on-error": "#ffffff",
+                "error-container": "#ffdad6",
+                "on-tertiary-fixed-variant": "#235100",
+                "on-primary-fixed-variant": "#005226",
+                "surface-container-high": "#e7e8e9",
+                "secondary-fixed": "#a0f2dd",
+                "surface-container-low": "#f2f4f5",
+                "secondary-container": "#a0f2dd",
+                "tertiary": "#306b00",
+                "on-secondary-container": "#157161",
+                "on-tertiary": "#ffffff",
+                "on-primary-fixed": "#00210b",
+                "surface-variant": "#e1e3e4",
+                "on-tertiary-fixed": "#0a2100"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "section-padding": "40px",
+                "base": "8px",
+                "container-margin": "24px",
+                "stack-lg": "24px",
+                "stack-md": "12px",
+                "stack-sm": "4px",
+                "gutter": "16px",
+                "xs": "4px",
+                "xl": "64px",
+                "lg": "40px",
+                "sm": "12px",
+                "md": "24px",
+                "margin-mobile": "16px",
+                "margin-desktop": "32px"
+        },
+        "fontFamily": {
+                "body-md": [
+                        "Poppins"
+                ],
+                "title-lg": [
+                        "Poppins"
+                ],
+                "display-lg": [
+                        "Poppins"
+                ],
+                "body-lg": [
+                        "Poppins"
+                ],
+                "label-md": [
+                        "Poppins"
+                ],
+                "label-sm": [
+                        "Poppins"
+                ],
+                "headline-lg-mobile": [
+                        "Poppins"
+                ],
+                "headline-lg": [
+                        "Poppins"
+                ],
+                "headline-md": [
+                        "Poppins"
+                ],
+                "headline-sm": ["Poppins"],
+                "body-sm": ["Poppins"]
+        },
+        "fontSize": {
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "title-lg": [
+                        "20px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "60px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "label-sm": [
+                        "11px",
+                        {
+                                "lineHeight": "14px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+        }
+},
+    },
+  }
+</script>
+<style>
+        .glass-card {
+            background-color: #ffffff;
+            border: 1px solid #e1e3e4;
+        }
+        .active-glow {
+            box-shadow: 0 0 15px rgba(24, 232, 120, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex">
+<!-- SideNavBar -->
+<nav class="hidden md:flex h-screen w-64 fixed left-0 top-0 bg-surface-container dark:bg-surface-container border-r border-outline-variant dark:border-outline-variant flex-col p-md gap-base z-50">
+<div class="mb-lg"><div class="mb-lg flex items-center gap-sm"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9GY8nDY8_5r9cVVIYHG-_YlLzQf5Ut-Y5FQPpAtHY1ZRTbVaJxjcbkwyX-vJTs2kRLa8MOWeVuiAU6H3qNr1WtiuBlIPvVGu9dFadFd4_wJRt5i6Fmuo4LqcNUmO3NmbhRYzuHYWddb0hogQAzbCTRHHV7O7pMz0vi2oHieFRh5i_QOHfMdDDmGLmrUnZwGtozVgHpkJWBZh-hMz_g7rqnBrKih1luZWC1_PLA8Ai0qTO_bxpPgoA8XxZDoZyH2bGzrY" alt="StockSetu Logo" class="h-8 w-auto object-contain"><div class="flex flex-col"><h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary leading-none">StockSetu</h1><p class="font-label-sm text-label-sm text-on-surface-variant">Admin Suite</p></div></div></div>
+<div class="flex flex-col gap-xs flex-grow">
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-body-md text-body-md">Products</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="point_of_sale">point_of_sale</span>
+<span class="font-body-md text-body-md">Billing POS</span>
+</a>
+<a class="flex items-center gap-sm p-sm bg-primary-container dark:bg-primary-container text-on-primary-container dark:text-on-primary-container font-semibold rounded-lg active-glow hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-md text-body-md">User Management</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-body-md text-body-md">Reports</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-200 mt-auto" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-0 md:ml-64 flex-1 flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="hidden md:flex fixed top-0 right-0 left-64 h-16 bg-surface-container dark:bg-surface-container border-b border-outline-variant dark:border-outline-variant justify-between items-center px-gutter z-40">
+<div class="flex-1 flex items-center"><div class="flex items-center gap-sm"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdnuToZR0rOAleVXSc-v6oXxuMC4q7aznwSTIaG70TraBBZFzWHLwKWiUnfGlE2fN5KcqUoyjw5ycCrTGoIKNxeiyvxLLhpenuvvVABHDChGHoZYsO5kXokyjjbaiyRJ7dhUs77KqTyQzIDIgbF9WEN4Jwb_vKkHLHEdobRy6UNvGd8koRUntzss3oLG_deTIbDkkDGx77Ici5jBWJ7PjZqkudFUmau7JEDn2j8GFSRzxk2cz-BYMXnm5tmzfiUt5LNYg" alt="StockSetu Logo" class="h-8 w-auto object-contain"><span class="font-headline-sm text-headline-sm font-bold text-primary">StockSetu</span></div></div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="bg-primary-container text-on-primary-container px-sm py-xs rounded font-label-md hover:opacity-90 transition-opacity">
+                    Check Out
+                </button>
+<img alt="User Profile" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small, circular avatar portrait of a professional manager with a neutral expression, shot in a sleek, modern corporate environment. The lighting is crisp and cool, featuring an emerald and dark teal aesthetic to match a corporate tech platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzEuK3Bf1V-is0BMIC110Vsub4oZ9sOZk29kS6P1H1OlbJmgkahWLhhuXZW_PNBxPfDvIsVWdGBHirHwQNZsvXCxjLwyStoAU8O_nFcWHEAK6pwZI0xyy2em64omTEGolK6vl5pwaBh_WA2u0aFJrdrAYRWmBXgr3dFRg8OyJec5xdtDj77q29vXdBPY1ZylVD1o3xLfnShw0w8tKHSugnUdHLEXcZzBDOur22dglDTbPiQWE0fdQptg">
+</div>
+</header>
+<!-- Page Content -->
+<div class="mt-0 md:mt-16 p-margin-mobile md:p-margin-desktop flex-1 overflow-y-auto">
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">Staff &amp; Permissions</h2>
+<p class="text-on-surface-variant mt-xs">Manage your team's access and roles.</p>
+</div>
+<button class="bg-primary-container text-on-primary-container px-md py-sm rounded-lg font-label-md flex items-center gap-xs hover:shadow-[0_0_15px_rgba(24,232,120,0.3)] transition-all">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+                    Add User
+                </button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- User List -->
+<div class="lg:col-span-2 glass-card rounded-xl p-md flex flex-col gap-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Active Staff</h3>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="pb-sm font-medium">User</th>
+<th class="pb-sm font-medium">Role</th>
+<th class="pb-sm font-medium">Status</th>
+<th class="pb-sm font-medium">Last Login</th>
+<th class="pb-sm font-medium text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm">
+<tr class="border-b border-outline-variant/50 hover:bg-surface-variant/30 transition-colors group">
+<td class="py-sm flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-primary font-bold">JD</div>
+<div>
+<p class="font-medium text-on-surface">Jane Doe</p>
+<p class="text-on-surface-variant text-[12px]">jane@stocksetu.com</p>
+</div>
+</td>
+<td class="py-sm">
+<span class="bg-surface-variant text-primary px-2 py-1 rounded-full text-[10px] font-semibold border border-primary/20">Admin</span>
+</td>
+<td class="py-sm">
+<div class="flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-secondary-fixed"></div>
+<span class="text-on-surface-variant">Active</span>
+</div>
+</td>
+<td class="py-sm text-on-surface-variant">2 hrs ago</td>
+<td class="py-sm text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/50 hover:bg-surface-variant/30 transition-colors group">
+<td class="py-sm flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-primary font-bold">MS</div>
+<div>
+<p class="font-medium text-on-surface">Mark Smith</p>
+<p class="text-on-surface-variant text-[12px]">mark@stocksetu.com</p>
+</div>
+</td>
+<td class="py-sm">
+<span class="bg-surface-variant text-secondary px-2 py-1 rounded-full text-[10px] font-semibold border border-secondary/20">Manager</span>
+</td>
+<td class="py-sm">
+<div class="flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-secondary-fixed"></div>
+<span class="text-on-surface-variant">Active</span>
+</div>
+</td>
+<td class="py-sm text-on-surface-variant">1 day ago</td>
+<td class="py-sm text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors group">
+<td class="py-sm flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant font-bold">RJ</div>
+<div>
+<p class="font-medium text-on-surface-variant">Rachel Jones</p>
+<p class="text-on-surface-variant/60 text-[12px]">rachel@stocksetu.com</p>
+</div>
+</td>
+<td class="py-sm">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-1 rounded-full text-[10px] font-semibold border border-outline-variant">Cashier</span>
+</td>
+<td class="py-sm">
+<div class="flex items-center gap-xs opacity-60">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+<span class="text-on-surface-variant">Inactive</span>
+</div>
+</td>
+<td class="py-sm text-on-surface-variant opacity-60">5 days ago</td>
+<td class="py-sm text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Role Management -->
+<div class="glass-card rounded-xl p-md flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Roles</h3>
+<button class="text-primary hover:text-primary-fixed transition-colors font-label-sm"><span class="material-symbols-outlined text-[18px]">add_circle</span></button>
+</div>
+<div class="space-y-sm">
+<!-- Admin Role -->
+<div class="bg-surface-variant rounded-lg p-sm border border-primary/30 active-glow">
+<div class="flex justify-between items-center mb-xs">
+<h4 class="font-label-md text-label-md text-primary">Admin</h4>
+<span class="text-[10px] text-on-surface-variant">Full Access</span>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="bg-surface text-on-surface-variant px-2 py-0.5 rounded text-[10px]">All Modules</span>
+<span class="bg-surface text-on-surface-variant px-2 py-0.5 rounded text-[10px]">Billing</span>
+<span class="bg-surface text-on-surface-variant px-2 py-0.5 rounded text-[10px]">Settings</span>
+</div>
+</div>
+<!-- Manager Role -->
+<div class="bg-surface-variant/50 rounded-lg p-sm border border-outline-variant hover:border-secondary/30 transition-colors cursor-pointer">
+<div class="flex justify-between items-center mb-xs">
+<h4 class="font-label-md text-label-md text-secondary">Manager</h4>
+<span class="text-[10px] text-on-surface-variant">Custom</span>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="bg-surface text-on-surface-variant px-2 py-0.5 rounded text-[10px]">Products</span>
+<span class="bg-surface text-on-surface-variant px-2 py-0.5 rounded text-[10px]">Reports</span>
+</div>
+</div>
+<!-- Cashier Role -->
+<div class="bg-surface-variant/50 rounded-lg p-sm border border-outline-variant hover:border-tertiary/30 transition-colors cursor-pointer">
+<div class="flex justify-between items-center mb-xs">
+<h4 class="font-label-md text-label-md text-tertiary">Cashier</h4>
+<span class="text-[10px] text-on-surface-variant">Limited</span>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="bg-surface text-on-surface-variant px-2 py-0.5 rounded text-[10px]">POS Only</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>

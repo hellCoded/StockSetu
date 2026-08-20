@@ -354,7 +354,7 @@ def _deduct_stock(db, canonical_name: str, quantity: float, now: datetime, perfo
         "previous_quantity": prev_qty,
         "new_quantity": _round2(prev_qty - quantity),
         "bill_number": bill_number,
-        "reason": f"Sale via bill (performed by {performed_by})",
+        "reason": f"Sale via bill #{bill_number}" if bill_number else "Sale via bill",
         "performed_by": performed_by,
         "created_at": now
     })
@@ -1392,7 +1392,10 @@ def get_sales_analytics(date_preset: str = "30d", start_date: str = None, end_da
                     "total_bills": {"$sum": 1},
                     "total_paid": {"$sum": "$amount_paid"},
                     "total_due": {"$sum": "$amount_due"},
-                    "total_tax": {"$sum": {"$add": [{"$ifNull": ["$total_cgst", 0]}, {"$ifNull": ["$total_sgst", 0]}, {"$ifNull": ["$total_igst", 0]}]}},
+                    "cash_collected": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CASH"]}, "$amount_paid", 0]}},
+                    "upi_collected": {"$sum": {"$cond": [{"$eq": ["$payment_method", "UPI"]}, "$amount_paid", 0]}},
+                    "card_collected": {"$sum": {"$cond": [{"$eq": ["$payment_method", "CARD"]}, "$amount_paid", 0]}},
+                    "total_tax": {"$sum": {"$ifNull": ["$gst_total", {"$add": [{"$ifNull": ["$cgst_total", 0]}, {"$ifNull": ["$sgst_total", 0]}, {"$ifNull": ["$total_cgst", 0]}, {"$ifNull": ["$total_sgst", 0]}]}]}},
                     "total_discount": {"$sum": {"$ifNull": ["$discount_amount", 0]}},
                     "total_round_off": {"$sum": {"$ifNull": ["$round_off", 0]}},
                 }}

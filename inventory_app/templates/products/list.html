@@ -3,37 +3,7 @@
 {% block title %}Products - StockSetu{% endblock %}
 
 {% block content %}
-<!-- Executive Gradient Hero Banner -->
-<div class="executive-hero" style="background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%); border-radius: var(--r-xl, 14px); padding: 1.25rem 1.5rem; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25); margin-bottom: 1.25rem; position: relative; overflow: hidden;">
-    <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
-      <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: #ffffff; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4); flex-shrink: 0;">
-        <i class="ri-archive-stack-line"></i>
-      </div>
-      <div>
-        <h1 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em; line-height: 1.2;">
-          Product Inventory &amp; Catalog
-        </h1>
-        <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; margin: 0.2rem 0 0 0;">
-          Browse, search, edit, and export complete product SKUs &amp; real-time quantities
-        </p>
-      </div>
-    </div>
-    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
-      <a href="{{ url_for('products.export_pdf', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Formatted PDF" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
-        <i class="ri-file-pdf-2-line" style="color: #fca5a5; margin-right: 0.35rem;"></i> Export PDF
-      </a>
-      <a href="{{ url_for('products.export_excel', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export Catalog to Microsoft Excel" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
-        <i class="ri-file-excel-2-line" style="color: #86efac; margin-right: 0.35rem;"></i> Export Excel
-      </a>
-      {% if current_user.role in ['admin', 'inventory_manager'] %}
-        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; background: linear-gradient(135deg, #ea580c, #c2410c); color: #ffffff; font-weight: 700; border: none; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);">
-          <i class="ri-add-line" style="margin-right: 0.35rem;"></i> Add Product
-        </a>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- KPI Summary Banner -->
+  <!-- KPI Summary Computations -->
   {% set total_qty = namespace(val=0) %}
   {% set total_val = namespace(val=0) %}
   {% set in_stock_count = namespace(val=0) %}
@@ -45,44 +15,57 @@
     {% if p.status == 'LOW STOCK' %}{% set low_stock_count.val = low_stock_count.val + 1 %}{% endif %}
   {% endfor %}
 
-  <div class="prod-kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-primary, #0b3d6e); display: flex; align-items: center; gap: 0.85rem;">
-      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-primary-light, rgba(11,61,110,0.1)); display: flex; align-items: center; justify-content: center; color: var(--color-primary, #0b3d6e); font-size: 1.1rem;">
+  <!-- Unified Executive Hero & Stats Bar -->
+  <div class="executive-hero">
+    <div style="display: flex; align-items: center; gap: 0.75rem; position: relative; z-index: 2;">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #fb923c, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: #ffffff; box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35); flex-shrink: 0;">
         <i class="ri-archive-stack-line"></i>
       </div>
       <div>
-        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Total Products</div>
-        <div style="font-size: 1.2rem; font-weight: 800; color: var(--color-on-surface, #0f172a);">{{ products|length }}</div>
+        <h1>Product Inventory &amp; Catalog</h1>
+        <p>Real-time SKUs, warehouse stock levels, and catalog management</p>
       </div>
     </div>
+    <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 2;">
+      <a href="{{ url_for('products.export_pdf', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export to PDF">
+        <i class="ri-file-pdf-2-line" style="color: #fca5a5;"></i> PDF
+      </a>
+      <a href="{{ url_for('products.export_excel', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export to Excel">
+        <i class="ri-file-excel-2-line" style="color: #86efac;"></i> Excel
+      </a>
+      {% if current_user.role in ['admin', 'inventory_manager'] %}
+        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print">
+          <i class="ri-add-line"></i> Add Product
+        </a>
+      {% endif %}
+    </div>
 
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-success, #10b981); display: flex; align-items: center; gap: 0.85rem;">
-      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-success-bg, #dcfce7); display: flex; align-items: center; justify-content: center; color: var(--color-success, #10b981); font-size: 1.1rem;">
+    <!-- Integrated Micro-Stats Row -->
+    <div class="hero-stats-row">
+      <a href="{{ url_for('products.list_products') }}" class="hero-stat-pill" title="View all products">
+        <i class="ri-box-3-line" style="color: #93c5fd;"></i>
+        <span class="hero-stat-num">{{ products|length }}</span>
+        <span class="hero-stat-label">Products</span>
+      </a>
+      <a href="{{ url_for('products.list_products', status='IN STOCK') }}" class="hero-stat-pill stat-success" title="View in-stock products">
         <i class="ri-checkbox-circle-fill"></i>
-      </div>
-      <div>
-        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">In Stock</div>
-        <div style="font-size: 1.2rem; font-weight: 800; color: #166534;">{{ in_stock_count.val }}</div>
-      </div>
-    </div>
-
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid var(--color-warning, #f59e0b); display: flex; align-items: center; gap: 0.85rem;">
-      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: var(--color-warning-bg, #fef9c3); display: flex; align-items: center; justify-content: center; color: var(--color-warning, #f59e0b); font-size: 1.1rem;">
+        <span class="hero-stat-num">{{ in_stock_count.val }}</span>
+        <span class="hero-stat-label">In Stock</span>
+      </a>
+      <a href="{{ url_for('products.list_products', status='LOW STOCK') }}" class="hero-stat-pill stat-warning" title="View low stock products">
         <i class="ri-alert-line"></i>
-      </div>
-      <div>
-        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Low Stock Alerts</div>
-        <div style="font-size: 1.2rem; font-weight: 800; color: #92400e;">{{ low_stock_count.val }}</div>
-      </div>
-    </div>
-
-    <div class="card" style="padding: 0.85rem 1.1rem; border-left: 3.5px solid #059669; display: flex; align-items: center; gap: 0.85rem;">
-      <div style="width: 38px; height: 38px; border-radius: var(--r-md, 10px); background: rgba(5, 150, 105, 0.1); display: flex; align-items: center; justify-content: center; color: #059669; font-size: 1.1rem;">
+        <span class="hero-stat-num">{{ low_stock_count.val }}</span>
+        <span class="hero-stat-label">Low Stock</span>
+      </a>
+      <div class="hero-stat-pill stat-accent" title="Total inventory valuation">
         <i class="ri-money-rupee-circle-line"></i>
+        <span class="hero-stat-num">{{ format_currency(total_val.val) }}</span>
+        <span class="hero-stat-label">Valuation</span>
       </div>
-      <div>
-        <div style="font-size: 0.72rem; color: var(--color-on-surface-variant, #64748b); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Inventory Value</div>
-        <div style="font-size: 1.2rem; font-weight: 800; color: #059669; font-family: 'JetBrains Mono', monospace;">{{ format_currency(total_val.val) }}</div>
+      <div class="hero-stat-pill" title="Total physical units in warehouse">
+        <i class="ri-stack-line" style="color: #cbd5e1;"></i>
+        <span class="hero-stat-num">{{ "{:,.0f}".format(total_qty.val) }}</span>
+        <span class="hero-stat-label">Total Units</span>
       </div>
     </div>
   </div>

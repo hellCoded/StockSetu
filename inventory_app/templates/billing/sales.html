@@ -7,29 +7,30 @@
 <style>
 /* ── Sales Dashboard Executive Styling ── */
 .sales-hero {
-  background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 55%, #b91c1c 100%);
+  background: linear-gradient(135deg, #380707 0%, #681111 50%, #991b1b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  padding: 1.25rem 1.5rem;
+  padding: 0.65rem 1.15rem;
   border-radius: var(--r-lg, 12px);
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.85rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
-  box-shadow: 0 8px 24px rgba(69, 10, 10, 0.25);
+  gap: 0.85rem;
+  box-shadow: 0 4px 16px rgba(56, 7, 7, 0.22);
 }
 .sales-hero h1 {
-  font-size: 1.35rem;
+  font-size: 1.05rem;
   font-weight: 800;
   margin: 0;
   color: #ffffff;
   letter-spacing: -0.01em;
 }
 .sales-hero p {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.8);
-  margin: 0.2rem 0 0;
+  margin: 0.1rem 0 0;
 }
 .sales-filter-pills {
   display: flex;
@@ -193,92 +194,71 @@
 {% endblock %}
 
 {% block content %}
-<!-- Header Hero with Filters -->
+<!-- Header Hero with Filters & Integrated Stats -->
+{% set kpi = analytics.kpi %}
 <div class="sales-hero">
-  <div>
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <i class="ri-line-chart-line" style="font-size: 1.25rem;"></i>
-      <h1>Sales Analytics &amp; Staff Performance</h1>
-    </div>
-    <p>Executive revenue overview, cashier leaderboards, and sales velocity metrics</p>
-  </div>
-
-  <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-    <!-- Date Range Presets -->
-    <div class="sales-filter-pills">
-      <a href="{{ url_for('billing.sales_analytics', range='today', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'today' %}active{% endif %}">Today</a>
-      <a href="{{ url_for('billing.sales_analytics', range='7d', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == '7d' %}active{% endif %}">7 Days</a>
-      <a href="{{ url_for('billing.sales_analytics', range='30d', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == '30d' %}active{% endif %}">30 Days</a>
-      <a href="{{ url_for('billing.sales_analytics', range='this_month', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'this_month' %}active{% endif %}">This Month</a>
-      <a href="{{ url_for('billing.sales_analytics', range='all', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'all' %}active{% endif %}">All Time</a>
+  <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.85rem; flex-wrap: wrap;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i class="ri-line-chart-line" style="font-size: 1.15rem; color: #fb923c;"></i>
+        <h1>Sales Analytics &amp; Staff Performance</h1>
+      </div>
+      <p>Executive revenue overview, cashier leaderboards, and sales velocity metrics</p>
     </div>
 
-    <!-- Export Buttons -->
-    <div style="display: flex; gap: 0.35rem;">
+    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+      <!-- Date Range Presets -->
+      <div class="sales-filter-pills">
+        <a href="{{ url_for('billing.sales_analytics', range='today', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'today' %}active{% endif %}">Today</a>
+        <a href="{{ url_for('billing.sales_analytics', range='7d', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == '7d' %}active{% endif %}">7 Days</a>
+        <a href="{{ url_for('billing.sales_analytics', range='30d', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == '30d' %}active{% endif %}">30 Days</a>
+        <a href="{{ url_for('billing.sales_analytics', range='this_month', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'this_month' %}active{% endif %}">This Month</a>
+        <a href="{{ url_for('billing.sales_analytics', range='all', cashier=current_cashier) }}" class="sales-filter-pill {% if current_range == 'all' %}active{% endif %}">All Time</a>
+      </div>
+
+      <!-- Export Buttons -->
       <a href="{{ url_for('billing.export_sales_excel', range=current_range, cashier=current_cashier, start_date=start_date, end_date=end_date) }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.9); color: #0b3d6e; font-weight: 700;" title="Export as Excel">
         <i class="ri-file-excel-2-line"></i> Excel
       </a>
     </div>
   </div>
-</div>
 
-<!-- 5 Key Performance Indicators -->
-{% set kpi = analytics.kpi %}
-<div class="sales-kpi-grid">
-  <!-- Gross Sales -->
-  <div class="sales-kpi-card kpi-blue">
-    <div class="sales-kpi-head">
-      <span class="sales-kpi-title">Gross Sales</span>
-      <div class="sales-kpi-icon"><i class="ri-money-rupee-circle-line"></i></div>
+  <!-- Integrated Micro-Stats Row (Staff Payment Collections Focus) -->
+  <div class="hero-stats-row">
+    <div class="hero-stat-pill stat-accent" title="Gross revenue billed">
+      <i class="ri-money-rupee-circle-line"></i>
+      <span class="hero-stat-num">{{ format_currency(kpi.total_sales or 0) }}</span>
+      <span class="hero-stat-label">Gross Sales ({{ kpi.total_bills or 0 }} Bills)</span>
     </div>
-    <div class="sales-kpi-val">{{ format_currency(kpi.total_sales or 0) }}</div>
-    <div class="sales-kpi-sub">Across {{ kpi.total_bills or 0 }} tax invoices</div>
-  </div>
-
-  <!-- Average Bill Ticket -->
-  <div class="sales-kpi-card kpi-green">
-    <div class="sales-kpi-head">
-      <span class="sales-kpi-title">Avg. Bill Ticket</span>
-      <div class="sales-kpi-icon"><i class="ri-receipt-line"></i></div>
+    <div class="hero-stat-pill stat-success" title="Total net cash/payments collected">
+      <i class="ri-hand-coin-line"></i>
+      <span class="hero-stat-num">{{ format_currency(kpi.total_paid or 0) }}</span>
+      <span class="hero-stat-label">Total Collected</span>
     </div>
-    <div class="sales-kpi-val">{{ format_currency(kpi.avg_bill_value or 0) }}</div>
-    <div class="sales-kpi-sub">Per completed transaction</div>
-  </div>
-
-  <!-- Tax Collected -->
-  <div class="sales-kpi-card kpi-purple">
-    <div class="sales-kpi-head">
-      <span class="sales-kpi-title">Tax (GST) Collected</span>
-      <div class="sales-kpi-icon"><i class="ri-bank-line"></i></div>
+    <div class="hero-stat-pill" style="border-color: rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.1);" title="Total physical cash collected in drawer">
+      <i class="ri-money-dollar-circle-line" style="color: #22c55e;"></i>
+      <span class="hero-stat-num" style="color: #16a34a;">{{ format_currency(kpi.cash_collected or 0) }}</span>
+      <span class="hero-stat-label">Cash In Drawer</span>
     </div>
-    <div class="sales-kpi-val">{{ format_currency(kpi.total_tax or 0) }}</div>
-    <div class="sales-kpi-sub">CGST + SGST tax pool</div>
-  </div>
-
-  <!-- Total Paid vs Due -->
-  <div class="sales-kpi-card kpi-amber">
-    <div class="sales-kpi-head">
-      <span class="sales-kpi-title">Net Collected</span>
-      <div class="sales-kpi-icon"><i class="ri-hand-coin-line"></i></div>
+    <div class="hero-stat-pill" style="border-color: rgba(14, 165, 233, 0.35); background: rgba(14, 165, 233, 0.1);" title="Total digital UPI/QR payments received">
+      <i class="ri-smartphone-line" style="color: #0ea5e9;"></i>
+      <span class="hero-stat-num" style="color: #0284c7;">{{ format_currency(kpi.upi_collected or 0) }}</span>
+      <span class="hero-stat-label">UPI / QR Collected</span>
     </div>
-    <div class="sales-kpi-val" style="color: #166534;">{{ format_currency(kpi.total_paid or 0) }}</div>
-    <div class="sales-kpi-sub">
-      {% if (kpi.total_due or 0) > 0 %}
-        <span style="color: #b45309; font-weight: 700;">{{ format_currency(kpi.total_due) }}</span> pending credit
-      {% else %}
-        100% payments cleared
-      {% endif %}
+    {% if (kpi.total_due or 0) > 0 %}
+    <div class="hero-stat-pill" style="border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.1);" title="Unpaid credit balance">
+      <i class="ri-time-line" style="color: #f59e0b;"></i>
+      <span class="hero-stat-num" style="color: #d97706;">{{ format_currency(kpi.total_due) }}</span>
+      <span class="hero-stat-label">Pending Due</span>
     </div>
-  </div>
-
-  <!-- Total Refunds / Returns -->
-  <div class="sales-kpi-card kpi-rose">
-    <div class="sales-kpi-head">
-      <span class="sales-kpi-title">Returns / Refunds</span>
-      <div class="sales-kpi-icon"><i class="ri-refund-2-line"></i></div>
+    {% endif %}
+    {% if (kpi.total_refunded or 0) > 0 %}
+    <div class="hero-stat-pill stat-danger" title="Returns and refunded volume">
+      <i class="ri-refund-2-line"></i>
+      <span class="hero-stat-num">{{ format_currency(kpi.total_refunded) }}</span>
+      <span class="hero-stat-label">Refunds ({{ kpi.refund_count or 0 }})</span>
     </div>
-    <div class="sales-kpi-val" style="color: #be123c;">{{ format_currency(kpi.total_refunded or 0) }}</div>
-    <div class="sales-kpi-sub">{{ kpi.refund_count or 0 }} items returned</div>
+    {% endif %}
   </div>
 </div>
 
@@ -387,9 +367,19 @@
       </div>
     </div>
 
-    <!-- Staff Pagination Footer (10 per page) -->
+    <!-- Staff Pagination Footer -->
     <div id="staff-pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 0.5rem;">
-      <span id="staff-pagination-info" style="font-size: 0.75rem; color: #64748b;"></span>
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span id="staff-pagination-info" style="font-size: 0.75rem; color: #64748b;"></span>
+        <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
+          <label for="staff-per-page-select" style="margin:0; font-size: 0.72rem; color: #64748b;">Show:</label>
+          <select id="staff-per-page-select" class="form-control" style="width: auto; height: 22px; padding: 0 0.35rem; font-size: 0.72rem; border-radius: 4px;" onchange="setStaffPageSize(this.value)">
+            <option value="6">6</option>
+            <option value="12" selected>12</option>
+            <option value="24">24</option>
+          </select>
+        </div>
+      </div>
       <div id="staff-page-buttons" style="display: flex; gap: 0.3rem; align-items: center;"></div>
     </div>
   </div>
@@ -548,11 +538,17 @@ document.addEventListener('DOMContentLoaded', function() {
     pmDonutCtx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.85rem;"><i class="ri-pie-chart-2-line" style="margin-right:0.4rem;"></i> No payment distribution data</div>';
   }
 
-  // ── 3. Staff Leaderboard Instant Search & Pagination (12 entries per page) ──
+  // ── 3. Staff Leaderboard Instant Search & Pagination ──
   const allStaffRows = Array.from(document.querySelectorAll('.staff-leaderboard-row'));
   let filteredStaffRows = [...allStaffRows];
-  const staffPerPage = 12;
+  let staffPerPage = 12;
   let currentStaffPage = 1;
+
+  window.setStaffPageSize = function(size) {
+    staffPerPage = parseInt(size, 10) || 12;
+    currentStaffPage = 1;
+    renderStaffPage(1);
+  };
 
   function renderStaffPage(page) {
     const totalMatching = filteredStaffRows.length;

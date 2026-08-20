@@ -109,14 +109,37 @@ function animateCounter(el, target, duration, prefix, suffix) {
 
 function initInstantSearch() {
   document.querySelectorAll('.instant-search-input').forEach(input => {
-    const table = document.getElementById(input.dataset.table || 'product-table');
+    let table = null;
+    if (input.dataset.table) {
+      table = document.getElementById(input.dataset.table);
+    }
+    if (!table) {
+      table = input.closest('.card')?.querySelector('table.data-table') || document.querySelector('table.data-table');
+    }
     if (!table) return;
-    const rows = [...table.querySelectorAll('tbody tr:not(.empty-row)')];
-    const emptyRow = table.querySelector('.empty-row');
+
+    const rows = [...table.querySelectorAll('tbody tr:not(.empty-row):not(.empty-state-row)')];
+    let emptyRow = table.querySelector('.empty-row, .empty-state-row');
+
+    if (!emptyRow && rows.length > 0) {
+      const colSpan = table.querySelectorAll('thead th').length || 6;
+      emptyRow = document.createElement('tr');
+      emptyRow.className = 'empty-row empty-state-row';
+      emptyRow.style.display = 'none';
+      emptyRow.innerHTML = `<td colspan="${colSpan}" style="text-align: center; padding: 2.5rem 1rem; color: var(--color-on-surface-variant, #64748b);">
+        <i class="ri-search-eye-line" style="font-size: 1.6rem; opacity: 0.5; display: block; margin-bottom: 0.4rem;"></i>
+        No matching records found for "<span class="search-term-display" style="font-weight: 600; color: var(--color-on-surface, #1e293b);"></span>"
+      </td>`;
+      const tbody = table.querySelector('tbody');
+      if (tbody) tbody.appendChild(emptyRow);
+    }
+
+    const countBadge = input.closest('.card')?.querySelector('.table-live-count') || document.querySelector(`.table-live-count[data-for="${table.id}"]`);
     const grid = document.querySelector('.product-view-grid');
     const cards = grid ? [...grid.querySelectorAll('.product-card')] : [];
     const gridEmpty = grid ? grid.querySelector('.empty-table') : null;
-    input.addEventListener('input', () => {
+
+    const filterRows = () => {
       const q = input.value.trim().toLowerCase();
       let visible = 0;
       rows.forEach(row => {
@@ -124,14 +147,32 @@ function initInstantSearch() {
         row.style.display = match ? '' : 'none';
         if (match) visible++;
       });
-      if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+
+      if (emptyRow) {
+        emptyRow.style.display = visible === 0 && q ? '' : 'none';
+        const termSpan = emptyRow.querySelector('.search-term-display');
+        if (termSpan) termSpan.textContent = input.value.trim();
+      }
+
+      if (countBadge) {
+        countBadge.textContent = q ? `${visible} of ${rows.length}` : rows.length;
+      }
+
       let gridVisible = 0;
       cards.forEach(card => {
         const match = !q || card.textContent.toLowerCase().includes(q);
         card.style.display = match ? '' : 'none';
         if (match) gridVisible++;
       });
-      if (gridEmpty) gridEmpty.style.display = gridVisible === 0 ? '' : 'none';
+      if (gridEmpty) gridEmpty.style.display = gridVisible === 0 && q ? '' : 'none';
+    };
+
+    input.addEventListener('input', filterRows);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && input.value) {
+        input.value = '';
+        filterRows();
+      }
     });
   });
 }

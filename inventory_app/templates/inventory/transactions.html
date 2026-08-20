@@ -104,8 +104,17 @@
   </form>
 
   <div class="card">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+      <span style="font-size: 0.82rem; color: var(--color-on-surface-variant, #64748b); font-weight: 500;">
+        <i class="ri-history-line" style="margin-right: 0.35rem; color: var(--color-primary, #0b3d6e);"></i> Showing <strong class="table-live-count" data-for="transactions-table">{{ transactions|length }}</strong> transactions
+      </span>
+      <div class="instant-search-wrap">
+        <i class="ri-search-2-line search-icon"></i>
+        <input type="text" data-table="transactions-table" class="form-control instant-search-input" placeholder="Quick filter transactions…" autocomplete="off">
+      </div>
+    </div>
     <div class="table-responsive">
-      <table class="data-table clickable-rows">
+      <table class="data-table clickable-rows" id="transactions-table">
         <thead>
           <tr>
             <th><i class="ri-time-line"></i> Date & Time</th>
@@ -148,9 +157,9 @@
                 <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: var(--color-on-surface-variant, #64748b);">{{ tx.previous_quantity }}</td>
                 <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.88rem;">{{ tx.new_quantity }}</td>
                 <td>
-                  <div style="color: var(--color-on-surface, #0f172a); font-size: 0.83rem;">{{ tx.reason }}</div>
-                  <div style="margin-top: 0.2rem;">
-                    <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: var(--color-surface-container, #e2e8f0); padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.76rem; font-weight: 500;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; min-width: 0;">
+                    <span style="color: var(--color-on-surface, #0f172a); font-size: 0.83rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ tx.reason.split(' (performed by')[0] if tx.reason else '—' }}</span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--color-surface-container, #e2e8f0); padding: 0.12rem 0.45rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
                       <i class="ri-user-3-line" style="font-size: 0.65rem; color: var(--color-primary, #0b3d6e);"></i> {{ tx.performed_by }}
                     </span>
                   </div>
