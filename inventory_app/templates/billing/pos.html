@@ -972,11 +972,32 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.4rem;
-  padding: 0.4rem 0.55rem;
+  padding: 0.4rem 0.55rem 0.4rem 0.75rem;
   background: var(--color-surface-container);
   border: 1px solid var(--pos-border);
+  border-left: 3px solid var(--color-primary, #ea580c);
   border-radius: var(--r-sm);
   font-size: 0.74rem;
+  animation: cartRowSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes cartRowSlideIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Staggered entry for cart rows */
+.q-cart-items .q-cart-row:nth-child(1) { animation-delay: 0s; }
+.q-cart-items .q-cart-row:nth-child(2) { animation-delay: 0.04s; }
+.q-cart-items .q-cart-row:nth-child(3) { animation-delay: 0.08s; }
+.q-cart-items .q-cart-row:nth-child(4) { animation-delay: 0.12s; }
+.q-cart-items .q-cart-row:nth-child(5) { animation-delay: 0.16s; }
+.q-cart-items .q-cart-row:nth-child(6) { animation-delay: 0.2s; }
+/* Hover lift on desktop */
+@media (hover: hover) and (pointer: fine) {
+  .q-cart-row:hover {
+    border-color: var(--color-primary, #ea580c);
+    box-shadow: 0 2px 8px rgba(234, 88, 12, 0.1);
+    transform: translateY(-1px);
+  }
 }
 .q-cart-row-name {
   font-weight: 700;
@@ -1060,6 +1081,74 @@
   padding: 0.15rem;
 }
 .trash-btn:hover { color: var(--color-danger); }
+
+/* ── Swipe-to-Delete (Mobile Touch Gesture) ── */
+.q-cart-swipe-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  touch-action: pan-y;
+}
+.q-cart-swipe-wrap .q-cart-row {
+  position: relative;
+  z-index: 2;
+  will-change: transform;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  margin: 0;
+  border-radius: var(--r-sm);
+}
+.q-cart-swipe-wrap .q-cart-row.swiping {
+  transition: none;
+}
+.q-cart-swipe-wrap .q-cart-row.swipe-commit {
+  transform: translateX(-80px);
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.q-cart-swipe-wrap .q-cart-row.swipe-delete-anim {
+  transform: translateX(-110%);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.55, 0, 1, 0.45), opacity 0.25s 0.05s ease;
+}
+.q-cart-swipe-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  z-index: 1;
+}
+.q-cart-swipe-bg i {
+  color: #ffffff;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+.q-cart-swipe-bg .swipe-hint {
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.85);
+  font-weight: 700;
+  position: absolute;
+  bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+/* Row collapse animation after delete */
+.q-cart-swipe-wrap.collapsing {
+  max-height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, margin 0.3s ease;
+  opacity: 0;
+}
+/* Desktop: disable swipe gestures */
+@media (hover: hover) and (pointer: fine) {
+  .q-cart-swipe-wrap { touch-action: auto; }
+}
 .q-cart-row-total {
   font-family: var(--font-mono);
   font-weight: 800;
@@ -2025,6 +2114,81 @@
 
   function esc(s) { return s.replace(/'/g, "\\'"); }
 
+  /* ── Swipe-to-Delete Gesture (Mobile Only) ── */
+  function initSwipeGesture(rowEl, itemName) {
+    // Only on touch devices
+    if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) return null;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'q-cart-swipe-wrap';
+
+    const bg = document.createElement('div');
+    bg.className = 'q-cart-swipe-bg';
+    bg.innerHTML = '<i class="ri-delete-bin-6-line"></i><span class="swipe-hint">Delete</span>';
+
+    wrap.appendChild(bg);
+    wrap.appendChild(rowEl);
+
+    let startX = 0, startY = 0, currentX = 0, isDragging = false, isLocked = false;
+    const THRESHOLD = 70;
+    const MAX_SWIPE = 100;
+
+    rowEl.addEventListener('touchstart', function(e) {
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'BUTTON' || tag === 'LABEL') return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      currentX = 0;
+      isDragging = false;
+      isLocked = false;
+      rowEl.classList.add('swiping');
+    }, { passive: true });
+
+    rowEl.addEventListener('touchmove', function(e) {
+      if (!startX && startX !== 0) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if (!isLocked && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+        isLocked = true;
+        isDragging = Math.abs(dx) > Math.abs(dy);
+      }
+      if (!isDragging) return;
+      currentX = Math.min(0, Math.max(-MAX_SWIPE, dx));
+      rowEl.style.transform = 'translateX(' + currentX + 'px)';
+      rowEl.style.transition = 'none';
+    }, { passive: true });
+
+    rowEl.addEventListener('touchend', function() {
+      if (!isDragging) { resetSwipe(); return; }
+      rowEl.classList.remove('swiping');
+      if (Math.abs(currentX) >= THRESHOLD) {
+        rowEl.classList.add('swipe-commit');
+        rowEl.style.transform = '';
+        setTimeout(function() {
+          rowEl.classList.remove('swipe-commit');
+          rowEl.classList.add('swipe-delete-anim');
+          wrap.classList.add('collapsing');
+          setTimeout(function() {
+            window.__posRemove(itemName);
+          }, 300);
+        }, 350);
+      } else {
+        resetSwipe();
+      }
+      startX = 0;
+      isDragging = false;
+    }, { passive: true });
+
+    function resetSwipe() {
+      rowEl.classList.remove('swiping');
+      rowEl.style.transform = '';
+      rowEl.style.transition = '';
+      currentX = 0;
+    }
+
+    return wrap;
+  }
+
   function renderCart() {
     /* ── Cart Items ── */
     if (cart.length === 0) {
@@ -2057,9 +2221,10 @@
             '<span class="q-cart-row-total">' + fmt(total) + '</span>' +
             '<button type="button" class="trash-btn" onclick="window.__posRemove(\'' + esc(item.name) + '\')"><i class="ri-close-line"></i></button>' +
           '</div>';
-        cartEl.appendChild(row);
+        /* Wrap row for swipe-to-delete on mobile */
+        const swipeWrap = initSwipeGesture(row, item.name);
+        cartEl.appendChild(swipeWrap || row);
       });
-    }
 
     /* ── Product Card Qty Badges ── */
     cardEls.forEach(card => {
