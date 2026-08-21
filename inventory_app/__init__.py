@@ -170,8 +170,10 @@ def create_app(config_class=Config, custom_mongo_client=None):
         now_ts = now.timestamp()
 
         # ── Single-session enforcement: verify session_token matches DB ──
+        # Skip for /api/ routes — those handle token mismatch themselves
+        # and return 401 JSON (not a 302 redirect that fetch() follows silently).
         session_token = session.get('session_token')
-        if session_token:
+        if session_token and not path.startswith('/api/'):
             try:
                 from inventory_app.database import get_db
                 from bson import ObjectId
@@ -204,57 +206,62 @@ def create_app(config_class=Config, custom_mongo_client=None):
                 flash("Session verification failed. Please log in again.", "warning")
                 return redirect(url_for('auth.login'))
 
-        # Check session inactivity (12 hours = 43200 seconds)
-        last_active_ts = session.get('last_active_at')
-        if last_active_ts:
+        # ── Skip inactivity/deactivation/role-sync checks for /api/ routes ──
+        # API endpoints handle their own auth and return 401 JSON, not 302 redirects.
+        # A 302 from before_request would be silently followed by fetch(), masking
+        # the real 401 the JS polling needs to detect.
+        if not path.startswith('/api/'):
+            # Check session inactivity (12 hours = 43200 seconds)
+            last_active_ts = session.get('last_active_at')
+            if last_active_ts:
+                try:
+                    if (now_ts - float(last_active_ts)) > 43200:
+                        from inventory_app.services.auth_service import set_user_active_status
+                        set_user_active_status(user_id, False)
+                        session.clear()
+                        flash("You have been logged out due to 12 hours of inactivity, and your account has been set to inactive.", "warning")
+                        return redirect(url_for('auth.login'))
+                except (ValueError, TypeError):
+                    pass
+
+            # Check if user has been deactivated in the database and sync role
+            # NOTE: We query the DB directly (not via cached get_user_by_id) to
+            # ensure cross-device role/name changes are picked up immediately.
+            # get_user_by_id caches for 30s; if cache_delete fails silently on
+            # Upstash Redis, stale data persists and the session never syncs.
             try:
-                if (now_ts - float(last_active_ts)) > 43200:
-                    from inventory_app.services.auth_service import set_user_active_status
-                    set_user_active_status(user_id, False)
-                    session.clear()
-                    flash("You have been logged out due to 12 hours of inactivity, and your account has been set to inactive.", "warning")
-                    return redirect(url_for('auth.login'))
-            except (ValueError, TypeError):
-                pass
+                from inventory_app.database import get_db
+                from bson import ObjectId
+                _db_user = get_db().users.find_one(
+                    {"_id": ObjectId(user_id)},
+                    {"role": 1, "name": 1, "employee_id": 1, "is_active": 1},
+                )
+            except Exception:
+                _db_user = None
 
-        # Check if user has been deactivated in the database and sync role
-        # NOTE: We query the DB directly (not via cached get_user_by_id) to
-        # ensure cross-device role/name changes are picked up immediately.
-        # get_user_by_id caches for 30s; if cache_delete fails silently on
-        # Upstash Redis, stale data persists and the session never syncs.
-        from inventory_app.services.auth_service import record_user_activity
-        try:
-            from inventory_app.database import get_db
-            from bson import ObjectId
-            _db_user = get_db().users.find_one(
-                {"_id": ObjectId(user_id)},
-                {"role": 1, "name": 1, "employee_id": 1, "is_active": 1},
-            )
-        except Exception:
-            _db_user = None
+            if not _db_user or not _db_user.get('is_active', True):
+                session.clear()
+                flash("Your account has been deactivated. Please contact an administrator.", "danger")
+                return redirect(url_for('auth.login'))
 
-        if not _db_user or not _db_user.get('is_active', True):
-            session.clear()
-            flash("Your account has been deactivated. Please contact an administrator.", "danger")
-            return redirect(url_for('auth.login'))
+            # Sync role from DB so cross-device role changes take effect immediately
+            db_role = _db_user.get('role', 'staff')
+            if session.get('role') != db_role:
+                session['role'] = db_role
 
-        # Sync role from DB so cross-device role changes take effect immediately
-        db_role = _db_user.get('role', 'staff')
-        if session.get('role') != db_role:
-            session['role'] = db_role
-
-        # Sync name and employee_id from DB so cross-device edits take effect immediately
-        db_name = _db_user.get('name', '')
-        if db_name and session.get('name') != db_name:
-            session['name'] = db_name
-        db_emp = _db_user.get('employee_id', '')
-        if db_emp and session.get('employee_id') != db_emp:
-            session['employee_id'] = db_emp
+            # Sync name and employee_id from DB so cross-device edits take effect immediately
+            db_name = _db_user.get('name', '')
+            if db_name and session.get('name') != db_name:
+                session['name'] = db_name
+            db_emp = _db_user.get('employee_id', '')
+            if db_emp and session.get('employee_id') != db_emp:
+                session['employee_id'] = db_emp
 
         # Update session activity timestamp
         session['last_active_at'] = now_ts
 
         # Throttle DB sync of last_active_at (once every 2 minutes)
+        from inventory_app.services.auth_service import record_user_activity
         last_db_sync = session.get('last_db_active_sync', 0)
         try:
             if (now_ts - float(last_db_sync)) > 120:

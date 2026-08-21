@@ -788,10 +788,14 @@
 
 /* ── Payment Methods — Refined Capsule Pills ── */
 .cart-payment-methods {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.3rem;
   margin-top: 0.1rem;
+}
+.cart-payment-methods > .q-pay-opt {
+  flex: 1 1 calc(25% - 0.225rem);
+  min-width: 60px;
 }
 .q-pay-opt {
   display: flex;
@@ -1093,14 +1097,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.45rem 0.7rem;
-  margin: 0.2rem -0.85rem -0.45rem;
+  padding: 0.5rem 0.7rem;
+  margin: 0.2rem -0.85rem 0;
   background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #991b1b 100%);
   color: #ffffff;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  position: relative;
+  z-index: 1;
 }
 .q-grand-row .val {
   font-size: 1.1rem;
@@ -1111,7 +1117,7 @@
 
 /* ── Checkout Action ── */
 .q-cart-submit {
-  padding: 0.55rem 0.85rem;
+  padding: 0.55rem 0.85rem 0.65rem;
   background: var(--color-surface);
   border-top: 1px solid var(--pos-border);
   display: flex;
