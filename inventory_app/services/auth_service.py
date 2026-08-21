@@ -70,9 +70,12 @@ def set_user_active_status(user_id: str, is_active: bool):
     """Sets user is_active boolean state in database."""
     db = get_db()
     try:
+        update_op = {"$set": {"is_active": is_active, "updated_at": datetime.now(timezone.utc)}}
+        if not is_active:
+            update_op["$unset"] = {"session_token": ""}
         db.users.update_one(
             {"_id": ObjectId(user_id)},
-            {"$set": {"is_active": is_active, "updated_at": datetime.now(timezone.utc)}}
+            update_op
         )
         invalidate_user_cache(user_id)
     except Exception as e:
@@ -306,10 +309,11 @@ def change_password(user_id: str, old_password: str, new_password: str) -> tuple
             {"$set": {
                 "password_hash": generate_password_hash(new_password),
                 "updated_at": datetime.now(timezone.utc)
-            }}
+            },
+            "$unset": {"session_token": ""}}
         )
         invalidate_user_cache(uid_str)
-        return True, "Password changed successfully."
+        return True, "Password changed successfully. Please log in again on all devices."
     except Exception as e:
         return False, f"Failed to change password: {str(e)}"
 

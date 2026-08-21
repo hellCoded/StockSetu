@@ -27,11 +27,9 @@
       <a href="{{ url_for('products.export_excel') }}" class="btn btn-secondary no-print" title="Export to Excel">
         <i class="ri-file-excel-2-line" style="color: #86efac;"></i> Excel
       </a>
-      {% if current_user.role in ['admin', 'inventory_manager'] %}
-        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print">
-          <i class="ri-add-line"></i> Add Product
-        </a>
-      {% endif %}
+      <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print" data-role-require="admin,inventory_manager">
+        <i class="ri-add-line"></i> Add Product
+      </a>
     </div>
 
     <!-- Integrated Micro-Stats Row -->
@@ -77,11 +75,9 @@
     <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
       <i class="ri-arrow-up-line" style="margin-right: 0.4rem; color: #ef4444;"></i> Stock Out
     </a>
-    {% if current_user.role in ['admin', 'inventory_manager'] %}
-      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
+      <a href="{{ url_for('inventory.bulk_stock_in') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;" data-role-require="admin,inventory_manager">
         <i class="ri-file-upload-line" style="margin-right: 0.4rem; color: #3b82f6;"></i> Bulk Stock In
       </a>
-    {% endif %}
     <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary" style="justify-content:center; padding: 0.65rem 1rem;">
       <i class="ri-receipt-line" style="margin-right: 0.4rem; color: #8b5cf6;"></i> Recent Bills
     </a>
@@ -136,8 +132,7 @@
     </div>
 
     <!-- Chart 3: Role-based chart (donut for admins, top products otherwise) -->
-    {% if show_role_requests %}
-    <div class="card chart-card">
+    <div class="card chart-card" data-role-require="admin">
       <div class="card-header">
         <h3 class="card-title"><i class="ri-user-settings-line"></i> Role Requests Status</h3>
       </div>
@@ -145,8 +140,7 @@
         <canvas id="roleRequestsChart"></canvas>
       </div>
     </div>
-    {% else %}
-    <div class="card chart-card">
+    <div class="card chart-card" data-role-require="staff,inventory_manager">
       <div class="card-header">
         <h3 class="card-title"><i class="ri-trophy-line"></i> Top Products by Stock</h3>
       </div>
@@ -154,7 +148,6 @@
         <canvas id="topProductsChart"></canvas>
       </div>
     </div>
-    {% endif %}
   </div>
 
   <!-- Recent Transactions Table -->

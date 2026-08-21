@@ -612,46 +612,68 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px -4px rgba(0,0,0,0.08);
   position: sticky;
   top: 72px;
   max-height: calc(100vh - 90px);
 }
 
+/* ── Bill Header — Refined Gradient with Title + Actions ── */
 .q-cart-head {
-  background: var(--color-surface-container);
-  color: var(--color-on-surface);
-  border-bottom: 1px solid var(--pos-border);
-  padding: 0.6rem 0.85rem;
+  background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #991b1b 100%);
+  color: #ffffff;
+  border-bottom: none;
+  padding: 0.65rem 0.85rem;
   font-size: 0.82rem;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.q-cart-head::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -5%;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(251, 146, 60, 0.18) 0%, transparent 68%);
+  pointer-events: none;
 }
 .q-cart-title {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--color-primary);
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+.q-cart-title i {
+  font-size: 1rem;
+  opacity: 0.9;
 }
 .q-cart-badge {
-  background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
+  background: linear-gradient(135deg, #fb923c, #ea580c);
   color: #ffffff;
   font-size: 0.62rem;
   font-weight: 800;
   border-radius: 999px;
-  padding: 0.15rem 0.55rem;
+  padding: 0.14rem 0.5rem;
   margin-left: auto;
   transition: transform 0.2s var(--ease-spring);
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3);
+  letter-spacing: 0.02em;
 }
 .q-cart-badge.bump { transform: scale(1.15); }
 .q-cart-clear {
-  background: transparent;
-  color: var(--color-on-surface-variant);
-  border: 1px solid var(--pos-border);
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: var(--r-sm);
   width: 26px;
   height: 26px;
@@ -661,21 +683,22 @@
   justify-content: center;
   font-size: 0.72rem;
   transition: all 0.15s;
+  flex-shrink: 0;
 }
 .q-cart-clear:hover {
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-  border-color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: rgba(252, 165, 165, 0.35);
 }
 
 /* 1. Integrated Customer Strip inside Cart */
 .cart-customer-section {
-  padding: 0.65rem 0.85rem;
+  padding: 0.6rem 0.85rem;
   background: var(--color-surface);
   border-bottom: 1px solid var(--pos-border);
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
   flex-shrink: 0;
 }
 .cart-customer-name-row {
@@ -763,56 +786,94 @@
 }
 .staff-badge-pill.show { display: flex; }
 
+/* ── Payment Methods — Refined Capsule Pills ── */
 .cart-payment-methods {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
-  gap: 0.25rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.3rem;
   margin-top: 0.1rem;
 }
 .q-pay-opt {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
-  padding: 0.3rem 0.15rem;
-  background: var(--color-surface-container);
-  border: 1px solid var(--pos-border);
-  border-radius: var(--r-sm);
-  font-size: 0.66rem;
+  gap: 0.3rem;
+  padding: 0.42rem 0.3rem;
+  background: var(--color-surface);
+  border: 1.5px solid var(--pos-border);
+  border-radius: 999px;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--color-on-surface-variant);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  position: relative;
 }
 .q-pay-opt input { display: none; }
-.q-pay-opt i { font-size: 0.75rem; }
-.q-pay-opt.is-active {
-  background: var(--color-primary);
+.q-pay-opt i { font-size: 0.78rem; }
+.q-pay-opt:hover:not(.is-active) {
   border-color: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
 }
-.q-pay-opt.q-pay-salary.is-active {
-  background: #7c3aed;
-  border-color: #7c3aed;
+.q-pay-opt.is-active {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  border-color: transparent;
   color: #ffffff;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.28);
+  transform: translateY(-1px);
+}
+.q-pay-opt.is-active i { opacity: 1; }
+.q-pay-opt.q-pay-salary.is-active {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.28);
 }
 
+/* ── Charges Row — Refined Inline Inputs ── */
 .cart-charges-inline {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.4rem;
+  gap: 0.5rem;
   font-size: 0.68rem;
   color: var(--color-on-surface-variant);
   margin-top: 0.1rem;
+  background: var(--color-surface-container);
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--pos-border);
+}
+.cart-charges-inline > div {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cart-charges-inline > div span {
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
 }
 .cart-charges-inline input {
-  width: 58px;
+  width: 52px;
   height: 24px;
   font-size: 0.7rem !important;
   padding: 0 0.3rem;
   text-align: right;
+  background: var(--color-surface);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-xs);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-on-surface);
+  transition: border-color 0.15s;
+}
+.cart-charges-inline input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 .q-due-date-row {
   display: none;
@@ -830,23 +891,34 @@
   width: 125px;
 }
 
-/* 2. Purchased Items Section Header */
+/* ── Items In Bill Section Header — Refined with Line Accent ── */
 .cart-items-head {
-  padding: 0.4rem 0.85rem;
-  background: var(--color-surface-container);
+  padding: 0.5rem 0.85rem;
+  background: var(--color-surface);
   border-bottom: 1px solid var(--pos-border);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--color-on-surface-variant);
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--color-on-surface);
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
   flex-shrink: 0;
+  position: relative;
+}
+.cart-items-head::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, #ea580c, transparent);
+  border-radius: 1px;
 }
 
-/* 3. Scrollable Purchased Items List */
+/* ── Scrollable Purchased Items List ── */
 .q-cart-items {
   flex: 1;
   overflow-y: auto;
@@ -860,15 +932,35 @@
 .q-cart-empty {
   text-align: center;
   color: var(--color-on-surface-variant);
-  padding: 1.8rem 0.5rem;
+  padding: 2rem 0.5rem 1.6rem;
   font-size: 0.76rem;
   line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
 }
-.q-cart-empty i {
-  font-size: 1.6rem;
+.q-cart-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-surface-container);
+  border: 1.5px dashed var(--pos-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.15rem;
+}
+.q-cart-empty-icon i {
+  font-size: 1.2rem;
   color: var(--color-outline-variant);
   display: block;
-  margin-bottom: 0.35rem;
+  margin: 0;
+}
+.q-cart-empty span.empty-hint {
+  font-size: 0.68rem;
+  color: var(--color-outline-variant);
+  font-weight: 500;
 }
 
 .q-cart-row {
@@ -973,14 +1065,14 @@
   text-align: right;
 }
 
-/* 4. Live Totals Summary */
+/* ── Live Totals Summary — Refined ── */
 .q-cart-totals {
-  background: var(--color-surface-container);
+  background: var(--color-surface);
   border-top: 1px solid var(--pos-border);
-  padding: 0.5rem 0.85rem;
+  padding: 0.5rem 0.85rem 0.45rem;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.18rem;
   font-size: 0.72rem;
   flex-shrink: 0;
 }
@@ -989,30 +1081,35 @@
   justify-content: space-between;
   align-items: center;
   color: var(--color-on-surface-variant);
+  padding: 0.12rem 0;
 }
 .q-total-row .val {
   font-family: var(--font-mono);
   font-weight: 600;
   color: var(--color-on-surface);
+  font-size: 0.73rem;
 }
 .q-grand-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.35rem;
-  margin-top: 0.15rem;
-  border-top: 1.5px dashed var(--pos-border);
-  font-size: 0.86rem;
+  padding: 0.45rem 0.7rem;
+  margin: 0.2rem -0.85rem -0.45rem;
+  background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #991b1b 100%);
+  color: #ffffff;
+  font-size: 0.78rem;
   font-weight: 800;
-  color: var(--color-on-surface);
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 .q-grand-row .val {
-  font-size: 1.12rem;
+  font-size: 1.1rem;
   font-family: var(--font-mono);
-  color: var(--color-primary);
+  color: #fb923c;
+  text-shadow: 0 1px 3px rgba(251, 146, 60, 0.3);
 }
 
-/* 5. Checkout Action */
+/* ── Checkout Action ── */
 .q-cart-submit {
   padding: 0.55rem 0.85rem;
   background: var(--color-surface);
@@ -1547,8 +1644,10 @@
     <!-- Right: Bill Cart Panel (Customer Details + Purchase Items Listing Unified) -->
     <div class="q-pos-cart" id="pos-cart">
       <div class="q-cart-head">
-        <div class="q-cart-title"><i class="ri-receipt-line"></i> Bill Invoice</div>
-        <span class="q-cart-badge" id="cart-badge">0 items</span>
+        <div class="q-cart-title">
+          <i class="ri-bill-line"></i> Bill
+        </div>
+        <span class="q-cart-badge" id="cart-count-badge">0 items</span>
         <button type="button" class="q-cart-clear" id="clear-cart" title="Clear cart"><i class="ri-delete-bin-line"></i></button>
       </div>
 
@@ -1584,16 +1683,16 @@
         </div>
 
         <div class="cart-charges-inline">
-          <div style="display:flex; align-items:center; gap:0.25rem;">
-            <span>Disc%:</span>
+          <div>
+            <span>Disc%</span>
             <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100" step="0.5" oninput="window.__posRenderCart && window.__posRenderCart()">
           </div>
-          <div style="display:flex; align-items:center; gap:0.25rem;">
-            <span>Ship:</span>
+          <div>
+            <span>Ship</span>
             <input type="number" id="shipping_charge" name="shipping_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
           </div>
-          <div style="display:flex; align-items:center; gap:0.25rem;">
-            <span>Pack:</span>
+          <div>
+            <span>Pack</span>
             <input type="number" id="packing_charge" name="packing_charge" class="form-control" value="0" min="0" step="0.01" oninput="window.__posRenderCart && window.__posRenderCart()">
           </div>
         </div>
@@ -1613,9 +1712,11 @@
       <!-- Scrollable Purchased Items List -->
       <div class="q-cart-items" id="cart-items">
         <div class="q-cart-empty">
-          <i class="ri-shopping-cart-2-line"></i>
-          Cart is empty.<br>
-          <span style="font-size:0.68rem; color:var(--color-on-surface-variant);">Click products on the left to add</span>
+          <div class="q-cart-empty-icon">
+            <i class="ri-shopping-cart-2-line"></i>
+          </div>
+          Cart is empty.
+          <span class="empty-hint">Click products on the left to add</span>
         </div>
       </div>
 
@@ -1633,13 +1734,14 @@
         <div class="q-total-row" id="t-free-row" style="display:none;"><span style="color:var(--color-success-text);font-weight:700;">Free Lines Value</span><span class="val" id="t-free" style="color:var(--color-success-text);">&#8377;0.00</span></div>
       </div>
 
-      <!-- Submit Checkout Action -->
+      <!-- Checkout Action -->
       <div class="q-cart-submit">
-        <button type="button" class="q-submit-btn" id="submit-bill" disabled>
-          <i class="ri-bill-line"></i> Generate Invoice (Ctrl+Enter)
+        <button type="button" class="q-submit-btn" id="submit-bill">
+          <i class="ri-bill-line"></i> Generate Bill
         </button>
-        <div class="q-submit-hint" id="submit-hint">Add products to enable invoice generation</div>
+        <div class="q-submit-hint" id="submit-hint">Press <kbd style="background:var(--color-surface-container);border:1px solid var(--pos-border);border-radius:3px;padding:0 0.3rem;font-family:var(--font-mono);font-size:0.6rem;">Ctrl+Enter</kbd> to checkout</div>
       </div>
+
     </div>
   </div>
 </form>
@@ -1689,7 +1791,6 @@
   const holder = document.getElementById('item-fields-holder');
   const submitBtn = document.getElementById('submit-bill');
   const submitHint = document.getElementById('submit-hint');
-  const badge = document.getElementById('cart-badge');
   const toggleBadge = document.getElementById('toggle-badge');
   const clearBtn = document.getElementById('clear-cart');
   const searchInput = document.getElementById('live-search');
@@ -2025,12 +2126,10 @@
     else { freeRow.style.display = 'none'; }
 
     const total = cart.reduce((s, i) => s + i.qty, 0);
-    const prevTotal = parseInt(badge.dataset.count || '0', 10);
     document.getElementById('t-items').textContent = total;
-    badge.textContent = total + (total === 1 ? ' item' : ' items');
-    if (total !== prevTotal) { badge.classList.add('bump'); setTimeout(() => badge.classList.remove('bump'), 200); }
-    badge.dataset.count = total;
-    toggleBadge.textContent = total;
+    if (toggleBadge) toggleBadge.textContent = total;
+    const countBadge = document.getElementById('cart-count-badge');
+    if (countBadge) countBadge.textContent = total + ' item' + (total !== 1 ? 's' : '');
 
     /* ── Hidden Form Fields ── */
     holder.innerHTML = '';
@@ -2048,8 +2147,8 @@
       }
     });
 
-    submitBtn.disabled = cart.length === 0;
-    if (submitHint) submitHint.style.display = cart.length === 0 ? '' : 'none';
+    submitBtn.disabled = false;
+    if (submitHint) submitHint.style.display = 'none';
     window.__currentGrandTotal = grand;
     updatePaymentUI();
     if (typeof saveCartToStorage === 'function') saveCartToStorage();
@@ -2124,7 +2223,7 @@
     const btn = document.getElementById('upi-confirm-submit-btn');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Generating Tax Invoice...';
+      btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Billing...';
     }
     submitBillForm();
   };
@@ -2443,9 +2542,10 @@
     let html = '';
     if (staffMatches.length > 0) {
       html += '<div class="smart-ac-section"><div class="smart-ac-label">Employees</div>';
-      staffMatches.forEach((emp, i) => {
+      staffMatches.forEach((emp) => {
+        const origIdx = employeeList.indexOf(emp);
         const initials = (emp.name || '??').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-        html += '<div class="smart-ac-item" data-type="employee" data-idx="' + i + '">' +
+        html += '<div class="smart-ac-item" data-type="employee" data-idx="' + origIdx + '" data-emp-id="' + (emp.employee_id || '') + '">' +
           '<div class="smart-ac-avatar staff">' + initials + '</div>' +
           '<div class="smart-ac-info"><div class="smart-ac-name">' + emp.name + '</div><div class="smart-ac-meta">' + emp.employee_id + ' · ' + (emp.role || '').replace('_', ' ') + '</div></div>' +
           '<span class="smart-ac-badge staff-badge">Staff</span>' +
@@ -2477,7 +2577,12 @@
         const type = this.dataset.type;
         if (type === 'employee') {
           const idx = parseInt(this.dataset.idx);
-          if (employeeList[idx]) selectEmployee(employeeList[idx]);
+          let emp = employeeList[idx];
+          /* Fallback: match by employee_id if index lookup fails (e.g. list re-fetched) */
+          if (!emp && this.dataset.empId) {
+            emp = employeeList.find(e => e.employee_id === this.dataset.empId);
+          }
+          if (emp) selectEmployee(emp);
         } else if (type === 'walkin') {
           selectWalkin();
         } else {
@@ -2490,10 +2595,12 @@
   }
 
   if (smartInput) {
+    let smartSearchTimer = null;
     smartInput.addEventListener('input', function() {
       const v = this.value.trim();
       smartClear.classList.toggle('show', v.length > 0);
-      renderSmartDropdown(v);
+      clearTimeout(smartSearchTimer);
+      smartSearchTimer = setTimeout(() => renderSmartDropdown(v), 150);
     });
     smartInput.addEventListener('focus', function() {
       if (this.value.trim()) renderSmartDropdown(this.value);
@@ -2601,7 +2708,7 @@
       if (modal) modal.classList.add('active');
     } else {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Generating Tax Invoice...';
+      submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Billing...';
       submitBillForm();
     }
   });

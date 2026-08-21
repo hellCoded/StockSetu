@@ -36,7 +36,6 @@
           </div>
         </a>
 
-        {% if current_user.role in ['admin', 'inventory_manager'] %}
         <a href="{{ url_for('products.add_product') }}" class="cmd-item" data-index="2" data-role-require="admin,inventory_manager">
           <div class="cmd-item-icon" style="background: rgba(22, 163, 74, 0.12); color: #16a34a;">
             <i class="ri-add-circle-line"></i>
@@ -66,7 +65,6 @@
             <span class="cmd-item-desc">Reconcile ledger counts with physical audit</span>
           </div>
         </a>
-        {% endif %}
 
         <a href="{{ url_for('billing.list_bills') }}" class="cmd-item" data-index="5">
           <div class="cmd-item-icon" style="background: rgba(225, 29, 72, 0.12); color: #e11d48;">

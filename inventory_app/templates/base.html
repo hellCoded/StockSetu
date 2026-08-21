@@ -89,8 +89,8 @@
   {% if current_user.id %}
   <script>
     (function() {
-      const POLL_MS = 5000;
-      let prevRole = {{ current_user.role|tojson }};
+      var POLL_MS = 5000;
+      var prevRole = {{ current_user.role|tojson }};
 
       function applyRoleVisibility(role) {
         document.querySelectorAll('[data-role-require]').forEach(function(el) {
@@ -106,13 +106,9 @@
             if (!d) return;
             if (d.role !== prevRole) {
               prevRole = d.role;
-              var pill = document.querySelector('.role-pill');
-              if (pill) {
-                pill.textContent = d.role.charAt(0).toUpperCase() + d.role.slice(1);
-                pill.className = 'role-pill role-' + d.role;
-              }
               applyRoleVisibility(d.role);
-              if (typeof showToast === 'function') showToast('Your role has been updated to ' + d.role, 'info');
+              if (typeof showToast === 'function') showToast('Your role has been updated to ' + d.role + '. Reloading…', 'info');
+              setTimeout(function() { window.location.reload(); }, 1200);
             }
           })
           .catch(function() {});

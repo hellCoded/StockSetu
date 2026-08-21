@@ -43,11 +43,9 @@
         </label>
         <div style="display: flex; gap: 0.5rem; align-items: center;">
           <input type="text" class="form-control" value="{{ product.product_name }}" disabled style="background: var(--color-surface-container); font-weight: 700; color: var(--color-on-surface);">
-          {% if current_user.role == 'admin' %}
-            <a href="{{ url_for('products.rename_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="white-space: nowrap; font-size: 0.78rem;">
+            <a href="{{ url_for('products.rename_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="white-space: nowrap; font-size: 0.78rem;" data-role-require="admin">
               <i class="ri-cursor-line"></i> Rename SKU
             </a>
-          {% endif %}
         </div>
         <small style="color: var(--color-on-surface-variant); font-size: 0.72rem;">To modify the SKU name, use the dedicated Rename operation.</small>
       </div>

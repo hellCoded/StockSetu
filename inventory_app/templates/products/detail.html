@@ -43,20 +43,18 @@
     <a href="{{ url_for('inventory.stock_out', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="background: rgba(220, 38, 38, 0.25); color: #fca5a5; border: 1px solid rgba(252, 165, 165, 0.4); font-weight: 700;">
       <i class="ri-subtract-line"></i> Stock Out
     </a>
-    {% if current_user.role in ['admin', 'inventory_manager'] %}
-      <a href="{{ url_for('inventory.adjust_stock', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="background: rgba(234, 88, 12, 0.25); color: #fed7aa; border: 1px solid rgba(254, 215, 170, 0.4); font-weight: 700;">
+      <a href="{{ url_for('inventory.adjust_stock', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="background: rgba(234, 88, 12, 0.25); color: #fed7aa; border: 1px solid rgba(254, 215, 170, 0.4); font-weight: 700;" data-role-require="admin,inventory_manager">
         <i class="ri-equalizer-2-line"></i> Adjust
       </a>
-      <a href="{{ url_for('products.edit_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25);">
+      <a href="{{ url_for('products.edit_product', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25);" data-role-require="admin,inventory_manager">
         <i class="ri-edit-line"></i> Edit
       </a>
-      <form method="POST" action="{{ url_for('products.toggle_active', product_name=product.product_name) }}" style="display: inline;">
+      <form method="POST" action="{{ url_for('products.toggle_active', product_name=product.product_name) }}" style="display: inline;" data-role-require="admin,inventory_manager">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25);" data-confirm="Are you sure you want to toggle product active status?">
           <i class="ri-power-line"></i> {{ 'Deactivate' if product.is_active else 'Reactivate' }}
         </button>
       </form>
-    {% endif %}
   </div>
 </div>
 
@@ -272,12 +270,10 @@
           <i class="ri-indeterminate-circle-line" style="color: #dc2626; font-size: 1.05rem;"></i>
           <span>Record Outward Stock Dispatch</span>
         </a>
-        {% if current_user.role in ['admin', 'inventory_manager'] %}
-          <a href="{{ url_for('inventory.adjust_stock', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; gap: 0.5rem; padding: 0.55rem 0.85rem;">
+          <a href="{{ url_for('inventory.adjust_stock', product_name=product.product_name) }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; gap: 0.5rem; padding: 0.55rem 0.85rem;" data-role-require="admin,inventory_manager">
             <i class="ri-equalizer-2-line" style="color: #d97706; font-size: 1.05rem;"></i>
             <span>Manual Physical Audit Count</span>
           </a>
-        {% endif %}
         <a href="{{ url_for('billing.pos') }}" class="btn btn-primary btn-sm" style="justify-content: center; gap: 0.4rem; padding: 0.6rem 0.85rem; margin-top: 0.25rem;">
           <i class="ri-funds-box-line"></i> Open in POS Billing Counter
         </a>

@@ -33,11 +33,9 @@
       <a href="{{ url_for('products.export_excel', q=current_query, category=current_category, location=current_location, status=current_status) }}" class="btn btn-secondary no-print" title="Export to Excel">
         <i class="ri-file-excel-2-line" style="color: #86efac;"></i> Excel
       </a>
-      {% if current_user.role in ['admin', 'inventory_manager'] %}
-        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print">
-          <i class="ri-add-line"></i> Add Product
-        </a>
-      {% endif %}
+      <a href="{{ url_for('products.add_product') }}" class="btn btn-primary no-print" data-role-require="admin,inventory_manager">
+        <i class="ri-add-line"></i> Add Product
+      </a>
     </div>
 
     <!-- Integrated Micro-Stats Row -->

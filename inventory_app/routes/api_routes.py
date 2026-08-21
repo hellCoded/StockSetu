@@ -114,14 +114,15 @@ def api_cart_clear():
 @login_required
 def api_user_session_info():
     """Lightweight endpoint for JS polling — queries DB directly for fresh role,
-    then syncs back into session so subsequent server renders are also correct."""
+    then syncs back into session so subsequent server renders are also correct.
+    Also enforces single-session: if another login overwrote the token, return 401."""
     from inventory_app.database import get_db
     from bson import ObjectId
     uid = session.get('user_id')
     try:
         db_user = get_db().users.find_one(
             {"_id": ObjectId(uid)},
-            {"role": 1, "name": 1, "employee_id": 1, "is_active": 1},
+            {"role": 1, "name": 1, "employee_id": 1, "is_active": 1, "session_token": 1},
         )
     except Exception:
         db_user = None
@@ -129,6 +130,14 @@ def api_user_session_info():
     if not db_user or not db_user.get('is_active', True):
         session.clear()
         return jsonify({'error': 'session_expired'}), 401
+
+    # Single-session enforcement via polling: if DB token differs from cookie
+    # token, this session has been superseded by a newer login.
+    session_token = session.get('session_token')
+    db_token = db_user.get('session_token')
+    if session_token and db_token and db_token != session_token:
+        session.clear()
+        return jsonify({'error': 'session_expired', 'reason': 'logged_in_elsewhere'}), 401
 
     # Force-sync session from DB so next page load is also correct
     session['role'] = db_user.get('role', 'staff')

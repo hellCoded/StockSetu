@@ -47,7 +47,6 @@
         <span>Products</span>
       </a>
     </li>
-    {% if current_user.role in ['admin', 'inventory_manager'] %}
     <li data-role-require="admin,inventory_manager">
       <a href="{{ url_for('inventory.bulk_stock_in') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('inventory.bulk_stock_in') %}active{% endif %}">
         <i class="ri-upload-cloud-2-line"></i>
@@ -60,7 +59,6 @@
         <span>Adjust Stock</span>
       </a>
     </li>
-    {% endif %}
     <li>
       <a href="{{ url_for('inventory.view_transactions') }}" class="sidebar-link {% if request.endpoint == 'inventory.view_transactions' %}active{% endif %}">
         <i class="ri-history-line"></i>
@@ -86,7 +84,6 @@
       </a>
     </li>
 
-    {% if current_user.role == 'admin' %}
     <li style="margin-top: 1rem; border-top: 1px solid var(--bg-card-border); padding-top: 1rem;" data-role-require="admin">
       <a href="{{ url_for('users.list_users') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('users.') and request.endpoint not in ['users.profile', 'users.request_promotion'] %}active{% endif %}">
         <i class="ri-user-settings-line"></i>
@@ -96,7 +93,6 @@
         {% endif %}
       </a>
     </li>
-    {% endif %}
 
     <li>
       <a href="javascript:void(0)" onclick="if(window.openCommandPalette)window.openCommandPalette()" class="sidebar-link" title="Open Spotlight (Ctrl + K)">

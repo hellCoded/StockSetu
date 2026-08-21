@@ -338,17 +338,15 @@ function printThermalSlip() {
       <i class="ri-receipt-2-line"></i> Print Thermal
     </button>
 
-    {% if current_user.role in ['admin', 'inventory_manager'] %}
-      {% if bill.payment_status == 'REFUNDED' %}
-        <span class="badge" style="background: #ef4444; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;">REFUNDED / CANCELLED</span>
-      {% else %}
-        {% if bill.payment_status == 'PARTIAL' %}
-          <button onclick="document.getElementById('payModal').classList.add('active')" class="btn btn-primary btn-sm"><i class="ri-money-dollar-circle-line"></i> Record Payment</button>
-        {% endif %}
-        <button onclick="document.getElementById('refundItemModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="ri-refund-2-line"></i> Refund Items</button>
-        <button onclick="document.getElementById('editModal').classList.add('active')" class="btn btn-secondary btn-sm"><i class="ri-edit-line"></i> Edit Bill</button>
-        <button onclick="document.getElementById('refundModal').classList.add('active')" class="btn btn-danger btn-sm"><i class="ri-prohibited-line"></i> Full Refund</button>
+    {% if bill.payment_status == 'REFUNDED' %}
+      <span class="badge" style="background: #ef4444; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;">REFUNDED / CANCELLED</span>
+    {% else %}
+      {% if bill.payment_status == 'PARTIAL' %}
+        <button onclick="document.getElementById('payModal').classList.add('active')" class="btn btn-primary btn-sm" data-role-require="admin,inventory_manager"><i class="ri-money-dollar-circle-line"></i> Record Payment</button>
       {% endif %}
+      <button onclick="document.getElementById('refundItemModal').classList.add('active')" class="btn btn-secondary btn-sm" data-role-require="admin,inventory_manager"><i class="ri-refund-2-line"></i> Refund Items</button>
+      <button onclick="document.getElementById('editModal').classList.add('active')" class="btn btn-secondary btn-sm" data-role-require="admin,inventory_manager"><i class="ri-edit-line"></i> Edit Bill</button>
+      <button onclick="document.getElementById('refundModal').classList.add('active')" class="btn btn-danger btn-sm" data-role-require="admin,inventory_manager"><i class="ri-prohibited-line"></i> Full Refund</button>
     {% endif %}
   </div>
 </div>
@@ -670,8 +668,8 @@ function printThermalSlip() {
 </div>
 
 
-{% if current_user.role in ['admin', 'inventory_manager'] and bill.payment_status != 'REFUNDED' %}
-<div id="refundModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
+{% if bill.payment_status != 'REFUNDED' %}
+<div id="refundModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')" data-role-require="admin,inventory_manager">
   <div class="modal-card" style="max-width: 460px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
       <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #ef4444;"><i class="ri-prohibited-line" style="margin-right: 0.4rem;"></i>Refund & Cancel Invoice</h3>
@@ -732,8 +730,8 @@ function printThermalSlip() {
 </div>
 {% endif %}
 
-{% if current_user.role in ['admin', 'inventory_manager'] and bill.payment_status != 'REFUNDED' %}
-<div id="refundItemModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
+{% if bill.payment_status != 'REFUNDED' %}
+<div id="refundItemModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')" data-role-require="admin,inventory_manager">
   <div class="modal-card" style="max-width: 500px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
       <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #f97316;"><i class="ri-refund-2-line" style="margin-right: 0.4rem;"></i>Refund Selected Lines</h3>
@@ -776,8 +774,8 @@ function printThermalSlip() {
 </div>
 {% endif %}
 
-{% if current_user.role in ['admin', 'inventory_manager'] and bill.payment_status != 'REFUNDED' %}
-<div id="editModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
+{% if bill.payment_status != 'REFUNDED' %}
+<div id="editModal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('active')" data-role-require="admin,inventory_manager">
   <div class="modal-card" style="max-width: 550px; max-height: 80vh; overflow-y: auto;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
       <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;"><i class="ri-edit-line" style="margin-right: 0.4rem;"></i>Edit Bill</h3>

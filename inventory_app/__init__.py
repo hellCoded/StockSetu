@@ -169,6 +169,41 @@ def create_app(config_class=Config, custom_mongo_client=None):
         now = datetime.now(timezone.utc)
         now_ts = now.timestamp()
 
+        # ── Single-session enforcement: verify session_token matches DB ──
+        session_token = session.get('session_token')
+        if session_token:
+            try:
+                from inventory_app.database import get_db
+                from bson import ObjectId
+                _db_user_token = get_db().users.find_one(
+                    {"_id": ObjectId(user_id)},
+                    {"session_token": 1},
+                )
+                if _db_user_token is None:
+                    # User deleted from DB — invalidate session
+                    session.clear()
+                    flash("Your account was removed. Please contact an administrator.", "warning")
+                    return redirect(url_for('auth.login'))
+                db_token = _db_user_token.get('session_token')
+                if not db_token:
+                    # Legacy session (no token stored yet) — let it pass this time
+                    # but store the current token so future logins enforce correctly
+                    from inventory_app.database import get_db as _gdb
+                    _gdb().users.update_one(
+                        {"_id": ObjectId(user_id)},
+                        {"$set": {"session_token": session_token}},
+                    )
+                elif db_token != session_token:
+                    session.clear()
+                    flash("Your session has expired because you logged in from another location.", "warning")
+                    return redirect(url_for('auth.login'))
+            except Exception as e:
+                logger.warning("Single-session check failed for user_id=%s: %s", user_id, e)
+                # Fail-closed for security: force re-login on check failure
+                session.clear()
+                flash("Session verification failed. Please log in again.", "warning")
+                return redirect(url_for('auth.login'))
+
         # Check session inactivity (12 hours = 43200 seconds)
         last_active_ts = session.get('last_active_at')
         if last_active_ts:
