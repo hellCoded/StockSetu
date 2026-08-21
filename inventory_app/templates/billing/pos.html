@@ -527,6 +527,36 @@
   animation: badgePop 0.2s var(--ease-spring);
 }
 @keyframes badgePop { from { transform: scale(0); } to { transform: scale(1); } }
+
+/* ── Haptic Micro-Animation Feedback ── */
+@keyframes cardPulse {
+  0% { box-shadow: 0 0 0 0 var(--cat-glow); }
+  40% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes cardBounce {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(0.95); }
+  60% { transform: scale(1.03); }
+  80% { transform: scale(0.98); }
+}
+@keyframes cartBadgeBump {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+@keyframes cartRowFlash {
+  0% { background: var(--color-primary-light); }
+  100% { background: var(--color-surface-container); }
+}
+.q-prod-card.haptic-pulse {
+  animation: cardPulse 0.4s ease-out, cardBounce 0.35s var(--ease-spring);
+}
+.q-cart-badge.haptic-bump {
+  animation: cartBadgeBump 0.3s var(--ease-spring);
+}
+.q-cart-row.flash-in {
+  animation: cartRowSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1), cartRowFlash 0.5s ease-out;
+}
 .q-prod-scan-highlight {
   animation: scanPulse 0.75s ease !important;
   border-color: #ea580c !important;
@@ -623,16 +653,83 @@
   background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #991b1b 100%);
   color: #ffffff;
   border-bottom: none;
-  padding: 0.65rem 0.85rem;
+  padding: 0.6rem 0.75rem;
   font-size: 0.82rem;
   font-weight: 700;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.6rem;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
 }
+.q-cart-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+.q-cart-grand-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.15;
+}
+.q-grand-header-val {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #fb923c;
+  text-shadow: 0 1px 3px rgba(251, 146, 60, 0.3);
+  letter-spacing: -0.01em;
+}
+.q-grand-header-label {
+  font-size: 0.55rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+.q-cart-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+.q-submit-btn-smart {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35);
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+.q-submit-btn-smart:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.45);
+}
+.q-submit-btn-smart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.q-submit-btn-smart i { font-size: 0.85rem; }
 .q-cart-head::before {
   content: '';
   position: absolute;
@@ -660,14 +757,14 @@
 .q-cart-badge {
   background: linear-gradient(135deg, #fb923c, #ea580c);
   color: #ffffff;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 800;
   border-radius: 999px;
-  padding: 0.14rem 0.5rem;
-  margin-left: auto;
+  padding: 0.12rem 0.45rem;
   transition: transform 0.2s var(--ease-spring);
   box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3);
   letter-spacing: 0.02em;
+  flex-shrink: 0;
 }
 .q-cart-badge.bump { transform: scale(1.15); }
 .q-cart-clear {
@@ -926,13 +1023,16 @@
 .q-cart-items {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem 0.75rem;
-  min-height: 140px;
-  max-height: 250px;
+  padding: 0.35rem 0.5rem;
+  min-height: 120px;
+  max-height: 380px;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  scrollbar-width: thin;
 }
+.q-cart-items::-webkit-scrollbar { width: 4px; }
+.q-cart-items::-webkit-scrollbar-thumb { background: var(--color-outline-variant); border-radius: 4px; }
 .q-cart-empty {
   text-align: center;
   color: var(--color-on-surface-variant);
@@ -969,10 +1069,9 @@
 
 .q-cart-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.4rem 0.55rem 0.4rem 0.75rem;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.3rem 0.5rem 0.3rem 0.6rem;
   background: var(--color-surface-container);
   border: 1px solid var(--pos-border);
   border-left: 3px solid var(--color-primary, #ea580c);
@@ -984,14 +1083,12 @@
   from { opacity: 0; transform: translateY(-6px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-/* Staggered entry for cart rows */
 .q-cart-items .q-cart-row:nth-child(1) { animation-delay: 0s; }
 .q-cart-items .q-cart-row:nth-child(2) { animation-delay: 0.04s; }
 .q-cart-items .q-cart-row:nth-child(3) { animation-delay: 0.08s; }
 .q-cart-items .q-cart-row:nth-child(4) { animation-delay: 0.12s; }
 .q-cart-items .q-cart-row:nth-child(5) { animation-delay: 0.16s; }
 .q-cart-items .q-cart-row:nth-child(6) { animation-delay: 0.2s; }
-/* Hover lift on desktop */
 @media (hover: hover) and (pointer: fine) {
   .q-cart-row:hover {
     border-color: var(--color-primary, #ea580c);
@@ -999,78 +1096,68 @@
     transform: translateY(-1px);
   }
 }
+/* ── Cart Row: Top Line (Name + Qty + Total + Delete) ── */
+.q-cart-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+}
 .q-cart-row-name {
   font-weight: 700;
   color: var(--color-on-surface);
   line-height: 1.2;
+  font-size: 0.74rem;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.q-cart-row-sub {
-  font-size: 0.62rem;
-  color: var(--color-on-surface-variant);
-  margin-top: 0.1rem;
-}
-.q-cart-row-disc {
+.q-cart-row-qty {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  margin-top: 0.2rem;
-  font-size: 0.64rem;
-}
-.q-cart-row-disc input {
-  width: 38px;
-  height: 20px;
-  padding: 0 0.2rem;
-  font-size: 0.65rem !important;
-  text-align: center;
-  border-radius: var(--r-xs);
-  border: 1px solid var(--pos-border);
-}
-.free-btn {
-  background: var(--color-surface);
-  border: 1px solid var(--pos-border);
-  border-radius: var(--r-xs);
-  font-size: 0.56rem;
-  font-weight: 800;
-  padding: 0.1rem 0.3rem;
-  cursor: pointer;
-  color: var(--color-on-surface-variant);
-}
-.free-btn.active {
-  background: var(--color-success);
-  border-color: var(--color-success);
-  color: #ffffff;
-}
-
-.q-cart-row-right {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
+  gap: 0.15rem;
+  flex-shrink: 0;
 }
 .qty-btn {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--r-xs);
-  border: 1px solid var(--pos-border);
+  border: 1.5px solid var(--pos-border);
   background: var(--color-surface);
   color: var(--color-on-surface);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.12s;
 }
 .qty-btn:hover:not(:disabled) {
-  background: var(--color-primary-light);
+  background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-primary);
+  color: #ffffff;
+  transform: scale(1.08);
 }
+.qty-btn:active:not(:disabled) { transform: scale(0.92); }
 .qty-val {
   font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 0.74rem;
-  min-width: 14px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  min-width: 18px;
   text-align: center;
+  color: var(--color-on-surface);
+}
+.q-cart-row-total {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.76rem;
+  color: var(--color-on-surface);
+  min-width: 50px;
+  text-align: right;
+  flex-shrink: 0;
 }
 .trash-btn {
   background: transparent;
@@ -1078,9 +1165,76 @@
   color: var(--color-on-surface-variant);
   font-size: 0.68rem;
   cursor: pointer;
-  padding: 0.15rem;
+  padding: 0.1rem;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-xs);
+  transition: all 0.12s;
+  flex-shrink: 0;
 }
-.trash-btn:hover { color: var(--color-danger); }
+.trash-btn:hover { color: var(--color-danger); background: var(--color-danger-bg); }
+/* ── Cart Row: Bottom Line (Price + Disc + Free) ── */
+.q-cart-row-bot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+}
+.q-cart-row-sub {
+  font-size: 0.6rem;
+  color: var(--color-on-surface-variant);
+  white-space: nowrap;
+}
+.q-cart-row-disc {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.6rem;
+}
+.q-cart-row-disc label {
+  font-size: 0.56rem;
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+}
+.q-cart-row-disc input {
+  width: 34px;
+  height: 18px;
+  padding: 0 0.15rem;
+  font-size: 0.6rem !important;
+  text-align: center;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--pos-border);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+}
+.q-cart-row-disc input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+.free-btn {
+  background: var(--color-surface);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-xs);
+  font-size: 0.52rem;
+  font-weight: 800;
+  padding: 0.08rem 0.28rem;
+  cursor: pointer;
+  color: var(--color-on-surface-variant);
+  transition: all 0.12s;
+  letter-spacing: 0.03em;
+}
+.free-btn:hover { border-color: var(--color-success); color: var(--color-success); }
+.free-btn.active {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #ffffff;
+}
+
+
 
 /* ── Swipe-to-Delete (Mobile Touch Gesture) ── */
 .q-cart-swipe-wrap {
@@ -1205,47 +1359,7 @@
 }
 
 /* ── Checkout Action ── */
-.q-cart-submit {
-  padding: 0.55rem 0.85rem 0.65rem;
-  background: var(--color-surface);
-  border-top: 1px solid var(--pos-border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  flex-shrink: 0;
-}
-.q-submit-btn {
-  width: 100%;
-  height: 40px;
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: var(--r-sm);
-  font-size: 0.88rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
-  transition: all 0.2s;
-}
-.q-submit-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
-}
-.q-submit-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-.q-submit-hint {
-  text-align: center;
-  font-size: 0.65rem;
-  color: var(--color-on-surface-variant);
-}
+
 
 /* ── Unified Smart Search (replaces customer + employee fields) ── */
 .smart-search-wrap {
@@ -1739,11 +1853,23 @@
     <!-- Right: Bill Cart Panel (Customer Details + Purchase Items Listing Unified) -->
     <div class="q-pos-cart" id="pos-cart">
       <div class="q-cart-head">
-        <div class="q-cart-title">
-          <i class="ri-bill-line"></i> Bill
+        <div class="q-cart-left">
+          <div class="q-cart-title">
+            <i class="ri-bill-line"></i> Bill
+            <span class="q-cart-badge" id="cart-count-badge">0 items</span>
+          </div>
+          <div class="q-cart-grand-header">
+            <span class="q-grand-header-val" id="t-grand-header">&#8377;0.00</span>
+            <span class="q-grand-header-label">Total</span>
+          </div>
         </div>
-        <span class="q-cart-badge" id="cart-count-badge">0 items</span>
-        <button type="button" class="q-cart-clear" id="clear-cart" title="Clear cart"><i class="ri-delete-bin-line"></i></button>
+        <div class="q-cart-head-actions">
+          <button type="button" class="q-submit-btn-smart" id="submit-bill" title="Generate Bill (Ctrl+Enter)">
+            <i class="ri-bill-line"></i>
+            <span class="q-submit-text">Generate Bill</span>
+          </button>
+          <button type="button" class="q-cart-clear" id="clear-cart" title="Clear cart"><i class="ri-delete-bin-line"></i></button>
+        </div>
       </div>
 
       <!-- Integrated Customer & Billing Configuration inside Cart -->
@@ -1829,13 +1955,7 @@
         <div class="q-total-row" id="t-free-row" style="display:none;"><span style="color:var(--color-success-text);font-weight:700;">Free Lines Value</span><span class="val" id="t-free" style="color:var(--color-success-text);">&#8377;0.00</span></div>
       </div>
 
-      <!-- Checkout Action -->
-      <div class="q-cart-submit">
-        <button type="button" class="q-submit-btn" id="submit-bill">
-          <i class="ri-bill-line"></i> Generate Bill
-        </button>
-        <div class="q-submit-hint" id="submit-hint">Press <kbd style="background:var(--color-surface-container);border:1px solid var(--pos-border);border-radius:3px;padding:0 0.3rem;font-family:var(--font-mono);font-size:0.6rem;">Ctrl+Enter</kbd> to checkout</div>
-      </div>
+
 
     </div>
   </div>
@@ -2086,6 +2206,47 @@
       if (typeof showToast === 'function') showToast(name + ' added to cart', 'success', 1800);
     }
     renderCart();
+    triggerHaptic(name);
+  }
+
+  /* ── Haptic Feedback Trigger ── */
+  function triggerHaptic(name) {
+    /* 1. Vibration API for mobile devices */
+    if (navigator.vibrate) navigator.vibrate(15);
+    /* 2. Pulse the product card */
+    const card = document.querySelector('.q-prod-card[data-name="' + CSS.escape(name) + '"]');
+    if (card) {
+      card.classList.remove('haptic-pulse');
+      void card.offsetWidth; /* force reflow to restart animation */
+      card.classList.add('haptic-pulse');
+      card.addEventListener('animationend', function handler() {
+        card.classList.remove('haptic-pulse');
+        card.removeEventListener('animationend', handler);
+      });
+    }
+    /* 3. Bump the cart badge */
+    const badge = document.getElementById('cart-count-badge');
+    if (badge) {
+      badge.classList.remove('haptic-bump');
+      void badge.offsetWidth;
+      badge.classList.add('haptic-bump');
+      badge.addEventListener('animationend', function handler() {
+        badge.classList.remove('haptic-bump');
+        badge.removeEventListener('animationend', handler);
+      });
+    }
+    /* 4. Flash the newest cart row */
+    requestAnimationFrame(function() {
+      const rows = document.querySelectorAll('.q-cart-items .q-cart-row');
+      const last = rows[rows.length - 1];
+      if (last) {
+        last.classList.add('flash-in');
+        last.addEventListener('animationend', function handler() {
+          last.classList.remove('flash-in');
+          last.removeEventListener('animationend', handler);
+        });
+      }
+    });
   }
 
   function updateQty(name, delta) {
@@ -2112,7 +2273,7 @@
     renderCart();
   }
 
-  function esc(s) { return s.replace(/'/g, "\\'"); }
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
   /* ── Swipe-to-Delete Gesture (Mobile Only) ── */
   function initSwipeGesture(rowEl, itemName) {
@@ -2205,26 +2366,29 @@
         const row = document.createElement('div');
         row.className = 'q-cart-row';
         row.innerHTML =
-          '<div class="q-cart-row-left">' +
-            '<div class="q-cart-row-name">' + item.name + (item.isFree ? ' <span style="color:#16a34a;font-weight:800;font-size:0.6rem;">FREE</span>' : '') + (atMax ? '<span style="font-size:0.58rem;background:var(--color-danger-bg);color:var(--color-danger);padding:0.05rem 0.3rem;border-radius:4px;margin-left:0.3rem;">MAX</span>' : '') + '</div>' +
-            '<div class="q-cart-row-sub">' + fmt(item.price) + (item.gst ? ' · GST ' + item.gst + '%' : '') + (item.disc > 0 ? ' <span style="color:#ef4444">· -' + item.disc + '%</span>' : '') + '</div>' +
-            '<div class="q-cart-row-disc">' +
-              '<label style="font-size:0.6rem;color:var(--color-on-surface-variant);">Disc</label>' +
-              '<input type="number" min="0" max="100" step="0.5" value="' + (item.disc || 0) + '" onchange="window.__posLineDisc(\'' + esc(item.name) + '\', this.value)">' +
-              '<button type="button" class="free-btn ' + (item.isFree ? 'active' : '') + '" onclick="window.__posToggleFree(\'' + esc(item.name) + '\')">FREE</button>' +
+          '<div class="q-cart-row-top">' +
+            '<span class="q-cart-row-name" title="' + esc(item.name) + '">' + item.name + (item.isFree ? ' <span style="color:#16a34a;font-weight:800;font-size:0.56rem;">FREE</span>' : '') + (atMax ? ' <span style="font-size:0.52rem;background:var(--color-danger-bg);color:var(--color-danger);padding:0.04rem 0.25rem;border-radius:3px;">MAX</span>' : '') + '</span>' +
+            '<div class="q-cart-row-qty">' +
+              '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',-1)" title="Decrease">&minus;</button>' +
+              '<span class="qty-val">' + item.qty + '</span>' +
+              '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',1)"' + (atMax ? ' disabled title="Max stock"' : ' title="Increase"') + '>+</button>' +
             '</div>' +
-          '</div>' +
-          '<div class="q-cart-row-right">' +
-            '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',-1)">&minus;</button>' +
-            '<span class="qty-val">' + item.qty + '</span>' +
-            '<button type="button" class="qty-btn" onclick="window.__posQty(\'' + esc(item.name) + '\',1)"' + (atMax ? ' disabled' : '') + '>+</button>' +
             '<span class="q-cart-row-total">' + fmt(total) + '</span>' +
-            '<button type="button" class="trash-btn" onclick="window.__posRemove(\'' + esc(item.name) + '\')"><i class="ri-close-line"></i></button>' +
+            '<button type="button" class="trash-btn" onclick="window.__posRemove(\'' + esc(item.name) + '\')" title="Remove"><i class="ri-close-line"></i></button>' +
+          '</div>' +
+          '<div class="q-cart-row-bot">' +
+            '<span class="q-cart-row-sub">' + fmt(item.price) + (item.gst ? ' · GST ' + item.gst + '%' : '') + (item.disc > 0 ? ' <span style="color:#ef4444">· -' + item.disc + '%</span>' : '') + '</span>' +
+            '<div class="q-cart-row-disc">' +
+              '<label>Disc%</label>' +
+              '<input type="number" min="0" max="100" step="0.5" value="' + (item.disc || 0) + '" onchange="window.__posLineDisc(\'' + esc(item.name) + '\', this.value)" title="Line discount %">' +
+              '<button type="button" class="free-btn ' + (item.isFree ? 'active' : '') + '" onclick="window.__posToggleFree(\'' + esc(item.name) + '\')" title="Toggle free">FREE</button>' +
+            '</div>' +
           '</div>';
         /* Wrap row for swipe-to-delete on mobile */
         const swipeWrap = initSwipeGesture(row, item.name);
         cartEl.appendChild(swipeWrap || row);
       });
+    }
 
     /* ── Product Card Qty Badges ── */
     cardEls.forEach(card => {
@@ -2280,6 +2444,8 @@
     document.getElementById('t-cgst').textContent = fmt(cgst);
     document.getElementById('t-sgst').textContent = fmt(sgst);
     document.getElementById('t-grand').textContent = fmt(grand);
+    const headerGrand = document.getElementById('t-grand-header');
+    if (headerGrand) headerGrand.textContent = fmt(grand);
 
     const lineDiscRow = document.getElementById('t-line-disc-row');
     const discRow = document.getElementById('t-discount-row');
@@ -2324,65 +2490,6 @@
     updatePaymentUI();
     if (typeof saveCartToStorage === 'function') saveCartToStorage();
   }
-
-  /* ── Search & Category Filters ── */
-  function updateChipCounts() {
-    const counts = {};
-    cardEls.forEach(c => { const cat = c.dataset.category || ''; counts[cat] = (counts[cat] || 0) + 1; });
-    document.querySelectorAll('#q-pos-chips .q-pos-chip').forEach(chip => {
-      const countEl = chip.querySelector('.q-pos-chip-count');
-      if (!countEl) return;
-      countEl.textContent = chip.dataset.cat === 'all' ? cardEls.length : (counts[chip.dataset.cat] || 0);
-    });
-  }
-
-  function applyFilters() {
-    const q = searchInput.value.trim().toLowerCase();
-    let visible = 0;
-    cardEls.forEach(card => {
-      const catOk = currentCat === 'all' || card.dataset.category === currentCat;
-      const qOk = !q || card.dataset.search.includes(q);
-      const show = catOk && qOk;
-      card.style.display = show ? '' : 'none';
-      if (show) visible++;
-    });
-    noneEl.style.display = visible === 0 && totalCount > 0 ? '' : 'none';
-    resultCountEl.textContent = visible + ' of ' + totalCount;
-  }
-
-  let searchDebounceTimer = null;
-  searchInput.addEventListener('input', () => {
-    clearTimeout(searchDebounceTimer);
-    searchDebounceTimer = setTimeout(applyFilters, 200);
-  });
-
-  document.querySelectorAll('#q-pos-chips .q-pos-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      currentCat = chip.dataset.cat;
-      document.querySelectorAll('#q-pos-chips .q-pos-chip').forEach(c => c.classList.toggle('is-active', c === chip));
-      applyFilters();
-    });
-  });
-
-  /* ── Payment Method ── */
-  const dueDateRow = document.getElementById('due-date-row');
-
-  function updatePaymentUI() {
-    const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
-    if (method === 'CREDIT') {
-      dueDateRow.classList.add('show');
-    } else {
-      dueDateRow.classList.remove('show');
-    }
-  }
-
-  document.querySelectorAll('.q-pay-opt input[name="payment_method"]').forEach(radio => {
-    radio.addEventListener('change', () => {
-      document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input').checked));
-      updatePaymentUI();
-      if (typeof saveCartToStorage === 'function') saveCartToStorage();
-    });
-  });
 
   /* ── UPI Checkout Modal Handlers ── */
   window.closeUpiModal = function() {
@@ -2653,8 +2760,6 @@
     strip.style.display = 'flex';
     if (searchWrap) searchWrap.style.display = 'none';
 
-    function esc(s) { return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
-
     if (selectedCustomer.type === 'employee') {
       strip.className = 'smart-customer-strip is-staff';
       const initials = (selectedCustomer.name || 'EM').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -2879,7 +2984,7 @@
       if (modal) modal.classList.add('active');
     } else {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Billing...';
+      submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> <span class="q-submit-text">Billing...</span>';
       submitBillForm();
     }
   });
