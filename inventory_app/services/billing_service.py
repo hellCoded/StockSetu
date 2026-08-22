@@ -118,12 +118,21 @@ def compute_line(unit_price: float, quantity: float, gst_rate: float,
     line_discount_amount = _round2(raw_taxable * line_discount_percent / 100)
     taxable = _round2(raw_taxable - line_discount_amount)
 
-    is_free = bool(is_free_override or (line_discount_percent >= 100.0 and quantity > 0))
+    is_free = bool(is_free_override)
 
-    gst_amount = _round2(taxable * gst_rate / 100)
-    cgst = _round2(gst_amount / 2)
-    sgst = _round2(gst_amount - cgst)
-    line_total = _round2(taxable + gst_amount)
+    if is_free:
+        # FREE item: taxable value is zero, no GST charged
+        # But we still track the GST rate for invoice metadata (HSN/GST reporting)
+        taxable = 0.0
+        gst_amount = 0.0
+        cgst = 0.0
+        sgst = 0.0
+        line_total = 0.0
+    else:
+        gst_amount = _round2(taxable * gst_rate / 100)
+        cgst = _round2(gst_amount / 2)
+        sgst = _round2(gst_amount - cgst)
+        line_total = _round2(taxable + gst_amount)
 
     return True, "", {
         "raw_taxable": raw_taxable,
@@ -214,7 +223,11 @@ def compute_bill(customer_data: dict, items_with_products: list,
             "refunded_quantity": 0.0,
             "refunded_amount": 0.0,
         })
-        subtotal = _round2(subtotal + computed["raw_taxable"])
+        if computed["is_free"]:
+            # FREE items: don't add to subtotal, their taxable is 0
+            pass
+        else:
+            subtotal = _round2(subtotal + computed["raw_taxable"])
         cgst_total = _round2(cgst_total + computed["cgst"])
         sgst_total = _round2(sgst_total + computed["sgst"])
         gst_total = _round2(gst_total + computed["gst_amount"])

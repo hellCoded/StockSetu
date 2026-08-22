@@ -378,6 +378,319 @@ def test_edit_bill_with_free_item(staff_client, mock_mongo):
     # Note: is_free flag is stored but may not zero out grand_total depending on compute_bill logic
 
 
+# ──────────────────────────────────────────────────────────────────────
+# FREE Item Tests
+# ──────────────────────────────────────────────────────────────────────
+
+def test_free_item_taxable_zero(staff_client, mock_mongo):
+    """FREE item has taxable=0, GST=0, but retains HSN/GST metadata."""
+    from inventory_app.services.billing_service import compute_bill, get_product_by_name
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Free Test Item", price=100.0, gst=18, stock=100, hsn="8471")
+    
+    items = [{
+        'product_name': 'Free Test Item',
+        'quantity': 1,
+        'is_free': True,
+    }]
+    customer_data = {
+        'customer_name': 'Free Customer',
+        'customer_phone': '9876543210',
+        'payment_method': 'CASH',
+        'discount_percent': '0',
+    }
+    product = get_product_by_name('Free Test Item', bypass_cache=True)
+    items_with_products = [{
+        'product_name': 'Free Test Item',
+        'product': product,
+        'quantity': 1,
+        'line_discount_percent': 0,
+        'is_free': True,
+    }]
+    
+    ok, msg, computed = compute_bill(customer_data, items_with_products, {'shipping_charge': '0', 'packing_charge': '0'})
+    assert ok
+    
+    line = computed['line_items'][0]
+    assert line['is_free'] is True
+    assert line['taxable'] == 0.0
+    assert line['gst_amount'] == 0.0
+    assert line['cgst'] == 0.0
+    assert line['sgst'] == 0.0
+    assert line['line_total'] == 0.0
+    # HSN/GST metadata preserved
+    assert line['gst_rate'] == 18.0
+    assert line['hsn_code'] == '8471'
+
+
+def test_free_item_with_discount_ignored(staff_client, mock_mongo):
+    """FREE item ignores line discount - discount should not affect FREE item."""
+    from inventory_app.services.billing_service import compute_bill, get_product_by_name
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Free Discount Item", price=100.0, gst=18, stock=100)
+    
+    product = get_product_by_name('Free Discount Item', bypass_cache=True)
+    items_with_products = [{
+        'product_name': 'Free Discount Item',
+        'product': product,
+        'quantity': 1,
+        'line_discount_percent': 50,  # 50% discount - should be ignored for FREE
+        'is_free': True,
+    }]
+    customer_data = {
+        'customer_name': 'Free Customer',
+        'customer_phone': '9876543210',
+        'payment_method': 'CASH',
+        'discount_percent': '0',
+    }
+    
+    ok, msg, computed = compute_bill(customer_data, items_with_products, {'shipping_charge': '0', 'packing_charge': '0'})
+    assert ok
+    
+    line = computed['line_items'][0]
+    assert line['is_free'] is True
+    assert line['taxable'] == 0.0
+    assert line['gst_amount'] == 0.0
+    assert line['line_total'] == 0.0
+
+
+def test_mixed_free_and_normal_items(staff_client, mock_mongo):
+    """Bill with mix of FREE and normal items computes correctly."""
+    from inventory_app.services.billing_service import compute_bill, get_product_by_name
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Normal Item", price=100.0, gst=18, stock=100, hsn="8471")
+    _seed_product(db, name="Free Item", price=200.0, gst=12, stock=100, hsn="8472")
+    
+    normal_product = get_product_by_name('Normal Item', bypass_cache=True)
+    free_product = get_product_by_name('Free Item', bypass_cache=True)
+    
+    items_with_products = [
+        {
+            'product_name': 'Normal Item',
+            'product': normal_product,
+            'quantity': 2,
+            'line_discount_percent': 0,
+            'is_free': False,
+        },
+        {
+            'product_name': 'Free Item',
+            'product': free_product,
+            'quantity': 1,
+            'line_discount_percent': 0,
+            'is_free': True,
+        },
+    ]
+    customer_data = {
+        'customer_name': 'Mixed Customer',
+        'customer_phone': '9876543210',
+        'payment_method': 'CASH',
+        'discount_percent': '0',
+    }
+    
+    ok, msg, computed = compute_bill(customer_data, items_with_products, {'shipping_charge': '0', 'packing_charge': '0'})
+    assert ok
+    
+    normal_line = next(l for l in computed['line_items'] if l['product_name'] == 'Normal Item')
+    free_line = next(l for l in computed['line_items'] if l['product_name'] == 'Free Item')
+    
+    # Normal item: 2 * 100 = 200 taxable, 18% GST = 36, total = 236
+    assert normal_line['is_free'] is False
+    assert normal_line['taxable'] == 200.0
+    assert normal_line['gst_amount'] == 36.0
+    assert normal_line['line_total'] == 236.0
+    
+    # Free item: taxable=0, GST=0
+    assert free_line['is_free'] is True
+    assert free_line['taxable'] == 0.0
+    assert free_line['gst_amount'] == 0.0
+    assert free_line['line_total'] == 0.0
+    
+    # Grand total should be 236 (only normal item)
+    assert computed['grand_total'] == 236.0
+    assert computed['gst_total'] == 36.0
+
+
+def test_normal_item_with_100_discount_not_free(staff_client, mock_mongo):
+    """Item with 100% line discount is NOT treated as FREE (backwards compat)."""
+    from inventory_app.services.billing_service import compute_bill, get_product_by_name
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Discount Item", price=100.0, gst=18, stock=100)
+    
+    product = get_product_by_name('Discount Item', bypass_cache=True)
+    items_with_products = [{
+        'product_name': 'Discount Item',
+        'product': product,
+        'quantity': 1,
+        'line_discount_percent': 100,
+        'is_free': False,  # Explicitly not free
+    }]
+    customer_data = {
+        'customer_name': 'Discount Customer',
+        'customer_phone': '9876543210',
+        'payment_method': 'CASH',
+        'discount_percent': '0',
+    }
+    
+    ok, msg, computed = compute_bill(customer_data, items_with_products, {'shipping_charge': '0', 'packing_charge': '0'})
+    assert ok
+    
+    line = computed['line_items'][0]
+    assert line['is_free'] is False  # Not free, just 100% discount
+    assert line['taxable'] == 0.0
+    assert line['gst_amount'] == 0.0
+    assert line['line_total'] == 0.0
+    assert line['line_discount_percent'] == 100.0
+
+
+def test_free_item_edit_free_to_normal(staff_client, mock_mongo):
+    """Edit bill: FREE -> normal restores taxable/GST."""
+    from inventory_app.services.billing_service import edit_bill
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Edit Free Item", price=100.0, gst=18, stock=100)
+    
+    bill_id = _create_bill(staff_client, db, "Edit Free", [{"name": "Edit Free Item", "qty": "2"}])
+    
+    # First make it FREE
+    items = [{'product_name': 'Edit Free Item', 'quantity': 2, 'is_free': True}]
+    charges = {'shipping_charge': '0', 'packing_charge': '0'}
+    customer_data = {'customer_name': 'Edit Free', 'customer_phone': '9000000001', 'payment_method': 'CREDIT', 'discount_percent': '0'}
+    edit_bill(bill_id, items, charges, customer_data, 'STF-001')
+    
+    updated = db.invoices.find_one({"_id": ObjectId(bill_id)})
+    assert updated["line_items"][0]["is_free"] is True
+    assert updated["line_items"][0]["taxable"] == 0.0
+    
+    # Now change back to normal
+    items = [{'product_name': 'Edit Free Item', 'quantity': 2, 'is_free': False}]
+    edit_bill(bill_id, items, charges, customer_data, 'STF-001')
+    
+    updated = db.invoices.find_one({"_id": ObjectId(bill_id)})
+    assert updated["line_items"][0]["is_free"] is False
+    assert updated["line_items"][0]["taxable"] == 200.0  # 2 * 100
+    assert updated["line_items"][0]["gst_amount"] == 36.0  # 18% of 200
+
+
+def test_free_item_edit_normal_to_free(staff_client, mock_mongo):
+    """Edit bill: normal -> FREE zeroes out taxable/GST."""
+    from inventory_app.services.billing_service import edit_bill
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Edit Normal Item", price=100.0, gst=18, stock=100)
+    
+    bill_id = _create_bill(staff_client, db, "Edit Normal", [{"name": "Edit Normal Item", "qty": "2"}])
+    
+    updated = db.invoices.find_one({"_id": ObjectId(bill_id)})
+    assert updated["line_items"][0]["is_free"] is False
+    assert updated["line_items"][0]["taxable"] == 200.0
+    
+    # Now make it FREE
+    items = [{'product_name': 'Edit Normal Item', 'quantity': 2, 'is_free': True}]
+    charges = {'shipping_charge': '0', 'packing_charge': '0'}
+    customer_data = {'customer_name': 'Edit Normal', 'customer_phone': '9000000001', 'payment_method': 'CREDIT', 'discount_percent': '0'}
+    edit_bill(bill_id, items, charges, customer_data, 'STF-001')
+    
+    updated = db.invoices.find_one({"_id": ObjectId(bill_id)})
+    assert updated["line_items"][0]["is_free"] is True
+    assert updated["line_items"][0]["taxable"] == 0.0
+    assert updated["line_items"][0]["gst_amount"] == 0.0
+    assert updated["line_items"][0]["line_total"] == 0.0
+
+
+def test_free_item_preserves_hsn_gst_metadata(staff_client, mock_mongo):
+    """FREE item retains HSN code and GST rate for invoice reporting."""
+    from inventory_app.services.billing_service import compute_bill, get_product_by_name
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Metadata Item", price=500.0, gst=28, stock=50, hsn="8544")
+    
+    product = get_product_by_name('Metadata Item', bypass_cache=True)
+    items_with_products = [{
+        'product_name': 'Metadata Item',
+        'product': product,
+        'quantity': 1,
+        'line_discount_percent': 0,
+        'is_free': True,
+    }]
+    customer_data = {
+        'customer_name': 'Meta Customer',
+        'customer_phone': '9876543210',
+        'payment_method': 'CASH',
+        'discount_percent': '0',
+    }
+    
+    ok, msg, computed = compute_bill(customer_data, items_with_products, {'shipping_charge': '0', 'packing_charge': '0'})
+    assert ok
+    
+    line = computed['line_items'][0]
+    assert line['is_free'] is True
+    assert line['taxable'] == 0.0
+    assert line['gst_amount'] == 0.0
+    assert line['line_total'] == 0.0
+    # Metadata preserved
+    assert line['hsn_code'] == '8544'
+    assert line['gst_rate'] == 28.0
+
+
+def test_free_item_totals_rounding(staff_client, mock_mongo):
+    """FREE items don't affect rounding/round-off calculations."""
+    from inventory_app.services.billing_service import compute_bill, get_product_by_name
+    db = mock_mongo['inventory_test_db']
+    # Create items with amounts that would cause rounding
+    _seed_product(db, name="Round Normal", price=100.01, gst=18, stock=100)
+    _seed_product(db, name="Round Free", price=50.02, gst=12, stock=100)
+    
+    normal = get_product_by_name('Round Normal', bypass_cache=True)
+    free = get_product_by_name('Round Free', bypass_cache=True)
+    
+    items_with_products = [
+        {'product_name': 'Round Normal', 'product': normal, 'quantity': 1, 'line_discount_percent': 0, 'is_free': False},
+        {'product_name': 'Round Free', 'product': free, 'quantity': 1, 'line_discount_percent': 0, 'is_free': True},
+    ]
+    customer_data = {
+        'customer_name': 'Round Customer',
+        'customer_phone': '9876543210',
+        'payment_method': 'CASH',
+        'discount_percent': '0',
+    }
+    
+    ok, msg, computed = compute_bill(customer_data, items_with_products, {'shipping_charge': '0', 'packing_charge': '0'})
+    assert ok
+    
+    # Only normal item contributes to grand total
+    # Normal: 100.01 * 1.18 = 118.0118 -> rounded to nearest rupee = 118.0
+    # Free: 0
+    # Grand total should be 118.0 (rounded to nearest rupee)
+    assert computed['grand_total'] == 118.0
+    # Round off should handle the rounding to nearest rupee
+    assert abs(computed['round_off']) <= 0.01
+
+
+def test_create_bill_with_free_item_direct(staff_client, mock_mongo):
+    """Create bill directly with FREE item via /billing/create."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Direct Free", price=250.0, gst=18, stock=100, hsn="8473")
+    
+    # Submit form with is_free
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Direct Free',
+        'payment_method': 'CASH',
+        'item_name[]': ['Direct Free'],
+        'item_quantity[]': ['1'],
+        'item_free[]': ['1'],  # Mark as free
+    }, follow_redirects=True)
+    
+    assert resp.status_code == 200
+    
+    bill = db.invoices.find_one({"customer_name": "Direct Free"})
+    assert bill is not None
+    assert bill["line_items"][0]["is_free"] is True
+    assert bill["line_items"][0]["taxable"] == 0.0
+    assert bill["line_items"][0]["gst_amount"] == 0.0
+    assert bill["line_items"][0]["line_total"] == 0.0
+    assert bill["line_items"][0]["hsn_code"] == "8473"
+    assert bill["line_items"][0]["gst_rate"] == 18.0
+    assert bill["grand_total"] == 0.0
+
+
 # ========== REFUND BILL TESTS ==========
 
 def test_refund_full_bill(staff_client, mock_mongo):
