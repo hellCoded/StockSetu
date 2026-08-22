@@ -78,6 +78,8 @@ def set_user_active_status(user_id: str, is_active: bool):
             update_op
         )
         invalidate_user_cache(user_id)
+        from inventory_app import cache_delete
+        cache_delete("dashboard:main")
     except Exception as e:
         logger.error(f"Failed to set user active status: {e}")
 
@@ -117,6 +119,9 @@ def deactivate_inactive_users(inactivity_hours: float = 12.0) -> int:
             },
             {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
         )
+        if result.modified_count > 0:
+            from inventory_app import cache_delete
+            cache_delete("dashboard:main")
         return result.modified_count
     except Exception as e:
         logger.error(f"Failed to deactivate inactive users: {e}")
@@ -157,7 +162,9 @@ def authenticate_user(identifier: str, password: str) -> tuple[bool, str, dict]:
     return False, "Invalid Employee ID/Email or password.", {}
 
 def get_all_users(search: str = "", role: str = "", page: int = None, per_page: int = 25, return_total: bool = False):
-    """Retrieves users for admin management with optional filtering and pagination."""
+    """Retrieves users for admin management with optional filtering and pagination.
+    Excludes sensitive authentication fields (password_hash, session_token) from results.
+    """
     db = get_db()
     query = {}
     if search:
@@ -181,7 +188,13 @@ def get_all_users(search: str = "", role: str = "", page: int = None, per_page: 
     # Single-query pagination: fetch limit+1 to detect "has more"
     fetch_limit = effective_limit + 1 if return_total else effective_limit
 
-    cursor = db.users.find(query).sort("created_at", -1)
+    # Projection: exclude sensitive auth fields from user-list queries
+    projection = {
+        "password_hash": 0,
+        "session_token": 0,
+    }
+
+    cursor = db.users.find(query, projection).sort("created_at", -1)
     cursor = cursor.skip(effective_skip).limit(fetch_limit)
 
     users = list(cursor)
@@ -260,6 +273,8 @@ def update_user_role(user_id: str, new_role: str) -> tuple[bool, str]:
         )
         if result.modified_count > 0 or result.matched_count > 0:
             invalidate_user_cache(uid_str)
+            from inventory_app import cache_delete
+            cache_delete("dashboard:main")
             return True, f"User role updated to {new_role}."
         return False, "User not found."
     except Exception as e:
@@ -282,6 +297,8 @@ def toggle_user_active(user_id: str) -> tuple[bool, str, bool]:
             {"$set": {"is_active": new_status, "updated_at": datetime.now(timezone.utc)}}
         )
         invalidate_user_cache(uid_str)
+        from inventory_app import cache_delete
+        cache_delete("dashboard:main")
         status_str = "activated" if new_status else "deactivated"
         return True, f"User account has been {status_str}.", new_status
     except Exception as e:
@@ -393,6 +410,9 @@ def create_role_request(user_id: str, employee_id: str = "", email: str = "", re
         from inventory_app.services.audit_service import log_audit
         log_audit("role_request_submitted", effective_emp_id, target_resource=uid_str, details={"requested_role": requested_role, "reason": reason.strip()})
         
+        from inventory_app import cache_delete
+        cache_delete("dashboard:main")
+        
         return True, f"Role request ({requested_role.replace('_', ' ').title()}) submitted to Administrator for verification."
     except Exception as e:
         return False, f"Failed to submit role request: {str(e)}"
@@ -423,6 +443,9 @@ def cancel_role_request(request_id: str, user_id: str) -> tuple[bool, str]:
         
         from inventory_app.services.audit_service import log_audit
         log_audit("role_request_cancelled", req.get("employee_id"), target_resource=uid_str, details={"request_id": req_id_str})
+        
+        from inventory_app import cache_delete
+        cache_delete("dashboard:main")
         
         return True, "Role request cancelled successfully."
     except Exception as e:
@@ -514,6 +537,9 @@ def process_role_request(request_id: str, action: str, processed_by: str, admin_
             from inventory_app.services.audit_service import log_audit
             log_audit("role_request_approved", processed_by, target_resource=user_id, details={"request_id": req_id_str, "admin_comment": comment_str})
             
+            from inventory_app import cache_delete
+            cache_delete("dashboard:main")
+            
             role_label = new_role.replace('_', ' ').title()
             return True, f"Role request approved. User '{target_emp}' is now an {role_label}."
             
@@ -525,6 +551,9 @@ def process_role_request(request_id: str, action: str, processed_by: str, admin_
             
             from inventory_app.services.audit_service import log_audit
             log_audit("role_request_rejected", processed_by, target_resource=str(req["user_id"]), details={"request_id": req_id_str, "admin_comment": comment_str})
+            
+            from inventory_app import cache_delete
+            cache_delete("dashboard:main")
             
             return True, f"Promotion request for user '{target_emp}' has been rejected."
         else:
@@ -674,6 +703,7 @@ def import_staff_bulk(file_storage, default_password: str = "Staff@123", importe
             "password_hash": hashed_password,
             "role": "staff",
             "is_active": False,
+            "force_password_change": True,
             "last_active_at": now,
             "created_at": now,
             "updated_at": now
