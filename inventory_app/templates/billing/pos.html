@@ -3106,17 +3106,6 @@
   if (splitToggleBtn) splitToggleBtn.addEventListener('click', () => toggleSplitMode(false));
   if (splitAddRowBtn) splitAddRowBtn.addEventListener('click', () => addSplitRow());
 
-  /* ── Live Clock ── */
-  const clockEl = document.getElementById('pos-clock');
-  function tickClock() {
-    const d = new Date();
-    if (clockEl) {
-      clockEl.textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
-    }
-  }
-  tickClock();
-  setInterval(tickClock, 1000);
-
   /* ── Currency Format ── */
   function fmt(v) {
     const n = Math.round((v + Number.EPSILON) * 100) / 100;
