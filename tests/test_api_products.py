@@ -261,3 +261,167 @@ def test_api_products_search_works_for_manager(manager_client, mock_mongo):
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['total'] == 1
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Real-time Stock Check (/api/products/stock)
+# ──────────────────────────────────────────────────────────────────────
+
+def test_api_product_stock_requires_auth(client):
+    """Unauthenticated request should be rejected."""
+    response = client.get('/api/products/stock?name=Test')
+    assert response.status_code == 302  # Redirect to login
+
+
+def test_api_product_stock_missing_name(admin_client, mock_mongo):
+    """Missing name parameter returns 400."""
+    response = admin_client.get('/api/products/stock')
+    assert response.status_code == 400
+    data = json.loads(response.data)
+    assert data['ok'] is False
+    assert 'Product name required' in data['error']
+
+
+def test_api_product_stock_not_found(admin_client, mock_mongo):
+    """Non-existent product returns 404."""
+    response = admin_client.get('/api/products/stock?name=NonExistent')
+    assert response.status_code == 404
+    data = json.loads(response.data)
+    assert data['ok'] is False
+    assert 'Product not found' in data['error']
+
+
+def test_api_product_stock_inactive_product(admin_client, mock_mongo):
+    """Inactive product returns 400."""
+    db = mock_mongo['inventory_test_db']
+    db.products.insert_one({
+        "product_name": "Inactive Product",
+        "product_name_lower": "inactive product",
+        "category": "Electronics",
+        "quantity": 10,
+        "price": 100.0,
+        "gst_rate": 18,
+        "unit": "PCS",
+        "hsn_code": "8471",
+        "location": "Warehouse 1",
+        "is_active": False,
+    })
+    
+    response = admin_client.get('/api/products/stock?name=Inactive Product')
+    assert response.status_code == 400
+    data = json.loads(response.data)
+    assert data['ok'] is False
+    assert 'Product is inactive' in data['error']
+
+
+def test_api_product_stock_valid_current_stock(admin_client, mock_mongo):
+    """Valid product returns current stock and details."""
+    db = mock_mongo['inventory_test_db']
+    db.products.insert_one({
+        "product_name": "Stock Test Product",
+        "product_name_lower": "stock test product",
+        "category": "Electronics",
+        "quantity": 42,
+        "price": 123.45,
+        "gst_rate": 18,
+        "unit": "PCS",
+        "hsn_code": "8471",
+        "location": "Warehouse 1",
+        "is_active": True,
+    })
+    
+    response = admin_client.get('/api/products/stock?name=Stock Test Product')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['ok'] is True
+    assert data['name'] == 'Stock Test Product'
+    assert data['stock'] == 42.0
+    assert data['unit'] == 'PCS'
+    assert data['status'] == 'IN STOCK'
+    assert data['price'] == 123.45
+    assert data['gst'] == 18.0
+
+
+def test_api_product_stock_insufficient_current_stock(admin_client, mock_mongo):
+    """Product with low stock returns correct quantity."""
+    db = mock_mongo['inventory_test_db']
+    db.products.insert_one({
+        "product_name": "Low Stock Product",
+        "product_name_lower": "low stock product",
+        "category": "Electronics",
+        "quantity": 2,
+        "price": 50.0,
+        "gst_rate": 12,
+        "unit": "PCS",
+        "hsn_code": "8471",
+        "location": "Warehouse 1",
+        "is_active": True,
+    })
+    
+    response = admin_client.get('/api/products/stock?name=Low Stock Product')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['ok'] is True
+    assert data['stock'] == 2.0
+    assert data['status'] == 'LOW STOCK'
+
+
+def test_api_product_stock_out_of_stock(admin_client, mock_mongo):
+    """Product with zero stock returns OUT OF STOCK status."""
+    db = mock_mongo['inventory_test_db']
+    db.products.insert_one({
+        "product_name": "Out of Stock Product",
+        "product_name_lower": "out of stock product",
+        "category": "Electronics",
+        "quantity": 0,
+        "price": 100.0,
+        "gst_rate": 18,
+        "unit": "PCS",
+        "hsn_code": "8471",
+        "location": "Warehouse 1",
+        "is_active": True,
+    })
+    
+    response = admin_client.get('/api/products/stock?name=Out of Stock Product')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['ok'] is True
+    assert data['stock'] == 0.0
+    assert data['status'] == 'OUT OF STOCK'
+
+
+def test_api_product_stock_concurrent_deduction_scenario(admin_client, mock_mongo):
+    """Stock check reflects concurrent deduction (bypasses cache)."""
+    db = mock_mongo['inventory_test_db']
+    # Insert product with initial stock
+    db.products.insert_one({
+        "product_name": "Concurrent Product",
+        "product_name_lower": "concurrent product",
+        "category": "Electronics",
+        "quantity": 10,
+        "price": 100.0,
+        "gst_rate": 18,
+        "unit": "PCS",
+        "hsn_code": "8471",
+        "location": "Warehouse 1",
+        "is_active": True,
+    })
+    
+    # First check - should see 10
+    response = admin_client.get('/api/products/stock?name=Concurrent Product')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['stock'] == 10.0
+    
+    # Simulate concurrent deduction (direct DB update, bypassing cache)
+    db.products.update_one(
+        {"product_name": "Concurrent Product"},
+        {"$inc": {"quantity": -3}}
+    )
+    
+    # Second check - should see 7 (bypasses cache)
+    response = admin_client.get('/api/products/stock?name=Concurrent Product')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['stock'] == 7.0
+    assert data['status'] == 'IN STOCK'

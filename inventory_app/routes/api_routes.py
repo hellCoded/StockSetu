@@ -36,6 +36,32 @@ def api_product_search():
     return jsonify({'items': items, 'total': total, 'page': page, 'per_page': per_page})
 
 
+@api_bp.route('/products/stock')
+@login_required
+def api_product_stock():
+    """Real-time stock check for a single product — bypasses cache.
+    Returns current quantity, stock status, and unit.
+    """
+    from inventory_app.services.product_service import get_product_by_name
+    name = request.args.get('name', '').strip()
+    if not name:
+        return jsonify({'ok': False, 'error': 'Product name required'}), 400
+    product = get_product_by_name(name, bypass_cache=True)
+    if not product:
+        return jsonify({'ok': False, 'error': 'Product not found', 'name': name}), 404
+    if not product.get('is_active', True):
+        return jsonify({'ok': False, 'error': 'Product is inactive', 'name': name}), 400
+    return jsonify({
+        'ok': True,
+        'name': product.get('product_name', ''),
+        'stock': float(product.get('quantity', 0)),
+        'unit': product.get('unit', ''),
+        'status': product.get('status', 'OUT OF STOCK'),
+        'price': round(float(product.get('price', 0)), 2),
+        'gst': float(product.get('gst_rate', 0) or 0),
+    })
+
+
 @api_bp.route('/employees/list')
 @login_required
 def api_employee_list():
