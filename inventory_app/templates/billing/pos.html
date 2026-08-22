@@ -1123,6 +1123,234 @@
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.28);
 }
 
+/* ── Split Payment UI ── */
+.cart-split-payment {
+  background: var(--color-surface-container);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-md, 8px);
+  padding: 0.6rem;
+  margin-top: 0.35rem;
+  animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.split-payment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--color-on-surface);
+  letter-spacing: 0.02em;
+}
+.split-payment-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.split-payment-toggle {
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-xs, 4px);
+  padding: 0.18rem 0.45rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
+}
+.split-payment-toggle:hover {
+  background: var(--color-danger-bg, #fee2e2);
+  color: var(--color-danger, #dc2626);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+.split-payment-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.split-payment-row {
+  display: grid;
+  grid-template-columns: 110px 85px 1fr 28px;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--color-surface);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-sm, 6px);
+  padding: 0.3rem 0.4rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.split-payment-row:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+.split-payment-row select,
+.split-payment-row input {
+  font-size: 0.72rem;
+  height: 28px;
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-xs, 4px);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  padding: 0 0.35rem;
+  box-sizing: border-box;
+}
+.split-payment-row select {
+  font-weight: 600;
+}
+.split-payment-row select:focus,
+.split-payment-row input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.split-payment-row input[type="number"] {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.split-payment-row input[type="number"]::-webkit-inner-spin-button,
+.split-payment-row input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.split-payment-row input[type="text"] {
+  min-width: 0;
+}
+.split-payment-row .split-remove-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  border: 1px solid transparent;
+  border-radius: var(--r-xs, 4px);
+  padding: 0;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.split-payment-row .split-remove-btn:hover:not(:disabled) {
+  background: var(--color-danger-bg, #fee2e2);
+  color: var(--color-danger, #dc2626);
+  border-color: rgba(220, 38, 38, 0.25);
+}
+.split-payment-row .split-remove-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.split-payment-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--pos-border);
+  border-radius: var(--r-xs, 4px);
+}
+.split-total-row,
+.split-remaining-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+.split-total-row .val {
+  color: var(--color-on-surface);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.split-remaining-row .val {
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+.split-status-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.08rem 0.35rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.split-status-badge.matched {
+  background: var(--color-success-bg, #dcfce7);
+  color: var(--color-success-text, #15803d);
+  border: 1px solid rgba(21, 128, 61, 0.25);
+}
+.split-status-badge.pending {
+  background: var(--color-warning-bg, #fef3c7);
+  color: var(--color-warning-text, #92400e);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+.split-status-badge.excess {
+  background: var(--color-danger-bg, #fee2e2);
+  color: var(--color-danger, #dc2626);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+.split-add-row-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px dashed var(--pos-border);
+  border-radius: var(--r-sm, 6px);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.split-add-row-btn:hover {
+  border-color: var(--color-primary);
+  border-style: solid;
+  background: var(--color-primary-light);
+}
+.split-enable-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  border: 1.5px dashed var(--pos-border);
+  border-radius: var(--r-sm, 6px);
+  background: var(--color-surface);
+  color: var(--color-on-surface-variant);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+}
+.split-enable-btn:hover {
+  border-color: var(--color-primary);
+  border-style: solid;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+@media (max-width: 480px) {
+  .split-payment-row {
+    grid-template-columns: 1fr 1fr 28px;
+  }
+  .split-payment-row input[name="payment_split_reference[]"] {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ── Charges Row — Refined Inline Inputs ── */
 .cart-charges-inline {
   display: flex;
@@ -2107,6 +2335,39 @@
           <label class="q-pay-opt q-pay-salary" id="opt-salary-deduction" style="display: none;"><input type="radio" name="payment_method" value="SALARY_DEDUCTION"><i class="ri-wallet-3-line"></i> Salary Ded.</label>
         </div>
 
+        <!-- Split Payment Toggle & Rows -->
+        <div class="cart-split-payment" id="cart-split-payment" style="display: none;">
+          <div class="split-payment-header">
+            <span><i class="ri-scales-3-line" style="color: var(--color-primary);"></i> Split Payment</span>
+            <button type="button" class="split-payment-toggle" id="split-payment-toggle" title="Cancel split payment and return to single method">
+              <i class="ri-close-line"></i> Cancel Split
+            </button>
+          </div>
+          <div class="split-payment-rows" id="split-payment-rows">
+            <!-- Rows added dynamically -->
+          </div>
+          <div class="split-payment-summary">
+            <div class="split-total-row">
+              <span>Total Allocated</span>
+              <span class="val" id="split-total">&#8377;0.00</span>
+            </div>
+            <div class="split-remaining-row" id="split-remaining-row">
+              <span>Remaining Balance</span>
+              <div style="display: flex; align-items: center; gap: 0.35rem;">
+                <span class="val" id="split-remaining">&#8377;0.00</span>
+                <span class="split-status-badge pending" id="split-status-badge">Pending</span>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="split-add-row-btn" id="split-add-row" title="Add another payment method">
+            <i class="ri-add-line"></i> Add Payment Method
+          </button>
+        </div>
+
+        <button type="button" class="split-enable-btn" id="split-enable-btn" title="Enable split payment across multiple methods">
+          <i class="ri-scales-3-line"></i> Split Payment Across Methods
+        </button>
+
         <div class="cart-charges-inline">
           <div>
             <span>Disc%</span>
@@ -2645,17 +2906,205 @@
   function updatePaymentUI() {
     const checkedRadio = document.querySelector('input[name="payment_method"]:checked');
     const dueDateRow = document.getElementById('due-date-row');
-    if (dueDateRow) {
+    if (!splitMode && dueDateRow) {
       dueDateRow.style.display = (checkedRadio && checkedRadio.value === 'CREDIT') ? 'flex' : 'none';
     }
     document.querySelectorAll('.q-pay-opt').forEach(opt => {
       const radio = opt.querySelector('input');
       opt.classList.toggle('is-active', radio && radio.checked);
     });
+    if (splitMode) {
+      updateSplitSummary();
+    }
   }
   document.querySelectorAll('input[name="payment_method"]').forEach(r => {
-    r.addEventListener('change', updatePaymentUI);
+    r.addEventListener('change', function() {
+      if (splitMode) {
+        toggleSplitMode(false);
+      }
+      updatePaymentUI();
+    });
   });
+
+  /* ── Split Payment Logic ── */
+  let splitMode = false;
+  let splitRowId = 0;
+
+  function toggleSplitMode(enable) {
+    splitMode = !!enable;
+    const splitContainer = document.getElementById('cart-split-payment');
+    const enableBtn = document.getElementById('split-enable-btn');
+    const paymentMethods = document.querySelector('.cart-payment-methods');
+    const dueDateRow = document.getElementById('due-date-row');
+
+    if (splitMode) {
+      if (splitContainer) splitContainer.style.display = 'flex';
+      if (enableBtn) enableBtn.style.display = 'none';
+      if (paymentMethods) paymentMethods.style.display = 'none';
+
+      // Clear any selected single payment method
+      document.querySelectorAll('input[name="payment_method"]').forEach(r => r.checked = false);
+      document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.remove('is-active'));
+
+      // If no rows, initialize with first 2 rows intelligently
+      const rowsContainer = document.getElementById('split-payment-rows');
+      if (rowsContainer && rowsContainer.children.length === 0) {
+        const grandTotal = window.__currentGrandTotal || 0;
+        addSplitRow('CASH', grandTotal > 0 ? (grandTotal / 2).toFixed(2) : '');
+        addSplitRow('UPI', grandTotal > 0 ? (grandTotal - (grandTotal / 2)).toFixed(2) : '');
+      } else {
+        updateSplitSummary();
+      }
+    } else {
+      if (splitContainer) splitContainer.style.display = 'none';
+      if (enableBtn) enableBtn.style.display = 'inline-flex';
+      if (paymentMethods) paymentMethods.style.display = 'flex';
+
+      // Clear split rows
+      const rowsContainer = document.getElementById('split-payment-rows');
+      if (rowsContainer) rowsContainer.innerHTML = '';
+
+      // Default back to CASH if none selected
+      const cashRadio = document.querySelector('.q-pay-cash input');
+      if (cashRadio) {
+        cashRadio.checked = true;
+        document.querySelectorAll('.q-pay-opt').forEach(opt => opt.classList.toggle('is-active', opt.querySelector('input') === cashRadio));
+      }
+      if (dueDateRow) dueDateRow.style.display = 'none';
+      updateSplitSummary();
+    }
+  }
+
+  function addSplitRow(method, amount, reference) {
+    const rowsContainer = document.getElementById('split-payment-rows');
+    if (!rowsContainer) return;
+    const rowId = ++splitRowId;
+    const grandTotal = window.__currentGrandTotal || 0;
+
+    // Calculate current allocated total to auto-fill remaining
+    let currentAllocated = 0;
+    document.querySelectorAll('.split-payment-row input[name="payment_split_amount[]"]').forEach(inp => {
+      currentAllocated += parseFloat(inp.value) || 0;
+    });
+    const remaining = Math.max(0, grandTotal - currentAllocated);
+
+    const defaultMethod = method || (rowsContainer.children.length === 0 ? 'CASH' : (rowsContainer.children.length === 1 ? 'UPI' : 'CARD'));
+    const defaultAmount = amount !== undefined && amount !== null && amount !== '' ? amount : (remaining > 0 ? remaining.toFixed(2) : '');
+
+    const isEmployee = selectedCustomer && selectedCustomer.type === 'employee';
+
+    const row = document.createElement('div');
+    row.className = 'split-payment-row';
+    row.dataset.rowId = rowId;
+    row.innerHTML =
+      '<select name="payment_split_method[]" required aria-label="Payment method">' +
+        '<option value="CASH"' + (defaultMethod === 'CASH' ? ' selected' : '') + '>Cash</option>' +
+        '<option value="UPI"' + (defaultMethod === 'UPI' ? ' selected' : '') + '>UPI</option>' +
+        '<option value="CARD"' + (defaultMethod === 'CARD' ? ' selected' : '') + '>Card</option>' +
+        '<option value="CREDIT"' + (defaultMethod === 'CREDIT' ? ' selected' : '') + '>Credit</option>' +
+        (isEmployee ? '<option value="SALARY_DEDUCTION"' + (defaultMethod === 'SALARY_DEDUCTION' ? ' selected' : '') + '>Salary Ded.</option>' : '') +
+      '</select>' +
+      '<input type="number" name="payment_split_amount[]" step="0.01" min="0.01" value="' + defaultAmount + '" placeholder="0.00" required aria-label="Amount">' +
+      '<input type="text" name="payment_split_reference[]" value="' + esc(reference || '') + '" placeholder="Ref (opt)" aria-label="Reference">' +
+      '<button type="button" class="split-remove-btn" onclick="window.__posRemoveSplitRow(' + rowId + ')" title="Remove payment method"><i class="ri-delete-bin-line"></i></button>';
+
+    rowsContainer.appendChild(row);
+
+    // Sync listeners
+    row.querySelectorAll('select, input').forEach(el => {
+      el.addEventListener('input', updateSplitSummary);
+      el.addEventListener('change', updateSplitSummary);
+    });
+
+    updateSplitRemoveButtons();
+    updateSplitSummary();
+
+    // Auto-focus amount input on added row
+    const amtInput = row.querySelector('input[name="payment_split_amount[]"]');
+    if (amtInput) {
+      setTimeout(() => {
+        amtInput.focus();
+        amtInput.select();
+      }, 50);
+    }
+  }
+
+  function removeSplitRow(rowId) {
+    const rows = document.querySelectorAll('.split-payment-row');
+    if (rows.length <= 1) {
+      posToast('At least one payment row is required in split mode', 'info');
+      return;
+    }
+    const row = document.querySelector('.split-payment-row[data-row-id="' + rowId + '"]');
+    if (row) row.remove();
+    updateSplitRemoveButtons();
+    updateSplitSummary();
+  }
+  window.__posRemoveSplitRow = removeSplitRow;
+
+  function updateSplitRemoveButtons() {
+    const rows = document.querySelectorAll('.split-payment-row');
+    rows.forEach(r => {
+      const btn = r.querySelector('.split-remove-btn');
+      if (btn) btn.disabled = (rows.length <= 1);
+    });
+  }
+
+  function updateSplitSummary() {
+    if (!splitMode) return;
+    const rows = document.querySelectorAll('.split-payment-row');
+    let total = 0;
+    let hasCredit = false;
+
+    rows.forEach(row => {
+      const methodSelect = row.querySelector('select[name="payment_split_method[]"]');
+      const amountInput = row.querySelector('input[name="payment_split_amount[]"]');
+      if (methodSelect && methodSelect.value === 'CREDIT') hasCredit = true;
+      if (amountInput && amountInput.value) {
+        total += parseFloat(amountInput.value) || 0;
+      }
+    });
+
+    const dueDateRow = document.getElementById('due-date-row');
+    if (dueDateRow) {
+      dueDateRow.style.display = hasCredit ? 'flex' : 'none';
+    }
+
+    const grandTotal = window.__currentGrandTotal || 0;
+    const remaining = Math.round((grandTotal - total + Number.EPSILON) * 100) / 100;
+    const totalEl = document.getElementById('split-total');
+    const remainingEl = document.getElementById('split-remaining');
+    const statusBadge = document.getElementById('split-status-badge');
+
+    if (totalEl) totalEl.textContent = fmt(total);
+
+    if (remainingEl && statusBadge) {
+      if (Math.abs(remaining) <= 0.01) {
+        remainingEl.textContent = '₹0.00';
+        remainingEl.style.color = 'var(--color-success-text, #15803d)';
+        statusBadge.className = 'split-status-badge matched';
+        statusBadge.innerHTML = '<i class="ri-checkbox-circle-line"></i> Exact match';
+      } else if (remaining > 0.01) {
+        remainingEl.textContent = fmt(remaining);
+        remainingEl.style.color = 'var(--color-warning-text, #d97706)';
+        statusBadge.className = 'split-status-badge pending';
+        statusBadge.innerHTML = '<i class="ri-time-line"></i> Remaining';
+      } else {
+        remainingEl.textContent = fmt(Math.abs(remaining)) + ' excess';
+        remainingEl.style.color = 'var(--color-danger, #dc2626)';
+        statusBadge.className = 'split-status-badge excess';
+        statusBadge.innerHTML = '<i class="ri-alert-line"></i> Overpaid';
+      }
+    }
+  }
+
+  // Initialize split payment toggle
+  const splitEnableBtn = document.getElementById('split-enable-btn');
+  const splitToggleBtn = document.getElementById('split-payment-toggle');
+  const splitAddRowBtn = document.getElementById('split-add-row');
+  if (splitEnableBtn) splitEnableBtn.addEventListener('click', () => toggleSplitMode(true));
+  if (splitToggleBtn) splitToggleBtn.addEventListener('click', () => toggleSplitMode(false));
+  if (splitAddRowBtn) splitAddRowBtn.addEventListener('click', () => addSplitRow());
 
   /* ── Live Clock ── */
   const clockEl = document.getElementById('pos-clock');
@@ -3616,26 +4065,68 @@
     }
     const custName = (custNameInput && custNameInput.value) || (selectedCustomer && selectedCustomer.name) || 'Walk-in Customer';
 
-    const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
+    const grandTotal = window.__currentGrandTotal || 0;
 
-    if (method === 'UPI') {
-      const modal = document.getElementById('pos-upi-modal');
-      const upiAmt = document.getElementById('upi-modal-amount');
-      const upiCust = document.getElementById('upi-modal-customer');
-      const upiImg = document.getElementById('upi-modal-qr-img');
-      const currentTotal = window.__currentGrandTotal || 0;
-
-      if (upiAmt) upiAmt.textContent = '₹' + currentTotal.toFixed(2);
-      if (upiCust) upiCust.textContent = 'Customer: ' + custName;
-      if (upiImg) {
-        const payload = 'upi://pay?pa=stocksetu@upi&pn=StockSetu&am=' + currentTotal.toFixed(2) + '&cu=INR&tn=POS%20Bill';
-        upiImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(payload);
+    if (splitMode) {
+      /* Validate split payments */
+      const rows = document.querySelectorAll('.split-payment-row');
+      if (rows.length === 0) {
+        posToast('Add at least one payment method', 'warning');
+        return;
       }
-      if (modal) modal.classList.add('active');
-    } else {
+      let hasEmpty = false;
+      let zeroOrNegative = false;
+      let totalSplit = 0;
+      rows.forEach(row => {
+        const method = (row.querySelector('select[name="payment_split_method[]"]') || {}).value;
+        const amountStr = (row.querySelector('input[name="payment_split_amount[]"]') || {}).value;
+        const amount = parseFloat(amountStr);
+        if (!method || !amountStr) hasEmpty = true;
+        else if (isNaN(amount) || amount <= 0) zeroOrNegative = true;
+        else totalSplit += amount;
+      });
+      if (hasEmpty) {
+        posToast('Complete all payment method and amount fields', 'warning');
+        return;
+      }
+      if (zeroOrNegative) {
+        posToast('Payment amounts must be greater than zero', 'warning');
+        return;
+      }
+      const remaining = Math.round((grandTotal - totalSplit + Number.EPSILON) * 100) / 100;
+      if (Math.abs(remaining) > 0.01) {
+        if (remaining > 0.01) {
+          posToast('Remaining balance of ' + fmt(remaining) + ' must be allocated', 'warning');
+        } else {
+          posToast('Split total exceeds grand total by ' + fmt(Math.abs(remaining)), 'warning');
+        }
+        return;
+      }
+      // Valid - proceed with form submission
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> <span class="q-submit-text">Billing...</span>';
       submitBillForm();
+    } else {
+      const method = (document.querySelector('input[name="payment_method"]:checked') || {}).value || 'CASH';
+
+      if (method === 'UPI') {
+        const modal = document.getElementById('pos-upi-modal');
+        const upiAmt = document.getElementById('upi-modal-amount');
+        const upiCust = document.getElementById('upi-modal-customer');
+        const upiImg = document.getElementById('upi-modal-qr-img');
+
+        if (upiAmt) upiAmt.textContent = '₹' + grandTotal.toFixed(2);
+        if (upiCust) upiCust.textContent = 'Customer: ' + custName;
+        if (upiImg) {
+          const payload = 'upi://pay?pa=stocksetu@upi&pn=StockSetu&am=' + grandTotal.toFixed(2) + '&cu=INR&tn=POS%20Bill';
+          upiImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(payload);
+        }
+        if (modal) modal.classList.add('active');
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> <span class="q-submit-text">Billing...</span>';
+        submitBillForm();
+      }
     }
   });
 
