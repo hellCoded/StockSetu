@@ -1,4 +1,5 @@
 """API endpoints for AJAX consumption — product search, employee lookup, cart persistence."""
+import re
 from flask import Blueprint, jsonify, request, session
 from inventory_app.utils.decorators import login_required, roles_required
 from inventory_app.utils.validators import validate_cart_data
@@ -79,6 +80,73 @@ def api_employee_list():
         for e in employees
     ]
     return jsonify({'employees': items})
+
+
+@api_bp.route('/customers/search')
+@login_required
+def api_customer_search():
+    """Search existing customers from past invoices.
+    Searches by name, phone, or GSTIN across invoice history.
+    Returns unique customers with their details for POS checkout.
+    """
+    from inventory_app.database import get_db
+    q = request.args.get('q', '').strip()
+    limit = min(int(request.args.get('limit', 10)), 20)
+
+    if not q or len(q) < 2:
+        return jsonify({'customers': []})
+
+    db = get_db()
+    # Build search query - search across name, phone, GSTIN
+    escaped = re.escape(q)
+    search_filter = {
+        '$or': [
+            {'customer_name_lower': {'$regex': escaped, '$options': 'i'}},
+            {'customer_phone': {'$regex': escaped}},
+            {'customer_gstin': {'$regex': escaped, '$options': 'i'}},
+        ]
+    }
+
+    # Aggregate unique customers from invoices
+    pipeline = [
+        {'$match': search_filter},
+        {'$sort': {'created_at': -1}},  # Most recent first
+        {'$group': {
+            '_id': {
+                'name': '$customer_name',
+                'phone': '$customer_phone',
+                'gstin': '$customer_gstin',
+            },
+            'last_visit': {'$first': '$created_at'},
+            'visit_count': {'$sum': 1},
+            'total_spent': {'$sum': '$grand_total'},
+        }},
+        {'$limit': limit},
+        {'$project': {
+            '_id': 0,
+            'name': '$_id.name',
+            'phone': '$_id.phone',
+            'gstin': '$_id.gstin',
+            'last_visit': 1,
+            'visit_count': 1,
+            'total_spent': 1,
+        }},
+    ]
+    customers = list(db.invoices.aggregate(pipeline))
+
+    # Format for POS
+    items = []
+    for c in customers:
+        items.append({
+            'name': c.get('name', ''),
+            'phone': c.get('phone', ''),
+            'gstin': c.get('gstin', ''),
+            'last_visit': c.get('last_visit').isoformat() if c.get('last_visit') else None,
+            'visit_count': c.get('visit_count', 0),
+            'total_spent': round(float(c.get('total_spent', 0)), 2),
+        })
+
+    return jsonify({'customers': items})
 
 
 @api_bp.route('/cart/save', methods=['POST'])

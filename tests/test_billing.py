@@ -491,3 +491,184 @@ def test_profile_displays_employee_purchases(staff_client, mock_mongo):
     assert b"My Store Purchases" in profile_resp.data
     assert b"Salary Deduction" in profile_resp.data
     assert b"Profile Cement" in profile_resp.data
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Split Payment Tests
+# ──────────────────────────────────────────────────────────────────────
+
+def test_single_payment_still_works(staff_client, mock_mongo):
+    """Single payment (existing behavior) should continue working."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Single Pay Item", price=1000.0, gst=18)
+
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Single Pay Customer',
+        'payment_method': 'CASH',
+        'item_name[]': ['Single Pay Item'],
+        'item_quantity[]': ['1'],
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    bill = db.invoices.find_one({"customer_name": "Single Pay Customer"})
+    assert bill is not None
+    assert bill["payment_method"] == "CASH"
+    assert bill["payment_status"] == "PAID"
+    assert bill["amount_paid"] == bill["grand_total"]
+    assert bill.get("payment_splits", []) == []
+
+
+def test_two_way_split_payment(staff_client, mock_mongo):
+    """Two-way split payment (e.g., Cash + UPI)."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Split Item", price=1000.0, gst=18)
+    # Grand total: 1000 * 1.18 = 1180
+
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Split Customer',
+        'payment_method': 'CASH',  # fallback, not used when splits provided
+        'item_name[]': ['Split Item'],
+        'item_quantity[]': ['1'],
+        'payment_split_method[]': ['CASH', 'UPI'],
+        'payment_split_amount[]': ['700', '480'],
+        'payment_split_reference[]': ['CASH-001', 'UPI-123'],
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    bill = db.invoices.find_one({"customer_name": "Split Customer"})
+    assert bill is not None
+    assert bill["payment_status"] == "PAID"
+    assert bill["amount_paid"] == bill["grand_total"]
+    assert "payment_splits" in bill
+    splits = bill["payment_splits"]
+    assert len(splits) == 2
+    assert splits[0]["method"] == "CASH"
+    assert splits[0]["amount"] == 700.0
+    assert splits[0]["reference"] == "CASH-001"
+    assert splits[1]["method"] == "UPI"
+    assert splits[1]["amount"] == 480.0
+    assert splits[1]["reference"] == "UPI-123"
+    # Check bill_payments records
+    payments = list(db.bill_payments.find({"bill_id": bill["_id"]}))
+    assert len(payments) == 2
+    assert {p["method"] for p in payments} == {"CASH", "UPI"}
+
+
+def test_three_way_split_payment(staff_client, mock_mongo):
+    """Three-way split payment (Cash + Card + UPI)."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Three Way Item", price=1000.0, gst=18)
+    # Grand total: 1180
+
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Three Way Customer',
+        'payment_method': 'CASH',
+        'item_name[]': ['Three Way Item'],
+        'item_quantity[]': ['1'],
+        'payment_split_method[]': ['CASH', 'CARD', 'UPI'],
+        'payment_split_amount[]': ['500', '400', '280'],
+        'payment_split_reference[]': ['', 'CARD-456', ''],
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    bill = db.invoices.find_one({"customer_name": "Three Way Customer"})
+    assert bill is not None
+    assert bill["payment_status"] == "PAID"
+    splits = bill["payment_splits"]
+    assert len(splits) == 3
+    methods = [s["method"] for s in splits]
+    assert "CASH" in methods
+    assert "CARD" in methods
+    assert "UPI" in methods
+    # Sum of splits equals grand total
+    assert sum(s["amount"] for s in splits) == bill["grand_total"]
+
+
+def test_incorrect_split_total_rejected(staff_client, mock_mongo):
+    """Split total not matching grand total should be rejected."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Bad Split Item", price=1000.0, gst=18)
+    # Grand total: 1180
+
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Bad Split Customer',
+        'payment_method': 'CASH',
+        'item_name[]': ['Bad Split Item'],
+        'item_quantity[]': ['1'],
+        'payment_split_method[]': ['CASH', 'UPI'],
+        'payment_split_amount[]': ['500', '500'],  # Total 1000, not 1180
+        'payment_split_reference[]': ['', ''],
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    assert b"Total payment" in resp.data or b"exceeds grand total" in resp.data or b"must equal" in resp.data.lower()
+    assert db.invoices.count_documents({"customer_name": "Bad Split Customer"}) == 0
+
+
+def test_invalid_split_method_rejected(staff_client, mock_mongo):
+    """Invalid payment method in split should be rejected."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Invalid Method Item", price=1000.0, gst=18)
+
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Invalid Method Customer',
+        'payment_method': 'CASH',
+        'item_name[]': ['Invalid Method Item'],
+        'item_quantity[]': ['1'],
+        'payment_split_method[]': ['CASH', 'BITCOIN'],  # Invalid method
+        'payment_split_amount[]': ['600', '580'],
+        'payment_split_reference[]': ['', ''],
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    # Should reject due to invalid method
+    assert db.invoices.count_documents({"customer_name": "Invalid Method Customer"}) == 0
+
+
+def test_zero_negative_split_amount_rejected(staff_client, mock_mongo):
+    """Zero or negative split amounts should be rejected."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Zero Amount Item", price=1000.0, gst=18)
+
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Zero Amount Customer',
+        'payment_method': 'CASH',
+        'item_name[]': ['Zero Amount Item'],
+        'item_quantity[]': ['1'],
+        'payment_split_method[]': ['CASH', 'UPI'],
+        'payment_split_amount[]': ['0', '1180'],  # Zero amount
+        'payment_split_reference[]': ['', ''],
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    assert db.invoices.count_documents({"customer_name": "Zero Amount Customer"}) == 0
+
+
+def test_split_payment_status_calculated_correctly(staff_client, mock_mongo):
+    """Payment status should be PAID when splits cover full amount."""
+    db = mock_mongo['inventory_test_db']
+    _seed_product(db, name="Status Item", price=1000.0, gst=18)
+
+    resp = staff_client.post('/billing/create', data={
+        'csrf_token': 'x',
+        'customer_name': 'Status Customer',
+        'payment_method': 'CASH',
+        'item_name[]': ['Status Item'],
+        'item_quantity[]': ['1'],
+        'payment_split_method[]': ['CASH', 'CARD'],
+        'payment_split_amount[]': ['600', '580'],
+        'payment_split_reference[]': ['', ''],
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    bill = db.invoices.find_one({"customer_name": "Status Customer"})
+    assert bill is not None
+    assert bill["payment_status"] == "PAID"
+    assert bill["amount_paid"] == bill["grand_total"]
+    assert bill["amount_due"] == 0.0

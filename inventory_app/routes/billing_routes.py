@@ -126,10 +126,27 @@ def create_bill():
         'packing_charge': request.form.get('packing_charge', '0'),
     }
 
+    # Parse payment splits if provided
+    payment_splits = []
+    split_methods = request.form.getlist('payment_split_method[]')
+    split_amounts = request.form.getlist('payment_split_amount[]')
+    split_references = request.form.getlist('payment_split_reference[]')
+    if split_methods and split_amounts:
+        for i, method in enumerate(split_methods):
+            if method.strip():
+                amount = split_amounts[i] if i < len(split_amounts) else '0'
+                reference = split_references[i] if i < len(split_references) else ''
+                payment_splits.append({
+                    'method': method.strip().upper(),
+                    'amount': amount,
+                    'reference': reference.strip() if reference else '',
+                })
+
     performed_by = session.get('employee_id') or session.get('name') or 'System'
     success, msg, bill = create_bill(
         customer_data, items, performed_by=performed_by,
         charges=charges,
+        payment_splits=payment_splits if payment_splits else None,
     )
 
     if success:

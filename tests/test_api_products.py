@@ -1,6 +1,7 @@
 """Tests for /api/products/search."""
 import json
 import pytest
+from datetime import datetime, timezone
 
 
 def test_api_products_search_requires_auth(client):
@@ -425,3 +426,161 @@ def test_api_product_stock_concurrent_deduction_scenario(admin_client, mock_mong
     data = json.loads(response.data)
     assert data['stock'] == 7.0
     assert data['status'] == 'IN STOCK'
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Customer Search (/api/customers/search)
+# ──────────────────────────────────────────────────────────────────────
+
+def test_api_customer_search_requires_auth(client):
+    """Unauthenticated request should be rejected."""
+    response = client.get('/api/customers/search?q=test')
+    assert response.status_code == 302  # Redirect to login
+
+
+def test_api_customer_search_missing_query(admin_client, mock_mongo):
+    """Missing or too short query returns empty list."""
+    # Too short query
+    response = admin_client.get('/api/customers/search?q=a')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['customers'] == []
+    
+    # No query
+    response = admin_client.get('/api/customers/search')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['customers'] == []
+
+
+def test_api_customer_search_by_name(admin_client, mock_mongo):
+    """Search customers by name from invoice history."""
+    db = mock_mongo['inventory_test_db']
+    # Create invoices with customer data
+    now = datetime.now(timezone.utc)
+    db.invoices.insert_many([
+        {
+            "bill_number": "INV/001",
+            "customer_name": "John Smith",
+            "customer_name_lower": "john smith",
+            "customer_phone": "9876543210",
+            "customer_gstin": "27ABCDE1234F1Z5",
+            "grand_total": 1000.0,
+            "created_at": now,
+        },
+        {
+            "bill_number": "INV/002",
+            "customer_name": "John Doe",
+            "customer_name_lower": "john doe",
+            "customer_phone": "9876543211",
+            "customer_gstin": "",
+            "grand_total": 2000.0,
+            "created_at": now,
+        },
+        {
+            "bill_number": "INV/003",
+            "customer_name": "Jane Smith",
+            "customer_name_lower": "jane smith",
+            "customer_phone": "9876543212",
+            "customer_gstin": "27ABCDE1234F1Z6",
+            "grand_total": 1500.0,
+            "created_at": now,
+        },
+    ])
+    
+    # Search by name "john" - should return both Johns
+    response = admin_client.get('/api/customers/search?q=john')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert len(data['customers']) == 2
+    names = {c['name'] for c in data['customers']}
+    assert 'John Smith' in names
+    assert 'John Doe' in names
+    
+    # Search by "smith" - should return both Smiths
+    response = admin_client.get('/api/customers/search?q=smith')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert len(data['customers']) == 2
+    names = {c['name'] for c in data['customers']}
+    assert 'John Smith' in names
+    assert 'Jane Smith' in names
+
+
+def test_api_customer_search_by_phone(admin_client, mock_mongo):
+    """Search customers by phone number."""
+    db = mock_mongo['inventory_test_db']
+    now = datetime.now(timezone.utc)
+    db.invoices.insert_one({
+        "bill_number": "INV/001",
+        "customer_name": "Phone Customer",
+        "customer_name_lower": "phone customer",
+        "customer_phone": "9999988888",
+        "customer_gstin": "",
+        "grand_total": 1000.0,
+        "created_at": now,
+    })
+    
+    response = admin_client.get('/api/customers/search?q=9999988888')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert len(data['customers']) == 1
+    assert data['customers'][0]['name'] == 'Phone Customer'
+    assert data['customers'][0]['phone'] == '9999988888'
+
+
+def test_api_customer_search_by_gstin(admin_client, mock_mongo):
+    """Search customers by GSTIN."""
+    db = mock_mongo['inventory_test_db']
+    now = datetime.now(timezone.utc)
+    db.invoices.insert_one({
+        "bill_number": "INV/001",
+        "customer_name": "GST Customer",
+        "customer_name_lower": "gst customer",
+        "customer_phone": "9876543210",
+        "customer_gstin": "27ABCDE1234F1Z5",
+        "grand_total": 1000.0,
+        "created_at": now,
+    })
+    
+    response = admin_client.get('/api/customers/search?q=27ABCDE1234F1Z5')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert len(data['customers']) == 1
+    assert data['customers'][0]['name'] == 'GST Customer'
+    assert data['customers'][0]['gstin'] == '27ABCDE1234F1Z5'
+
+
+def test_api_customer_search_result_limit(admin_client, mock_mongo):
+    """Results are limited to max 10 (or specified limit)."""
+    db = mock_mongo['inventory_test_db']
+    now = datetime.now(timezone.utc)
+    # Create 15 customers with similar names
+    for i in range(15):
+        db.invoices.insert_one({
+            "bill_number": f"INV/{i:03d}",
+            "customer_name": f"Customer {i}",
+            "customer_name_lower": f"customer {i}",
+            "customer_phone": f"98765432{i:02d}",
+            "customer_gstin": "",
+            "grand_total": 1000.0,
+            "created_at": now,
+        })
+    
+    # Default limit (10)
+    response = admin_client.get('/api/customers/search?q=customer')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert len(data['customers']) <= 10
+    
+    # Custom limit (5)
+    response = admin_client.get('/api/customers/search?q=customer&limit=5')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert len(data['customers']) == 5
+
+
+def test_api_customer_search_unauthorized(client):
+    """Unauthenticated access is rejected."""
+    response = client.get('/api/customers/search?q=test')
+    assert response.status_code == 302  # Redirect to login

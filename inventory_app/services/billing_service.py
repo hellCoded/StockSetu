@@ -258,17 +258,31 @@ def compute_bill(customer_data: dict, items_with_products: list,
     grand_total = _round2(grand_raw + round_off)
 
     # ── Payment splits ──
+    VALID_METHODS = ('CASH', 'UPI', 'CARD', 'CREDIT', 'SALARY_DEDUCTION')
     if payment_splits and isinstance(payment_splits, list) and len(payment_splits) > 0:
         total_paid = 0.0
+        validated_splits = []
         for s in payment_splits:
+            method = (s.get('method') or '').strip().upper()
+            if method not in VALID_METHODS:
+                return False, f"Invalid payment method '{method}'. Must be one of: {', '.join(VALID_METHODS)}.", {}
             try:
-                total_paid = _round2(total_paid + float(s.get('amount', 0)))
+                amount = _round2(float(s.get('amount', 0)))
             except (ValueError, TypeError):
-                pass
+                return False, "Split amount must be a valid number.", {}
+            if amount <= 0:
+                return False, "Split amount must be greater than zero.", {}
+            total_paid = _round2(total_paid + amount)
+            validated_splits.append({
+                'method': method,
+                'amount': amount,
+                'reference': (s.get('reference') or '').strip(),
+            })
         if total_paid < 0:
             return False, "Total payment cannot be negative.", {}
-        if total_paid > grand_total:
-            return False, f"Total payment ({total_paid}) exceeds grand total ({grand_total}).", {}
+        if total_paid != grand_total:
+            return False, f"Total split amount ({total_paid}) must equal grand total ({grand_total}).", {}
+        payment_splits = validated_splits
     else:
         payment_splits = []
         if payment_method == 'CREDIT':
@@ -527,6 +541,7 @@ def create_bill(customer_data: dict, items: list, performed_by: str,
         "amount_paid": computed["amount_paid"],
         "amount_due": computed["amount_due"],
         "due_date": computed.get("due_date"),
+        "payment_splits": computed.get("payment_splits", []),
         "refunded_at": None,
         "refunded_by": None,
         "refund_reason": None,
