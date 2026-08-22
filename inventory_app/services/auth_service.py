@@ -25,6 +25,7 @@ def register_user(email: str = "", password: str = "", role: str = "staff", name
     if not clean_emp_id:
         clean_emp_id = generate_employee_id(name)
         
+    clean_emp_id_lower = clean_emp_id.lower()
     clean_email = email.strip()
     clean_name = name.strip()
     clean_surname = surname.strip() if surname else ""
@@ -32,7 +33,7 @@ def register_user(email: str = "", password: str = "", role: str = "staff", name
     full_name = f"{clean_name} {clean_surname}".strip() if clean_surname else clean_name
     
     # Check duplicate employee_id via indexed lowercase field
-    if db.users.find_one({"employee_id_lower": clean_emp_id}):
+    if db.users.find_one({"employee_id_lower": clean_emp_id_lower}):
         return False, f"Employee ID '{clean_emp_id}' is already registered.", {}
         
     # Check duplicate email
@@ -45,7 +46,7 @@ def register_user(email: str = "", password: str = "", role: str = "staff", name
     now = datetime.now(timezone.utc)
     user_doc = {
         "employee_id": clean_emp_id,
-        "employee_id_lower": clean_emp_id,
+        "employee_id_lower": clean_emp_id_lower,
         "name": full_name or clean_emp_id,
         "name_lower": full_name or clean_emp_id,
         "email": clean_email,

@@ -305,6 +305,9 @@ def create_app(config_class=Config, custom_mongo_client=None):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # HSTS - only enable on HTTPS (production/Vercel); skip on local HTTP
+        if request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https':
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
 
         # Gzip response compression for text, CSS, JS, JSON, and SVG > 500 bytes
         accept_encoding = request.headers.get('Accept-Encoding', '')
