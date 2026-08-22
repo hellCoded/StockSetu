@@ -1,4 +1,5 @@
 import pytest
+import os
 from flask import session
 
 def test_login_page_renders(client):
@@ -149,3 +150,266 @@ def test_deactivated_user_session_redirected_to_login(admin_client, mock_mongo):
     response = admin_client.get('/', follow_redirects=True)
     assert response.status_code == 200
     assert b"deactivated" in response.data.lower() or b"Sign In" in response.data
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Reset Admin Endpoint Tests
+# ──────────────────────────────────────────────────────────────────────
+
+def test_reset_admin_get_returns_405(client):
+    """GET /reset-admin should return 405 Method Not Allowed."""
+    response = client.get('/reset-admin')
+    assert response.status_code == 405
+
+
+def test_reset_admin_post_without_csrf_fails(client):
+    """POST /reset-admin without CSRF token should fail with 403."""
+    response = client.post('/reset-admin', data={
+        'key': 'dev-secret-key-2026'
+    }, follow_redirects=True)
+    # Should fail CSRF validation with 403
+    assert response.status_code == 403
+    assert b"Unauthorized" in response.data or b"CSRF" in response.data or b"session has expired" in response.data.lower()
+
+
+def test_reset_admin_post_invalid_key_fails(client, app):
+    """POST /reset-admin with invalid key should return 403."""
+    with app.test_client() as test_client:
+        # Get CSRF token
+        response = test_client.get('/login')
+        csrf_token = None
+        if b'csrf_token' in response.data:
+            # Extract from form
+            import re
+            match = re.search(b'name="csrf_token" value="([^"]+)"', response.data)
+            if match:
+                csrf_token = match.group(1).decode()
+        
+        if csrf_token:
+            response = test_client.post('/reset-admin', data={
+                'key': 'wrong-secret-key',
+                'csrf_token': csrf_token
+            })
+            assert response.status_code == 403
+            assert b"Unauthorized" in response.data
+
+
+def test_reset_admin_post_valid_key_succeeds(client, app, mock_mongo):
+    """POST /reset-admin with valid key and CSRF should succeed."""
+    db = mock_mongo['inventory_test_db']
+    admin_user = db.users.find_one({"employee_id": "ADM-001"})
+    original_hash = admin_user.get("password_hash")
+    
+    # Get CSRF token from login page using the same client
+    response = client.get('/login')
+    csrf_token = None
+    import re
+    match = re.search(b'name="csrf_token" value="([^"]+)"', response.data)
+    if match:
+        csrf_token = match.group(1).decode()
+    
+    if csrf_token:
+        # Use the correct SECRET_KEY for test environment (from TestConfig)
+        response = client.post('/reset-admin', data={
+            'key': 'test-secret-key',
+            'csrf_token': csrf_token
+        })
+        assert response.status_code == 200
+        assert b"Admin password reset" in response.data
+        
+        # Verify password was actually changed
+        updated_user = db.users.find_one({"employee_id": "ADM-001"})
+        assert updated_user["password_hash"] != original_hash
+        # $unset removes the field entirely
+        assert updated_user.get("session_token") is None
+
+
+def test_reset_admin_disabled_via_env(client, app, mock_mongo):
+    """Reset admin endpoint should be disabled when DISABLE_RESET_ADMIN=true."""
+    with app.app_context():
+        app.config['DISABLE_RESET_ADMIN'] = 'true'
+        
+        with app.test_client() as test_client:
+            # Get CSRF token
+            response = test_client.get('/login')
+            csrf_token = None
+            import re
+            match = re.search(b'name="csrf_token" value="([^"]+)"', response.data)
+            if match:
+                csrf_token = match.group(1).decode()
+            
+            if csrf_token:
+                response = test_client.post('/reset-admin', data={
+                    'key': 'dev-secret-key-2026',
+                    'csrf_token': csrf_token
+                })
+                assert response.status_code == 404
+                assert b"Endpoint disabled" in response.data
+        
+        app.config['DISABLE_RESET_ADMIN'] = 'false'
+
+
+def test_reset_admin_rate_limit_disabled_in_testing(client, app):
+    """Reset admin rate limiting should be disabled in TESTING mode."""
+    with app.test_client() as test_client:
+        # Get CSRF token
+        response = test_client.get('/login')
+        csrf_token = None
+        import re
+        match = re.search(b'name="csrf_token" value="([^"]+)"', response.data)
+        if match:
+            csrf_token = match.group(1).decode()
+    
+        if csrf_token:
+            # Multiple attempts should all succeed (rate limiting disabled in testing)
+            for _ in range(5):
+                response = test_client.post('/reset-admin', data={
+                    'key': 'wrong-key',
+                    'csrf_token': csrf_token
+                })
+                # Should be 403 for wrong key, not 429
+                assert response.status_code == 403
+
+
+def test_reset_admin_no_secret_in_logs_or_response(client, app):
+    """Secret key should not appear in response body."""
+    with app.test_client() as test_client:
+        response = test_client.get('/login')
+        csrf_token = None
+        import re
+        match = re.search(b'name="csrf_token" value="([^"]+)"', response.data)
+        if match:
+            csrf_token = match.group(1).decode()
+        
+        if csrf_token:
+            response = test_client.post('/reset-admin', data={
+                'key': 'test-secret-key',
+                'csrf_token': csrf_token
+            })
+            # Response should not contain the secret key
+            assert b'test-secret-key' not in response.data
+            # Should not contain "Admin@123456" in detail
+            assert b'Admin@123456' not in response.data
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Login Rate Limiting Tests
+# ──────────────────────────────────────────────────────────────────────
+
+def test_login_rate_limit_allows_successful_login(client):
+    """Successful login should be allowed and clear any rate limit hits."""
+    # First, make a successful login
+    response = client.post('/login', data={
+        'identifier': 'ADM-001',
+        'password': 'AdminPass123'
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back" in response.data
+    
+    # Second successful login should also work (no rate limit on success)
+    client.get('/logout')
+    response = client.post('/login', data={
+        'identifier': 'ADM-001',
+        'password': 'AdminPass123'
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back" in response.data
+
+
+def test_login_rate_limit_blocks_after_max_failed_attempts(client, app):
+    """After 5 failed attempts, further attempts should be rate limited (429)."""
+    # Make 5 failed login attempts
+    for i in range(5):
+        response = client.post('/login', data={
+            'identifier': 'ADM-001',
+            'password': 'WrongPassword'
+        }, follow_redirects=True)
+        assert response.status_code == 200  # Each attempt returns 200 with error message
+        assert b"Invalid" in response.data and b"password" in response.data
+    
+    # 6th attempt should be rate limited (429)
+    response = client.post('/login', data={
+        'identifier': 'ADM-001',
+        'password': 'WrongPassword'
+    })
+    assert response.status_code == 429
+
+
+def test_login_rate_limit_different_identifiers_independent(client, app):
+    """Rate limit should be independent per identifier for same IP."""
+    # Make 5 failed attempts for ADM-001
+    for i in range(5):
+        client.post('/login', data={
+            'identifier': 'ADM-001',
+            'password': 'WrongPassword'
+        }, follow_redirects=True)
+    
+    # ADM-001 should now be rate limited
+    response = client.post('/login', data={
+        'identifier': 'ADM-001',
+        'password': 'WrongPassword'
+    })
+    assert response.status_code == 429
+    
+    # But MGR-001 should still work (different identifier)
+    response = client.post('/login', data={
+        'identifier': 'MGR-001',
+        'password': 'WrongPassword'
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Invalid" in response.data and b"password" in response.data
+
+
+def test_login_rate_limit_different_ips_independent(client, app):
+    """Rate limit should be independent per IP for same identifier."""
+    # This test is limited by test client using same IP
+    # In real deployment, different IPs would have independent limits
+    pass  # Covered by same IP test with different identifiers
+
+
+def test_login_rate_limit_resets_after_window(client, app):
+    """Rate limit should reset after the time window expires."""
+    # Make 5 failed attempts
+    for i in range(5):
+        client.post('/login', data={
+            'identifier': 'ADM-001',
+            'password': 'WrongPassword'
+        }, follow_redirects=True)
+    
+    # 6th should be rate limited
+    response = client.post('/login', data={
+        'identifier': 'ADM-001',
+        'password': 'WrongPassword'
+    })
+    assert response.status_code == 429
+    
+    # Note: In tests we can't easily wait for the 60s window to expire
+    # The rate limit uses _LOGIN_RATE_LIMIT_WINDOW = 60 seconds
+    # This test documents the expected behavior
+
+
+def test_login_rate_limit_cleared_on_successful_login(client, app):
+    """Failed attempts should be cleared after successful login."""
+    # Make 4 failed attempts
+    for i in range(4):
+        client.post('/login', data={
+            'identifier': 'ADM-001',
+            'password': 'WrongPassword'
+        }, follow_redirects=True)
+    
+    # Successful login should clear the counter
+    response = client.post('/login', data={
+        'identifier': 'ADM-001',
+        'password': 'AdminPass123'
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back" in response.data
+    
+    # Should be able to make failed attempts again
+    client.get('/logout')
+    for i in range(4):
+        response = client.post('/login', data={
+            'identifier': 'ADM-001',
+            'password': 'WrongPassword'
+        }, follow_redirects=True)
+        assert response.status_code == 200

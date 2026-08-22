@@ -131,6 +131,7 @@ def stock_adjust(product_name: str, target_quantity: float, reason: str, perform
     """
     Performs manual ADJUSTMENT of product quantity.
     Requires mandatory reason and target_quantity >= 0.
+    Uses atomic CAS based on current quantity to prevent lost concurrent updates.
     """
     db = get_db()
     
@@ -151,8 +152,9 @@ def stock_adjust(product_name: str, target_quantity: float, reason: str, perform
     diff = target_quantity - prev_qty
     
     try:
+        # Atomic CAS: only update if quantity matches what we read (prev_qty)
         res = db.products.update_one(
-            {"product_name": canonical_name},
+            {"product_name": canonical_name, "quantity": prev_qty},
             {
                 "$set": {
                     "quantity": target_quantity,
@@ -162,7 +164,13 @@ def stock_adjust(product_name: str, target_quantity: float, reason: str, perform
         )
         
         if res.matched_count == 0:
-            return False, "Product could not be updated.", {}
+            # Re-fetch to give clear message with current stock
+            refreshed = get_product_by_name(canonical_name)
+            curr_stock = refreshed.get("quantity", 0) if refreshed else 0
+            return False, (
+                f"Stock adjustment failed. Quantity changed concurrently "
+                f"(expected {prev_qty}, found {curr_stock}). Please retry."
+            ), {}
             
         # Record ADJUSTMENT transaction
         tx_doc = {

@@ -199,6 +199,8 @@ def cancel_promotion_request(request_id):
 def profile():
     from inventory_app.services.auth_service import get_user_by_id, get_user_pending_role_request, get_user_role_requests, update_user_profile_info, change_password, get_all_users
     from inventory_app.services.billing_service import get_employee_purchases
+    from inventory_app.database import get_db
+    from bson import ObjectId
     user_id = session.get('user_id')
     user = get_user_by_id(user_id)
     pending_request = get_user_pending_role_request(user_id)
@@ -206,6 +208,9 @@ def profile():
     employee_id = user.get('employee_id') if user else ''
     my_purchases = get_employee_purchases(employee_id) if employee_id else []
     online_users = get_all_users() or []
+    
+    # Check if forced password change is required
+    forced_password_change = request.args.get('forced_password_change') == 'True' or session.pop('force_password_change_user_id', None) == user_id
     
     if request.method == 'POST':
         action_type = request.form.get('action_type', 'change_password')
@@ -228,16 +233,22 @@ def profile():
             
             if new_pw != confirm_pw:
                 flash("New password and confirmation do not match.", "danger")
-                return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history, my_purchases=my_purchases, online_users=online_users)
-                
+                return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history, my_purchases=my_purchases, online_users=online_users, forced_password_change=forced_password_change)
+            
             success, msg = change_password(user_id, old_pw, new_pw)
             if success:
+                # Clear force_password_change flag after successful password change
+                db = get_db()
+                db.users.update_one(
+                    {"_id": ObjectId(user_id)},
+                    {"$unset": {"force_password_change": ""}}
+                )
                 flash(msg, "success")
                 return redirect(url_for('users.profile'))
             else:
                 flash(msg, "danger")
                 
-    return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history, my_purchases=my_purchases, online_users=online_users)
+    return render_template('users/profile.html', user=user, pending_request=pending_request, requests_history=requests_history, my_purchases=my_purchases, online_users=online_users, forced_password_change=forced_password_change)
 
 
 @user_bp.route('/users/bulk-import', methods=['POST'])

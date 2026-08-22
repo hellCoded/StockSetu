@@ -138,6 +138,8 @@ def init_db_indexes(db):
         db.users.create_index([("employee_id", ASCENDING)], unique=True)
         db.users.create_index([("email", ASCENDING)], unique=True)
         db.users.create_index([("phone", ASCENDING)], sparse=True)
+        # Session token index for single-session enforcement lookups
+        db.users.create_index([("session_token", ASCENDING)], sparse=True)
         # Lowercase indexes for fast case-insensitive search (avoids $regex scans)
         db.users.create_index([("employee_id_lower", ASCENDING)], sparse=True)
         db.users.create_index([("email_lower", ASCENDING)], sparse=True)
@@ -203,6 +205,13 @@ def init_db_indexes(db):
         # Bill payments indexes
         db.bill_payments.create_index([("bill_number", ASCENDING)])
         db.bill_payments.create_index([("bill_id", ASCENDING)])
+
+        # POS drafts indexes
+        # employee_id for lookup/upsert (unique per employee)
+        db.pos_drafts.create_index([("employee_id", ASCENDING)], unique=True)
+        # TTL index on updated_at for automatic cleanup of abandoned carts
+        # 7 days TTL based on POS cart lifecycle (cart is meant to persist across sessions)
+        db.pos_drafts.create_index([("updated_at", ASCENDING)], expireAfterSeconds=7 * 24 * 3600)
 
         # Audit logs — compound indexes for bill lookups
         db.audit_logs.create_index([("target_resource", ASCENDING), ("created_at", DESCENDING)])

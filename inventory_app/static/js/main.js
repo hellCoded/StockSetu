@@ -337,32 +337,8 @@ function hidePageLoading() {
   }
 }
 
-// Show loading overlay for any internal navigation link
-function initNavigationLoading() {
-  var navTimer = null;
-  document.addEventListener('click', function(e) {
-    const link = e.target.closest('a[href]');
-    if (!link) return;
-    const href = link.getAttribute('href');
-    if (!href || href.startsWith('#') || href.startsWith('javascript:') ||
-        href.startsWith('http') || href.endsWith('.pdf') || href.endsWith('.xlsx') ||
-        link.hasAttribute('download') || link.target === '_blank') return;
-    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-    if (link.closest('form')) return;
-    navTimer = setTimeout(function() { showPageLoading('Loading\u2026'); }, 50);
-  });
-
-  window.addEventListener('pageshow', function() {
-    clearTimeout(navTimer);
-    hidePageLoading();
-  });
-  window.addEventListener('beforeunload', function() {
-    clearTimeout(navTimer);
-  });
-}
-
 // Remove any leftover overlay from a previous navigation (runs immediately)
-(function() {
+  (function() {
   var leftover = document.getElementById('page-loading-overlay');
   if (leftover) leftover.remove();
 })();

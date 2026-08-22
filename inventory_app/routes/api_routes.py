@@ -1,6 +1,7 @@
 """API endpoints for AJAX consumption — product search, employee lookup, cart persistence."""
 from flask import Blueprint, jsonify, request, session
 from inventory_app.utils.decorators import login_required, roles_required
+from inventory_app.utils.validators import validate_cart_data
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -60,6 +61,12 @@ def api_cart_save():
     """Persist cart state server-side so it survives page refresh / device switch."""
     from inventory_app.database import get_db
     data = request.get_json(silent=True) or {}
+    
+    # Validate cart data before saving
+    is_valid, error_msg = validate_cart_data(data)
+    if not is_valid:
+        return jsonify({'ok': False, 'error': error_msg}), 400
+    
     employee_id = session.get('employee_id', 'anon')
     db = get_db()
     db.pos_drafts.update_one(

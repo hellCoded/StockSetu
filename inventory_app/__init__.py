@@ -7,6 +7,7 @@ from config import Config
 from inventory_app.database import init_db
 from inventory_app.utils.validators import generate_csrf_token
 from inventory_app.utils.helpers import calculate_stock_status, get_status_badge_class, format_currency, format_datetime, amount_in_words
+from itsdangerous import BadSignature
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +124,14 @@ def create_app(config_class=Config, custom_mongo_client=None):
     app = Flask(__name__)
     app.config.from_object(config_class)
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
+
+    # Validate SECRET_KEY is configured (no hardcoded fallback allowed)
+    # Check app config first (set by config class), then environment
+    secret_key = app.config.get('SECRET_KEY') or os.environ.get('SECRET_KEY')
+    if not secret_key or not isinstance(secret_key, str):
+        raise RuntimeError(
+            "SECRET_KEY is not configured. Set SECRET_KEY environment variable."
+        )
 
     # ── Flask-Limiter (rate limiting) ──
     # Upstash uses REST API, not TCP — Flask-Limiter's redis:// won't work.
@@ -446,6 +455,14 @@ def create_app(config_class=Config, custom_mongo_client=None):
     def internal_error(error):
         logger.exception("Unhandled 500 error")
         return render_template('errors/500.html'), 500
+
+    @app.errorhandler(BadSignature)
+    def handle_bad_signature(error):
+        """Handle invalid session cookie signatures gracefully."""
+        logger.warning("Invalid session cookie signature, clearing session")
+        session.clear()
+        flash("Your session has expired. Please log in again.", "warning")
+        return redirect(url_for('auth.login'))
 
     @app.errorhandler(Exception)
     def handle_exception(e):

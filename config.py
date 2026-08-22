@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY', 'inventory-super-secret-key-2026-safe')
+    # SECRET_KEY must be provided via environment variable at runtime
+    # No default/fallback allowed — application will fail to start if missing
+    SECRET_KEY = os.getenv('SECRET_KEY')
     MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/inventory_db')
     DATABASE_NAME = os.getenv('DATABASE_NAME', 'inventory_db')
     TESTING = os.getenv('TESTING', 'False').lower() in ('true', '1', 't')

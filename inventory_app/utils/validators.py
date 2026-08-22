@@ -118,3 +118,151 @@ def validate_csrf_token(form_token: str) -> bool:
     if not session_token or not form_token:
         return False
     return secrets.compare_digest(session_token, form_token)
+
+
+def validate_cart_data(data: dict) -> tuple[bool, str]:
+    """
+    Validates cart data for /api/cart/save.
+    Returns (is_valid, error_message).
+    """
+    # Check payload size (max ~100KB)
+    try:
+        import json
+        payload_size = len(json.dumps(data))
+        if payload_size > 100 * 1024:
+            return False, "Payload too large (max 100KB)"
+    except Exception:
+        return False, "Invalid JSON payload"
+    
+    # Validate cart array
+    cart = data.get('cart')
+    if not isinstance(cart, list):
+        return False, "cart must be an array"
+    
+    if len(cart) > 1000:
+        return False, "Too many cart items (max 1000)"
+    
+    # Validate each cart item
+    for idx, item in enumerate(cart):
+        if not isinstance(item, dict):
+            return False, f"Cart item {idx} must be an object"
+        
+        # Validate required fields
+        name = item.get('name')
+        if not isinstance(name, str) or not name.strip():
+            return False, f"Cart item {idx}: name is required and must be a non-empty string"
+        
+        # Validate price
+        price = item.get('price')
+        if price is None:
+            return False, f"Cart item {idx}: price is required"
+        try:
+            price_val = float(price)
+            if price_val < 0:
+                return False, f"Cart item {idx}: price cannot be negative"
+        except (ValueError, TypeError):
+            return False, f"Cart item {idx}: price must be a valid number"
+        
+        # Validate gst
+        gst = item.get('gst')
+        if gst is None:
+            return False, f"Cart item {idx}: gst is required"
+        try:
+            gst_val = float(gst)
+            if gst_val < 0 or gst_val > 28:
+                return False, f"Cart item {idx}: gst must be between 0 and 28"
+        except (ValueError, TypeError):
+            return False, f"Cart item {idx}: gst must be a valid number"
+        
+        # Validate qty
+        qty = item.get('qty')
+        if qty is None:
+            return False, f"Cart item {idx}: qty is required"
+        try:
+            qty_val = float(qty)
+            if qty_val <= 0:
+                return False, f"Cart item {idx}: qty must be positive"
+            if qty_val > 10000:
+                return False, f"Cart item {idx}: qty too large (max 10000)"
+        except (ValueError, TypeError):
+            return False, f"Cart item {idx}: qty must be a valid number"
+        
+        # Validate stock
+        stock = item.get('stock')
+        if stock is None:
+            return False, f"Cart item {idx}: stock is required"
+        try:
+            stock_val = float(stock)
+            if stock_val < 0:
+                return False, f"Cart item {idx}: stock cannot be negative"
+        except (ValueError, TypeError):
+            return False, f"Cart item {idx}: stock must be a valid number"
+        
+        # Validate disc (discount)
+        disc = item.get('disc')
+        if disc is None:
+            return False, f"Cart item {idx}: disc is required"
+        try:
+            disc_val = float(disc)
+            if disc_val < 0 or disc_val > 100:
+                return False, f"Cart item {idx}: disc must be between 0 and 100"
+        except (ValueError, TypeError):
+            return False, f"Cart item {idx}: disc must be a valid number"
+        
+        # Validate isFree
+        is_free = item.get('isFree')
+        if not isinstance(is_free, bool):
+            return False, f"Cart item {idx}: isFree must be a boolean"
+    
+    # Validate customer data (optional)
+    customer = data.get('customer')
+    if customer is not None:
+        if not isinstance(customer, dict):
+            return False, "customer must be an object"
+        if 'name' in customer and not isinstance(customer['name'], str):
+            return False, "customer.name must be a string"
+        if 'employee_id' in customer and not isinstance(customer['employee_id'], str):
+            return False, "customer.employee_id must be a string"
+        if 'role' in customer and not isinstance(customer['role'], str):
+            return False, "customer.role must be a string"
+        if 'phone' in customer and not isinstance(customer['phone'], str):
+            return False, "customer.phone must be a string"
+    
+    # Validate discount_percent
+    discount_percent = data.get('discount_percent')
+    if discount_percent is not None:
+        try:
+            disc_val = float(discount_percent)
+            if disc_val < 0 or disc_val > 100:
+                return False, "discount_percent must be between 0 and 100"
+        except (ValueError, TypeError):
+            return False, "discount_percent must be a valid number"
+    
+    # Validate shipping_charge
+    shipping_charge = data.get('shipping_charge')
+    if shipping_charge is not None:
+        try:
+            ship_val = float(shipping_charge)
+            if ship_val < 0:
+                return False, "shipping_charge cannot be negative"
+        except (ValueError, TypeError):
+            return False, "shipping_charge must be a valid number"
+    
+    # Validate packing_charge
+    packing_charge = data.get('packing_charge')
+    if packing_charge is not None:
+        try:
+            pack_val = float(packing_charge)
+            if pack_val < 0:
+                return False, "packing_charge cannot be negative"
+        except (ValueError, TypeError):
+            return False, "packing_charge must be a valid number"
+    
+    # Validate payment_method
+    payment_method = data.get('payment_method')
+    if payment_method is not None:
+        valid_methods = ['CASH', 'UPI', 'CARD', 'CREDIT', 'SALARY_DEDUCTION']
+        if payment_method not in valid_methods:
+            return False, f"payment_method must be one of: {', '.join(valid_methods)}"
+    
+    return True, ""

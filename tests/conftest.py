@@ -1,10 +1,19 @@
 import pytest
+import re
 import mongomock
 from inventory_app import create_app, cache_flush
 from config import TestConfig
 from inventory_app.database import init_db
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timezone
+from inventory_app.routes.auth_routes import _LOGIN_RATE_LIMIT_STATE
+
+@pytest.fixture(autouse=True)
+def clear_login_rate_limit():
+    """Clear login rate limit state before each test."""
+    _LOGIN_RATE_LIMIT_STATE.clear()
+    yield
+    _LOGIN_RATE_LIMIT_STATE.clear()
 
 @pytest.fixture
 def mock_mongo():
@@ -17,6 +26,8 @@ def app(mock_mongo):
     app = create_app(TestConfig, custom_mongo_client=mock_mongo)
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
+    # Enable rate limiting for tests that need it
+    app.config['RATE_LIMIT_ENABLED'] = True
     
     # Seed users in mock db
     db = mock_mongo['inventory_test_db']

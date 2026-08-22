@@ -93,19 +93,26 @@ def create_product(product_data: dict, performed_by: str, initial_quantity: floa
         logger.error(f"Error creating product: {e}")
         return False, "An unexpected error occurred while creating the product.", {}
 
-def get_product_by_name(product_name: str) -> dict:
-    """Retrieves product by normalized product_name (cached globally for10s)."""
+def get_product_by_name(product_name: str, bypass_cache: bool = False) -> dict:
+    """Retrieves product by normalized product_name (cached globally for 30s).
+    
+    Args:
+        product_name: Product name to look up
+        bypass_cache: If True, bypasses cache and reads directly from DB.
+                      Use for billing-critical operations where fresh data is required.
+    """
     db = get_db()
     norm_name = normalize_product_name(product_name)
     
-    # Check global cache (Upstash on Vercel, redislite locally)
-    cache_key = f"product:{norm_name}"
-    cached = cache_get(cache_key)
-    if cached:
-        try:
-            return json.loads(cached)
-        except Exception:
-            pass
+    # Check global cache (Upstash on Vercel, redislite locally) unless bypassed
+    if not bypass_cache:
+        cache_key = f"product:{norm_name}"
+        cached = cache_get(cache_key)
+        if cached:
+            try:
+                return json.loads(cached)
+            except Exception:
+                pass
     
     product = db.products.find_one({"product_name": norm_name})
     if not product:
@@ -118,8 +125,8 @@ def get_product_by_name(product_name: str) -> dict:
             product.get("quantity", 0)
         )
     
-    # Cache result globally
-    if product:
+    # Cache result globally (unless bypassed)
+    if product and not bypass_cache:
         cache_set(cache_key, json.dumps(product, default=str), ttl=_PRODUCT_CACHE_TTL)
     
     return product

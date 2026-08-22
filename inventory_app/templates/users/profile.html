@@ -135,6 +135,17 @@
 
       <!-- Section B: Password Change -->
       <div style="border-top: 1px dashed var(--color-outline-variant); padding-top: 0.85rem; margin-top: 0.5rem;">
+        {% if forced_password_change %}
+        <div style="background: rgba(234, 88, 12, 0.12); border: 1px solid rgba(234, 88, 12, 0.35); border-radius: 6px; padding: 0.75rem; margin-bottom: 0.85rem; display: flex; align-items: flex-start; gap: 0.6rem;">
+          <i class="ri-alert-line" style="color: #ea580c; font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem;"></i>
+          <div>
+            <strong style="color: #c42828; font-size: 0.85rem;">Password Change Required</strong>
+            <p style="margin: 0.25rem 0 0; font-size: 0.78rem; color: #c42828;">
+              You are using a temporary default password. You <strong>must</strong> change your password before accessing other features.
+            </p>
+          </div>
+        </div>
+        {% endif %}
         <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.65rem;">
           <i class="ri-lock-password-line" style="color: #ea580c; font-size: 0.9rem;"></i>
           <strong style="font-size: 0.82rem; color: var(--color-on-surface);">Change Password</strong>

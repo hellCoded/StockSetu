@@ -330,7 +330,7 @@ def compute_bill(customer_data: dict, items_with_products: list,
 
 def _deduct_stock(db, canonical_name: str, quantity: float, now: datetime, performed_by: str, bill_number: str = "") -> tuple[bool, str, str]:
     """Atomically deducts stock for a sale item. Records BILL_SALE transaction."""
-    product = get_product_by_name(canonical_name)
+    product = get_product_by_name(canonical_name, bypass_cache=True)
     if not product:
         return False, f"Product '{canonical_name}' not found.", ""
     if not product.get("is_active", True):
@@ -364,7 +364,7 @@ def _deduct_stock(db, canonical_name: str, quantity: float, now: datetime, perfo
 
 def _restore_stock(db, canonical_name: str, quantity: float, now: datetime, performed_by: str, reason: str = ""):
     """Restores stock for a refund item. Records BILL_REFUND transaction."""
-    product = get_product_by_name(canonical_name)
+    product = get_product_by_name(canonical_name, bypass_cache=True)
     prev_qty = float(product.get("quantity", 0)) if product else 0
     db.products.update_one(
         {"product_name": canonical_name},
@@ -457,7 +457,7 @@ def create_bill(customer_data: dict, items: list, performed_by: str,
             _log_rejected_attempt(performed_by, items, f"Non-positive quantity ({quantity}) for '{name}'", customer_data)
             return False, f"Quantity for '{name}' must be greater than zero.", {}
 
-        product = get_product_by_name(name)
+        product = get_product_by_name(name, bypass_cache=True)
         if not product:
             _log_rejected_attempt(performed_by, items, f"Product '{name}' not found", customer_data)
             return False, f"Product '{name}' not found.", {}
@@ -814,7 +814,7 @@ def edit_bill(bill_id: str, new_items: list, charges: dict,
         if quantity <= 0:
             return False, f"Quantity for '{name}' must be greater than zero.", {}
 
-        product = get_product_by_name(name)
+        product = get_product_by_name(name, bypass_cache=True)
         if not product:
             return False, f"Product '{name}' not found.", {}
         if not product.get("is_active", True):
@@ -835,7 +835,7 @@ def edit_bill(bill_id: str, new_items: list, charges: dict,
     now = datetime.now(timezone.utc)
     old_items = bill.get("line_items", [])
 
-    # ── Compute stock delta ──
+    # ── Compute stock delta per product (net delta) ──
     old_qty_map = {}
     for item in old_items:
         name = item["product_name"]
@@ -848,24 +848,29 @@ def edit_bill(bill_id: str, new_items: list, charges: dict,
         name = item["product_name"]
         new_qty_map[name] = new_qty_map.get(name, 0) + float(item["quantity"])
 
-    # Products to restore (removed or reduced)
-    for name, old_qty in old_qty_map.items():
-        new_qty = new_qty_map.get(name, 0)
-        if old_qty > new_qty:
-            restore_qty = old_qty - new_qty
-            _restore_stock(db, name, restore_qty, now, performed_by,
-                           reason=f"Bill edit: removed from {bill.get('bill_number')}")
+    # Compute net delta per product: positive = need more stock, negative = restore stock
+    all_products = set(old_qty_map.keys()) | set(new_qty_map.keys())
+    stock_ops = []  # List of (name, delta, is_deduction) for atomic application
 
-    # Products to deduct (added or increased)
+    for name in all_products:
+        old_qty = old_qty_map.get(name, 0)
+        new_qty = new_qty_map.get(name, 0)
+        delta = new_qty - old_qty
+        if delta > 0:
+            stock_ops.append((name, delta, True))   # deduction needed
+        elif delta < 0:
+            stock_ops.append((name, -delta, False)) # restoration needed
+        # delta == 0: no change
+
+    # Apply stock changes atomically per product
     deducted = []
     inserted_tx_ids = []
-    for name, new_qty in new_qty_map.items():
-        old_qty = old_qty_map.get(name, 0)
-        if new_qty > old_qty:
-            deduct_qty = new_qty - old_qty
-            success, err, tx_id = _deduct_stock(db, name, deduct_qty, now, performed_by, bill.get('bill_number') or "")
+    for name, qty, is_deduction in stock_ops:
+        if is_deduction:
+            # Atomic conditional deduction - prevents overselling
+            success, err, tx_id = _deduct_stock(db, name, qty, now, performed_by, bill.get('bill_number') or "")
             if not success:
-                # Rollback all deductions so far
+                # Rollback all prior deductions in this edit
                 for ref in deducted:
                     db.products.update_one(
                         {"product_name": ref["product_name"]},
@@ -874,9 +879,13 @@ def edit_bill(bill_id: str, new_items: list, charges: dict,
                 if inserted_tx_ids:
                     db.inventory_transactions.delete_many({"_id": {"$in": [ObjectId(t) for t in inserted_tx_ids if ObjectId.is_valid(t)]}})
                 return False, f"Stock deduction failed for '{name}': {err}", {}
-            deducted.append({"product_name": name, "quantity": deduct_qty})
+            deducted.append({"product_name": name, "quantity": qty})
             if tx_id:
                 inserted_tx_ids.append(tx_id)
+        else:
+            # Atomic restoration - always safe (adds stock)
+            _restore_stock(db, name, qty, now, performed_by,
+                           reason=f"Bill edit: reduced in {bill.get('bill_number')}")
 
     # ── Update bill ──
     edit_snapshot = _bill_snapshot(bill)
