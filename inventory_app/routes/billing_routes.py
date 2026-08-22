@@ -64,7 +64,12 @@ def pos():
     from inventory_app.services.billing_service import get_active_employees_for_billing
     query = request.args.get('q', '').strip()
     category = request.args.get('category', '').strip()
-    products = search_products(query=query, category=category, is_active=True, sort_by="product_name", sort_dir=1)
+    # Load only first page for initial render; subsequent searches use API
+    products, _ = search_products(
+        query=query, category=category, is_active=True,
+        sort_by="product_name", sort_dir=1,
+        page=1, per_page=50, return_total=True
+    )
     categories = get_distinct_categories()
     employees = get_active_employees_for_billing()
     return render_template(

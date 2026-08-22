@@ -148,6 +148,84 @@ def test_pos_page_renders_products(staff_client, mock_mongo):
     assert b"Steel Rod" in response.data
     assert b"Billing" in response.data
 
+
+def test_pos_product_search_api(staff_client, mock_mongo):
+    """Test POS product search via API with pagination and category filter."""
+    db = mock_mongo['inventory_test_db']
+    # Seed multiple products across categories
+    db.products.insert_many([
+        {
+            "product_name": "Steel Rod 10mm",
+            "product_name_lower": "steel rod 10mm",
+            "category": "Hardware",
+            "quantity": 100,
+            "price": 500.0,
+            "gst_rate": 18,
+            "unit": "PCS",
+            "hsn_code": "7214",
+            "location": "Warehouse 1",
+            "is_active": True,
+        },
+        {
+            "product_name": "Steel Rod 12mm",
+            "product_name_lower": "steel rod 12mm",
+            "category": "Hardware",
+            "quantity": 50,
+            "price": 600.0,
+            "gst_rate": 18,
+            "unit": "PCS",
+            "hsn_code": "7214",
+            "location": "Warehouse 1",
+            "is_active": True,
+        },
+        {
+            "product_name": "Cement Bag",
+            "product_name_lower": "cement bag",
+            "category": "Construction",
+            "quantity": 200,
+            "price": 350.0,
+            "gst_rate": 28,
+            "unit": "BAG",
+            "hsn_code": "2523",
+            "location": "Warehouse 1",
+            "is_active": True,
+        },
+    ])
+
+    # Search by query
+    response = staff_client.get('/api/products/search?q=steel')
+    assert response.status_code == 200
+    import json
+    data = json.loads(response.data)
+    assert data['total'] == 2
+    assert len(data['items']) == 2
+    assert all('Steel Rod' in item['name'] for item in data['items'])
+
+    # Filter by category
+    response = staff_client.get('/api/products/search?category=Construction')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['total'] == 1
+    assert data['items'][0]['category'] == 'Construction'
+    assert data['items'][0]['name'] == 'Cement Bag'
+
+    # Pagination
+    response = staff_client.get('/api/products/search?page=1&per_page=1')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['page'] == 1
+    assert data['per_page'] == 1
+    assert len(data['items']) == 1
+    assert data['total'] == 3
+
+    # Second page
+    response = staff_client.get('/api/products/search?page=2&per_page=1')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['page'] == 2
+    assert len(data['items']) == 1
+
+
 def test_gst_fields_on_product_forms(manager_client):
     response = manager_client.post('/products/add', data={
         'product_name': 'GST Bracket',
