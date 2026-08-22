@@ -3831,20 +3831,7 @@
     const searchWrap = document.getElementById('smart-search-wrap');
     if (searchWrap) searchWrap.style.display = 'block';
     const strip = document.getElementById('smart-customer-strip');
-    if (strip) {
-      strip.className = 'smart-customer-strip empty';
-      strip.innerHTML = '';
-      strip.style.display = 'none';
-    }
-    const smartInput = document.getElementById('smart-search');
-    if (smartInput) {
-      smartInput.value = '';
-      setTimeout(() => smartInput.focus(), 50);
-    }
-    renderCart();
-  }
-
-  function updateCustomerStrip() {
+function updateCustomerStrip() {
     const searchWrap = document.getElementById('smart-search-wrap');
     const strip = document.getElementById('smart-customer-strip');
     if (!strip || !selectedCustomer) {
@@ -3867,7 +3854,7 @@
           '<div class="pos-cust-avatar staff">' + initials + '</div>' +
           '<div class="pos-cust-meta">' +
             '<div class="pos-cust-name" title="' + esc(selectedCustomer.name) + '">' + esc(selectedCustomer.name) + '</div>' +
-            '<div class="pos-cust-sub"><span style="font-family: var(--font-mono); font-weight: 700;">@' + esc(selectedCustomer.employee_id) + '</span><span>&bull;</span><span>Staff Account</span></div>' +
+            '<div class="pos-cust-sub"><span style="font-family: var(--font-mono); font-weight: 700;">@' + esc(selectedCustomer.employee_id) + '</span><span>&bull;</span><span>Staff Account (10% Off)</span></div>' +
           '</div>' +
         '</div>' +
         '<div style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">' +
@@ -3888,33 +3875,89 @@
     } else {
       strip.className = 'smart-customer-strip is-customer';
       const initials = (selectedCustomer.name || 'CU').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      const phoneHtml = selectedCustomer.phone ? '<span style="font-family: var(--font-mono); font-weight: 600;"><i class="ri-phone-line" style="font-size:0.62rem;margin-right:2px;"></i>' + esc(selectedCustomer.phone) + '</span>' : '<span>Client Account</span>';
+      const gstinHtml = selectedCustomer.gstin ? '<span>&bull;</span><span style="font-family: var(--font-mono); font-size:0.65rem;">GST: ' + esc(selectedCustomer.gstin) + '</span>' : '<span>&bull;</span><span>Standard Rate</span>';
       strip.innerHTML =
         '<div style="display: flex; align-items: center; gap: 0.55rem; min-width: 0; flex: 1;">' +
           '<div class="pos-cust-avatar customer">' + initials + '</div>' +
           '<div class="pos-cust-meta">' +
             '<div class="pos-cust-name" title="' + esc(selectedCustomer.name) + '">' + esc(selectedCustomer.name) + '</div>' +
-            '<div class="pos-cust-sub"><span>Client Account</span><span>&bull;</span><span>Standard Rate</span></div>' +
+            '<div class="pos-cust-sub">' + phoneHtml + gstinHtml + '</div>' +
           '</div>' +
         '</div>' +
-        '<button type="button" class="pos-cust-change-btn" onclick="window.__posClearCustomer()" title="Change customer (✕)"><i class="ri-close-line"></i></button>';
+        '<div style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">' +
+          (selectedCustomer.gstin ? '<span class="smart-ac-badge disc-badge" style="font-size:0.6rem;">GST</span>' : '') +
+          '<button type="button" class="pos-cust-change-btn" onclick="window.__posClearCustomer()" title="Change customer (✕)"><i class="ri-close-line"></i></button>' +
+        '</div>';
     }
   }
   window.__posClearCustomer = clearCustomerSelection;
+
+  function selectExistingCustomer(name, phone, gstin) {
+    selectedCustomer = { type: 'customer', name: name };
+    if (phone) selectedCustomer.phone = phone;
+    if (gstin) selectedCustomer.gstin = gstin;
+    resetCustomerFields();
+    if (custNameInput) custNameInput.value = name;
+    if (phone && custPhoneInput) custPhoneInput.value = phone;
+    if (gstin && custGstinInput) custGstinInput.value = gstin;
+    updateCustomerStrip();
+    renderCart();
+    posToast('Selected customer: ' + name, 'info', 1800);
+  }
 
   /* Smart Search Autocomplete */
   const smartInput = document.getElementById('smart-search');
   const smartClear = document.getElementById('smart-search-clear');
   const smartDropdown = document.getElementById('smart-ac-dropdown');
   let smartHighlightIdx = -1;
+  let customerSearchTimer = null;
+  let customerSearchRequestId = 0;
+
+  function bindSmartDropdownItems(container) {
+    if (!container) return;
+    container.querySelectorAll('.smart-ac-item').forEach(item => {
+      item.onmousedown = function(e) {
+        e.preventDefault();
+        const type = this.dataset.type;
+        if (type === 'employee') {
+          const idx = parseInt(this.dataset.idx);
+          let emp = employeeList[idx];
+          if (!emp && this.dataset.empId) {
+            emp = employeeList.find(e => e.employee_id === this.dataset.empId);
+          }
+          if (emp) selectEmployee(emp);
+        } else if (type === 'walkin') {
+          selectWalkin();
+        } else if (type === 'existing-customer') {
+          selectExistingCustomer(this.dataset.name, this.dataset.phone, this.dataset.gstin);
+        } else {
+          selectCustomer(this.dataset.name || (smartInput ? smartInput.value.trim() : ''));
+        }
+        if (smartInput) smartInput.value = '';
+        if (smartClear) smartClear.classList.remove('show');
+        smartDropdown.classList.remove('open');
+      };
+    });
+  }
 
   function renderSmartDropdown(query) {
     const q = (query || '').trim().toLowerCase();
-    if (!q) { smartDropdown.classList.remove('open'); smartDropdown.innerHTML = ''; smartHighlightIdx = -1; return; }
+    if (!q) {
+      smartDropdown.classList.remove('open');
+      smartDropdown.innerHTML = '';
+      smartHighlightIdx = -1;
+      return;
+    }
+
     const staffMatches = employeeList.filter(e => {
       const hay = ((e.employee_id || '') + ' ' + (e.name || '') + ' ' + (e.role || '')).toLowerCase();
       return hay.includes(q);
     }).slice(0, 5);
+
     let html = '';
+
+    // 1. Staff Section
     if (staffMatches.length > 0) {
       html += '<div class="smart-ac-section"><div class="smart-ac-label">Employees</div>';
       staffMatches.forEach((emp) => {
@@ -3922,79 +3965,128 @@
         const initials = (emp.name || '??').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
         html += '<div class="smart-ac-item" data-type="employee" data-idx="' + origIdx + '" data-emp-id="' + (emp.employee_id || '') + '">' +
           '<div class="smart-ac-avatar staff">' + initials + '</div>' +
-          '<div class="smart-ac-info"><div class="smart-ac-name">' + emp.name + '</div><div class="smart-ac-meta">' + emp.employee_id + ' · ' + (emp.role || '').replace('_', ' ') + '</div></div>' +
+          '<div class="smart-ac-info"><div class="smart-ac-name">' + esc(emp.name) + '</div><div class="smart-ac-meta">' + esc(emp.employee_id) + ' &bull; ' + esc((emp.role || '').replace('_', ' ')) + '</div></div>' +
           '<span class="smart-ac-badge staff-badge">Staff</span>' +
         '</div>';
       });
       html += '</div>';
     }
+
+    // 2. Existing Customers Section Placeholder (for async load)
+    if (q.length >= 2) {
+      html += '<div class="smart-ac-section" data-section="customers" id="smart-ac-cust-section"></div>';
+    }
+
+    // 3. Quick Select Walk-in Section
     html += '<div class="smart-ac-section"><div class="smart-ac-label">Quick Select</div>';
     html += '<div class="smart-ac-item" data-type="walkin">' +
-      '<div class="smart-ac-avatar customer"><i class="ri-user-3-line"></i></div>' +
-      '<div class="smart-ac-info"><div class="smart-ac-name">Walk-in Customer</div><div class="smart-ac-meta">Quick checkout, no details needed</div></div>' +
+      '<div class="smart-ac-avatar customer" style="background:linear-gradient(135deg, #0284c7, #0ea5e9);"><i class="ri-user-smile-line"></i></div>' +
+      '<div class="smart-ac-info"><div class="smart-ac-name">Walk-in Customer</div><div class="smart-ac-meta">Quick checkout, no saved profile needed</div></div>' +
       '<span class="smart-ac-badge walkin-badge">Fast</span>' +
     '</div>';
+
+    // 4. New Customer Free Text
     if (q.length >= 2 && !staffMatches.some(e => (e.name || '').toLowerCase() === q)) {
-      html += '<div class="smart-ac-item" data-type="customer" data-name="' + q.replace(/"/g, '&quot;') + '">' +
-        '<div class="smart-ac-avatar customer"><i class="ri-user-line"></i></div>' +
-        '<div class="smart-ac-info"><div class="smart-ac-name">' + query + '</div><div class="smart-ac-meta">New customer</div></div>' +
+      html += '<div class="smart-ac-item" data-type="customer" data-name="' + esc(query) + '">' +
+        '<div class="smart-ac-avatar customer"><i class="ri-user-add-line"></i></div>' +
+        '<div class="smart-ac-info"><div class="smart-ac-name">' + esc(query) + '</div><div class="smart-ac-meta">New customer name</div></div>' +
         '<span class="smart-ac-badge disc-badge">+New</span>' +
       '</div>';
     }
     html += '</div>';
+
     smartDropdown.innerHTML = html;
     smartDropdown.classList.add('open');
     smartHighlightIdx = -1;
-    /* Bind clicks on items */
-    smartDropdown.querySelectorAll('.smart-ac-item').forEach(item => {
-      item.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        const type = this.dataset.type;
-        if (type === 'employee') {
-          const idx = parseInt(this.dataset.idx);
-          let emp = employeeList[idx];
-          /* Fallback: match by employee_id if index lookup fails (e.g. list re-fetched) */
-          if (!emp && this.dataset.empId) {
-            emp = employeeList.find(e => e.employee_id === this.dataset.empId);
-          }
-          if (emp) selectEmployee(emp);
-        } else if (type === 'walkin') {
-          selectWalkin();
-        } else {
-          selectCustomer(this.dataset.name || smartInput.value.trim());
-        }
-        smartInput.value = '';
-        smartDropdown.classList.remove('open');
-      });
-    });
+    bindSmartDropdownItems(smartDropdown);
+
+    // Fetch existing customers asynchronously (debounced min 2 chars)
+    if (q.length >= 2) {
+      clearTimeout(customerSearchTimer);
+      customerSearchTimer = setTimeout(() => {
+        const reqId = ++customerSearchRequestId;
+        fetch('/api/customers/search?q=' + encodeURIComponent(query) + '&limit=8', { credentials: 'same-origin' })
+          .then(r => r.ok ? r.json() : { customers: [] })
+          .then(data => {
+            if (reqId !== customerSearchRequestId) return;
+            const custSection = document.getElementById('smart-ac-cust-section');
+            if (!custSection) return;
+            if (!data.customers || data.customers.length === 0) {
+              custSection.remove();
+              return;
+            }
+            let custHtml = '<div class="smart-ac-label">Customers</div>';
+            data.customers.forEach(cust => {
+              const initials = (cust.name || '??').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+              const metaParts = [];
+              if (cust.phone) metaParts.push('<i class="ri-phone-line" style="font-size:0.6rem;"></i> ' + esc(cust.phone));
+              if (cust.gstin) metaParts.push('GST: ' + esc(cust.gstin));
+              if (cust.visit_count) metaParts.push(cust.visit_count + ' visit' + (cust.visit_count > 1 ? 's' : ''));
+              custHtml +=
+                '<div class="smart-ac-item" data-type="existing-customer" data-name="' + esc(cust.name) + '" data-phone="' + esc(cust.phone || '') + '" data-gstin="' + esc(cust.gstin || '') + '">' +
+                  '<div class="smart-ac-avatar customer">' + initials + '</div>' +
+                  '<div class="smart-ac-info">' +
+                    '<div class="smart-ac-name">' + esc(cust.name) + '</div>' +
+                    '<div class="smart-ac-meta">' + metaParts.join(' &bull; ') + '</div>' +
+                  '</div>' +
+                  '<span class="smart-ac-badge disc-badge">Existing</span>' +
+                '</div>';
+            });
+            custSection.innerHTML = custHtml;
+            bindSmartDropdownItems(custSection);
+          })
+          .catch(() => {
+            const custSection = document.getElementById('smart-ac-cust-section');
+            if (custSection) custSection.remove();
+          });
+      }, 150);
+    }
   }
 
   if (smartInput) {
     let smartSearchTimer = null;
     smartInput.addEventListener('input', function() {
       const v = this.value.trim();
-      smartClear.classList.toggle('show', v.length > 0);
+      if (smartClear) smartClear.classList.toggle('show', v.length > 0);
       clearTimeout(smartSearchTimer);
-      smartSearchTimer = setTimeout(() => renderSmartDropdown(v), 150);
+      smartSearchTimer = setTimeout(() => renderSmartDropdown(v), 120);
     });
     smartInput.addEventListener('focus', function() {
       if (this.value.trim()) renderSmartDropdown(this.value);
     });
     smartInput.addEventListener('blur', function() {
-      setTimeout(() => smartDropdown.classList.remove('open'), 150);
+      setTimeout(() => smartDropdown.classList.remove('open'), 200);
     });
     smartInput.addEventListener('keydown', function(e) {
       const items = smartDropdown.querySelectorAll('.smart-ac-item');
       if (!items.length) return;
-      if (e.key === 'ArrowDown') { e.preventDefault(); smartHighlightIdx = Math.min(smartHighlightIdx + 1, items.length - 1); items.forEach((it, i) => it.classList.toggle('highlighted', i === smartHighlightIdx)); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); smartHighlightIdx = Math.max(smartHighlightIdx - 1, 0); items.forEach((it, i) => it.classList.toggle('highlighted', i === smartHighlightIdx)); }
-      else if (e.key === 'Enter' && smartHighlightIdx >= 0) { e.preventDefault(); items[smartHighlightIdx].dispatchEvent(new Event('mousedown')); }
-      else if (e.key === 'Escape') { smartDropdown.classList.remove('open'); }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        smartHighlightIdx = Math.min(smartHighlightIdx + 1, items.length - 1);
+        items.forEach((it, i) => {
+          it.classList.toggle('highlighted', i === smartHighlightIdx);
+          if (i === smartHighlightIdx) it.scrollIntoView({ block: 'nearest' });
+        });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        smartHighlightIdx = Math.max(smartHighlightIdx - 1, 0);
+        items.forEach((it, i) => {
+          it.classList.toggle('highlighted', i === smartHighlightIdx);
+          if (i === smartHighlightIdx) it.scrollIntoView({ block: 'nearest' });
+        });
+      } else if (e.key === 'Enter') {
+        if (smartHighlightIdx >= 0 && items[smartHighlightIdx]) {
+          e.preventDefault();
+          items[smartHighlightIdx].dispatchEvent(new Event('mousedown'));
+        }
+      } else if (e.key === 'Escape') {
+        smartDropdown.classList.remove('open');
+      }
     });
   }
   if (smartClear) {
     smartClear.addEventListener('click', function() {
-      smartInput.value = '';
+      if (smartInput) smartInput.value = '';
       this.classList.remove('show');
       smartDropdown.classList.remove('open');
       clearCustomerSelection();
